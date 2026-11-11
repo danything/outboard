@@ -209,13 +209,34 @@ def import_ses():
     """自動配線の結果を取り込んで build/routed.kicad_pcb に保存する。
     (1 つの Python の中で基板を 2 回読むと pcbnew の型がこわれるので、取り込みと仕上げは別のプロセスにする)"""
     src = os.path.join(ROOT, "build", "pre_route.kicad_pcb")
-    ses = os.path.join(ROOT, "build", "route.ses")
+    ses = os.path.join(ROOT, "routing", "route.ses")
     b = pcbnew.LoadBoard(src)
     n0 = len(b.GetTracks())
     ok = pcbnew.ImportSpecctraSES(b, ses)
     print("ImportSpecctraSES:", ok, "tracks+vias", n0, "->", len(b.GetTracks()))
     if not ok:
         return 1
+    # 自動配線が残した、片方の面にしか線がつながっていないビアを消す (手で置いたビアは固定してあるので残る)
+    items = []
+    for t in b.GetTracks():
+        via = t.Type() == pcbnew.PCB_VIA_T
+        items.append((via, t.GetNetCode(), None if via else t.GetLayer(), t.GetStartX(), t.GetStartY(),
+                      t.GetEndX(), t.GetEndY(), t.IsLocked(), t))
+    drop = []
+    for it in items:
+        if not it[0] or it[7]:
+            continue
+        layers = set()
+        for o in items:
+            if o[0] or o[1] != it[1]:
+                continue
+            if min(math.hypot(o[3] - it[3], o[4] - it[4]), math.hypot(o[5] - it[3], o[6] - it[4])) < mm(0.31):
+                layers.add(o[2])
+        if len(layers) < 2:
+            drop.append(it[8])
+    for v in drop:
+        b.Remove(v)
+    print("removed one-sided vias:", len(drop))
     pcbnew.SaveBoard(os.path.join(ROOT, "build", "routed.kicad_pcb"), b, True)
     return 0
 

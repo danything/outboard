@@ -20,7 +20,9 @@ echo "$SUM *build/$JAR" | sha256sum -c -
 rm -f build/route.ses
 export MSYS_NO_PATHCONV=1
 wslc run --rm -v "$(cygpath -w "$PWD/build"):/w" -w /w eclipse-temurin:25-jre sh -c "
-  java -Djava.awt.headless=true -jar /w/$JAR -de /w/route.dsn -dr /w/route.rules -do /w/route.ses --router.autorouter.max_passes=${PASSES:-40} --router.autorouter.ignore_net_classes=GND \
+  java -Djava.awt.headless=true -jar /w/$JAR -de /w/route.dsn -dr /w/route.rules -do /w/route.ses --router.autorouter.max_passes=${PASSES:-40} --router.autorouter.ignore_net_classes=GND --router.copperToEdgeClearanceUm=450 \
     --gui.enabled=false --user_data_path=/tmp/fr 2>&1 | tail -n ${TAIL:-25}
 "
 ls -la build/route.ses
+# 結果をリポジトリに残す (自動配線は毎回少し違う結果を出すので、検査を通ったものを取っておく)
+mkdir -p routing && cp build/route.ses routing/route.ses

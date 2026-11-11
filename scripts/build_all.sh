@@ -39,7 +39,7 @@ for s in $STAGES; do
       "$PY" scripts/check_board.py
       ;;
     out)
-      sh scripts/export_fab.sh
+      "$PY" scripts/export_fab.py
       ;;
     *) echo "unknown stage $s"; exit 1 ;;
   esac

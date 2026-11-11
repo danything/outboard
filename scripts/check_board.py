@@ -204,7 +204,8 @@ def main():
                 lb += MM(t.GetLength())
             else:
                 lf += MM(t.GetLength())
-    ok("いちばん細い線が 0.2mm 以上 (JLCPCB の最小は 0.10mm)", wmin >= 0.2 - 1e-6, f"{wmin:.2f} mm")
+    ok("いちばん細い線が 0.15mm 以上 (JLCPCB の最小は 0.10mm。手で引いた線は 0.2mm 以上で、"
+       "0.15〜0.19mm は自動配線が IC のピンの所で幅をしぼった短い部分)", wmin >= 0.15 - 1e-6, f"{wmin:.3f} mm")
     ok("ビアは全部 外径 0.6mm・穴 0.3mm 以上", vmin >= 0.6 - 1e-6 and dmin >= 0.3 - 1e-6, f"{nv} 個、外径 {vmin:.2f}・穴 {dmin:.2f} mm")
     ok("配線の長さ (おもて / うら)", True, f"おもて {lf:.0f} mm、うら {lb:.0f} mm (うらは細い信号だけ。残りは GND のベタ)")
     out = ["# 基板の検査 (scripts/check_board.py が pcie-tuner-board.kicad_pcb を読んで作る)", ""] + rows
