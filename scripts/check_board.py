@@ -123,6 +123,15 @@ class Net:
         return None
 
 
+def pos_of(b, ref, num):
+    for fp in b.GetFootprints():
+        if fp.GetReference() == ref:
+            for pd in fp.Pads():
+                if pd.GetNumber() == num:
+                    return (MM(pd.GetPosition().x) - OX, MM(pd.GetPosition().y) - OY)
+    raise KeyError((ref, num))
+
+
 def main():
     b = pcbnew.LoadBoard(os.path.join(ROOT, "pcie-tuner-board.kicad_pcb"))
     rows = []
@@ -147,7 +156,8 @@ def main():
         ("+3V3", "JP1.2", "J3.B8", 1.5, "3.3V: JP1 -> スロット B8"),
         ("+3V3", "J3.A10", "J3.A9", 0.8, "3.3V: A10 -> A9 (ピン 1 本ぶん、最大 1.1A)"),
         ("+12V_BOOST", "D4.1", "Q1.2", 0.8, "12V: D4 -> Q1"),
-        ("+12V_SW", "Q1.3", "JP2.1", 0.8, "12V: Q1 -> JP2"),
+        ("+12V_SW", "Q1.3", "F1.1", 0.8, "12V: Q1 -> F1 (ヒューズ)"),
+        ("+12V_F", "F1.2", "JP2.1", 0.8, "12V: F1 -> JP2"),
         ("+12V", "JP2.2", "J3.B2", 0.8, "12V: JP2 -> スロット B2"),
         ("+12V", "JP2.2", "J3.A3", 0.8, "12V: JP2 -> スロット A3 (左の端を回る)"),
         ("+12V", "JP2.2", "J3.B3", 0.8, "12V: JP2 -> スロット B3"),
@@ -171,6 +181,98 @@ def main():
     usb_b = sum(math.hypot(nd[4] - nd[2], nd[5] - nd[3]) for g in (dp, dn) for nd in g.nodes
                 if nd[0] == "seg" and nd[1] == pcbnew.B_Cu)
     ok("USB: うらの面を通るのは A6 の橋 (約 2.3mm) だけ", usb_b < 2.6, f"{usb_b:.2f} mm")
+    # ---- rev B で足した決まり ----------------------------------------------------
+    def res(net, a, c):
+        """a から c までの銅の抵抗 (mΩ)。1oz の銅を 0.49mΩ/□ として、線の長さ / 幅を足す (いちばん抵抗の小さい道)。"""
+        g = cache.setdefault(net, Net(b, net))
+        dist = {}
+        heap = [(0.0, i) for i in g.find(a)]
+        goal = set(g.find(c))
+        while heap:
+            d, i = heapq.heappop(heap)
+            if i in dist:
+                continue
+            dist[i] = d
+            if i in goal:
+                return d
+            for j in g.adj[i]:
+                if j not in dist:
+                    nd = g.nodes[j]
+                    r = 0.49 * math.hypot(nd[4] - nd[2], nd[5] - nd[3]) / nd[6] if nd[0] == "seg" else 0.0
+                    heapq.heappush(heap, (d + r, j))
+        return None
+
+    ra, rb = res("+3V3", "JP1.2", "J3.A10"), res("+3V3", "JP1.2", "J3.B8")
+    ok("3.3V: JP1 から A10 までと B8 までの銅の抵抗 (記録するだけ。そろってはいない)", True,
+       f"A10 まで {ra:.1f} mΩ、B8 まで {rb:.1f} mΩ")
+    zones = {z.GetZoneName(): z for z in b.Zones()}
+
+    def in_zone(name, x, y):
+        z = zones.get(name)
+        return z is not None and z.HitTestFilledArea(z.GetLayer(), pcbnew.VECTOR2I(pcbnew.FromMM(x + OX), pcbnew.FromMM(y + OY)), 0)
+
+    gnd_code = b.FindNet("/GND").GetNetCode()
+    vias = [(MM(t.GetStartX()) - OX, MM(t.GetStartY()) - OY, t.GetNetCode()) for t in b.GetTracks()
+            if t.Type() == pcbnew.PCB_VIA_T]
+
+    def gnd_vias_near(ref, num, r):
+        px, py = None, None
+        for fp in b.GetFootprints():
+            if fp.GetReference() == ref:
+                for pd in fp.Pads():
+                    if pd.GetNumber() == num:
+                        px, py = MM(pd.GetPosition().x) - OX, MM(pd.GetPosition().y) - OY
+        return sum(1 for x, y, n in vias if n == gnd_code and math.hypot(x - px, y - py) <= r), (px, py)
+
+    # U3: SW は 5 番ピンのすぐ外から L1 まで面。幅 1.2mm の帯が面の中に収まること
+    u3x, u3y = 47.0, 9.0
+    pts = [(u3x - 1.8 - 0.23 * i, u3y - 1.7 - 0.21 * i + dy) for i in range(8) for dy in (-0.6, 0.0, 0.6)]
+    ok("U3: SW (5 番ピン -> L1) は面でつながり、途中の帯の幅が 1.2mm 以上", all(in_zone("U3-SW", x, y) for x, y in pts)
+       and in_zone("U3-SW", u3x - 1.2, u3y - 0.75), f"{len(pts)} 点とも SW の面の中")
+    ok("U3: VIN (3 番ピン) と GND (4 番ピン) は、パッドのすぐ外 (0.35mm) から面", in_zone("U3-VIN", u3x + 1.35, u3y - 0.25)
+       and in_zone("U3-GND", u3x + 1.35, u3y - 0.75))
+    n, _ = gnd_vias_near("U3", "4", 4.6)
+    ok("U3: GND の 4 番ピンから 4.6mm 以内に GND のビアが 4 個以上 (面でつながる)", n >= 4, f"{n} 個")
+    n, _ = gnd_vias_near("U4", "2", 2.2)
+    ok("U4: GND の 2 番ピンから 2.2mm 以内に GND のビアが 2 個以上", n >= 2, f"{n} 個")
+    hot = cache.setdefault("+12V_BOOST", Net(b, "+12V_BOOST")).shortest("D4.1", "C18.1")
+    ok("U4: 熱い輪。D4 のカソードから C18 まで 4mm 以下、C18 の GND から U4 の 2 番ピンまで直線で 3.5mm 以下",
+       hot is not None and hot <= 4.0 and math.hypot(pos_of(b, "C18", "2")[0] - pos_of(b, "U4", "2")[0],
+                                                    pos_of(b, "C18", "2")[1] - pos_of(b, "U4", "2")[1]) <= 3.5,
+       f"D4 -> C18 {hot:.1f} mm")
+    for j in ("J1", "J2"):
+        for num in ("A1B12", "B1A12"):
+            n, _ = gnd_vias_near(j, num, 2.0)
+            ok(f"{j}: GND のパッド {num} から 2mm 以内に GND のビアが 2 個以上", n >= 2, f"{n} 個")
+        jy = pos_of(b, j, "A6")[1] + 0.25
+        under = [(round(x, 2), round(y, 2)) for x, y, _n in vias if x > 82.65 and abs(y - jy) < 3.7]
+        ok(f"{j}: 殻の下 (x > 82.65) にビアが無い", not under, str(under) if under else "0 個")
+    lens = {}
+    for t in b.GetTracks():
+        if t.Type() != pcbnew.PCB_VIA_T and t.GetLayer() == pcbnew.B_Cu:
+            lens[t.GetNetname().lstrip("/")] = lens.get(t.GetNetname().lstrip("/"), 0.0) + MM(t.GetLength())
+    ok("うらの面: SW12_ON は 0mm、+5V は 15mm 以下、EN_3V3 は 10mm 以下 (幹をくぐる所だけ)",
+       lens.get("SW12_ON", 0) < 0.01 and lens.get("+5V", 0) <= 15 and lens.get("EN_3V3", 0) <= 10,
+       f"SW12_ON {lens.get('SW12_ON', 0):.1f}、+5V {lens.get('+5V', 0):.1f}、EN_3V3 {lens.get('EN_3V3', 0):.1f} mm。"
+       f"長い順: " + ", ".join(f"{k} {v:.0f}" for k, v in sorted(lens.items(), key=lambda kv: -kv[1])[:8]))
+    for fp in b.GetFootprints():
+        if fp.GetReference() == "J3":
+            for pd in fp.Pads():
+                if pd.GetNumber() in ("A11", "B11"):
+                    gap = math.hypot(1.65, 1.25) - 2.35 / 2 - MM(pd.GetSizeX()) / 2
+                    ok(f"J3: {pd.GetNumber()} のパッドと柱の穴の間が 0.27mm 以上", gap >= 0.27 - 1e-6, f"{gap:.3f} mm")
+    shown = [fp.GetReference() for fp in b.GetFootprints()
+             if fp.Reference().IsVisible() and fp.Reference().GetLayer() == pcbnew.F_SilkS]
+    hidden = sorted(set(fp.GetReference() for fp in b.GetFootprints()) - set(shown))
+    ok("シルク: 部品番号が出ている数 (置き場所が無かったものは一覧に)", len(hidden) <= 6,
+       f"{len(shown)} 個。出ていない: {' '.join(hidden) or 'なし'}")
+    thin = 0
+    for fp in b.GetFootprints():
+        for g in fp.GraphicalItems():
+            if g.GetLayer() == pcbnew.F_SilkS and hasattr(g, "GetWidth") and 0 < MM(g.GetWidth()) < 0.149:
+                thin += 1
+    ok("シルク: 0.15mm より細い線が無い", thin == 0, f"{thin} 本")
+
     # ---- 向きと位置 ------------------------------------------------------------
     pos = {}
     for fp in b.GetFootprints():

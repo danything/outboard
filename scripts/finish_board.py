@@ -156,35 +156,105 @@ def dot(b, x, y, r=0.2):
 # シルクの文字 (文字, x, y[, 大きさ, 線の太さ])。大きさは JLCPCB の最小 (高さ 1.0mm・線 0.15mm) 以上
 TEXTS = [
     ("PCIe TUNER EXT PWR", 16.5, 3.0, 1.2, 0.18),
-    ("rev A  2026-11", 16.5, 5.2),
+    ("rev B  2026-11", 16.5, 5.2),
     ("<- BRACKET SIDE", 15.0, 8.0),
-    ("JP1 3V3", 28.9, 8.7),
-    ("JP2 12V", 12.9, 37.3),
-    ("JP3", 76.3, 16.4),
-    ("JP4 AUX", 23.6, 29.1),
+    ("3V3", 31.4, 9.4),
+    ("AUX", 22.2, 29.1),
     ("J4 USB", 68.5, 2.4),
-    ("KEY", 72.4, 6.1),
-    ("1 PC", 77.3, 6.8, 1.3, 0.2),
-    ("DATA+PWR", 76.3, 9.0),
-    ("2 CHARGER", 75.5, 41.2, 1.3, 0.2),
-    ("PWR ONLY", 75.5, 43.2),
-    ("9V", 82.8, 19.95),
-    ("9V", 80.0, 38.9),
+    ("KEY", 72.9, 5.6),
+    ("1=5V", 68.6, 18.4),
+    ("1 PC", 77.3, 6.6, 1.3, 0.2),
+    ("DATA+PWR", 76.3, 8.7),
+    ("2 CHARGER", 75.5, 41.4, 1.3, 0.2),
+    ("PWR ONLY", 75.5, 43.3),
     ("3V3", 11.4, 17.3),
-    ("12V", 17.0, 35.0),
-    ("STAT", 61.6, 42.4),
+    ("STAT", 61.7, 42.4),
     ("SW1 12V", 47.6, 38.3),
     ("SWIO GND", 44.8, 40.2),
     ("VIN", 57.5, 30.0),
     ("3V3", 28.6, 13.6),
     ("12V", 5.2, 37.3),
-    ("5V", 55.2, 39.3),
-    ("GND", 47.7, 16.8),
+    ("5V", 55.9, 39.3),
+    ("GND", 47.0, 15.9),
 ]
 
 # 1 番ピンの印 (参照名, 印の位置)。make_board.py の配置と合わせてある
 PIN1 = [("U1", 71.9, 20.6), ("U2", 71.9, 29.9), ("U3", 47.3, 10.7), ("U4", 32.6, 38.75), ("U5", 72.2, 10.9),
         ("U6", 67.6, 28.0)]
+
+REF_SIZE = 0.8      # 部品番号の文字の高さ (mm)。線は 0.15mm
+
+
+def _box(cx, cy, w, h):
+    return (cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2)
+
+
+def _hit(a, b, m=0.0):
+    return a[0] < b[2] + m and b[0] < a[2] + m and a[1] < b[3] + m and b[1] < a[3] + m
+
+
+def place_refs(b, texts):
+    """部品番号を全部シルクに出す。パッド・ほかのシルク・ほかの文字に重ならない所を、部品のまわりから探す。
+    見つからなかった部品の番号は、シルクに出さない (戻り値の一覧)。"""
+    blocks = []                      # 文字を置いてはいけない四角
+    for fp in b.GetFootprints():
+        for pd in fp.Pads():
+            bb = pd.GetBoundingBox()
+            x1, y1 = unpt(pcbnew.VECTOR2I(bb.GetLeft(), bb.GetTop()))
+            x2, y2 = unpt(pcbnew.VECTOR2I(bb.GetRight(), bb.GetBottom()))
+            blocks.append((x1 - 0.2, y1 - 0.2, x2 + 0.2, y2 + 0.2))
+        for g in fp.GraphicalItems():
+            if g.GetLayer() == SILK:
+                bb = g.GetBoundingBox()
+                x1, y1 = unpt(pcbnew.VECTOR2I(bb.GetLeft(), bb.GetTop()))
+                x2, y2 = unpt(pcbnew.VECTOR2I(bb.GetRight(), bb.GetBottom()))
+                if (x2 - x1) * (y2 - y1) < 30:       # 大きな枠 (スロットの外形など) は線ごとの四角にならないので除く
+                    blocks.append((x1 - 0.1, y1 - 0.1, x2 + 0.1, y2 + 0.1))
+    for t in texts:
+        size = t[3] if len(t) > 3 else 1.0
+        blocks.append(_box(t[1], t[2], len(t[0]) * size * 0.95 + 0.3, size * 1.2 + 0.2))
+    for _r, x, y in PIN1:
+        blocks.append(_box(x, y, 0.8, 0.8))
+    failed = []
+    fps = sorted(b.GetFootprints(), key=lambda f: f.GetReference())
+    for fp in fps:
+        ref = fp.GetReference()
+        cb = fp.GetCourtyard(F).BBox()
+        x1, y1 = unpt(pcbnew.VECTOR2I(cb.GetLeft(), cb.GetTop()))
+        x2, y2 = unpt(pcbnew.VECTOR2I(cb.GetRight(), cb.GetBottom()))
+        cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
+        tw, th = len(ref) * REF_SIZE * 0.95 + 0.2, REF_SIZE * 1.2
+        found = None
+        for d in (0.0, 0.4, 0.8, 1.3, 1.9, 2.6, 3.4, 4.3):
+            cands = [(cx, y1 - th / 2 - d, 0), (cx, y2 + th / 2 + d, 0), (x2 + tw / 2 + d, cy, 0),
+                     (x1 - tw / 2 - d, cy, 0), (x1 - th / 2 - d, cy, 90), (x2 + th / 2 + d, cy, 90),
+                     (x1 + tw / 2, y1 - th / 2 - d, 0), (x2 - tw / 2, y1 - th / 2 - d, 0),
+                     (x1 + tw / 2, y2 + th / 2 + d, 0), (x2 - tw / 2, y2 + th / 2 + d, 0),
+                     (cx, y1 - tw / 2 - d, 90), (cx, y2 + tw / 2 + d, 90)]
+            for px, py, rot in cands:
+                bx = _box(px, py, th, tw) if rot else _box(px, py, tw, th)
+                if bx[0] < 0.5 or bx[1] < 0.5 or bx[2] > W - 0.5 or bx[3] > H - 0.5:
+                    continue
+                if any(_hit(bx, k) for k in blocks):
+                    continue
+                found = (px, py, rot, bx)
+                break
+            if found:
+                break
+        r = fp.Reference()
+        if not found:
+            failed.append(ref)
+            r.SetVisible(False)
+            continue
+        r.SetLayer(SILK)
+        r.SetVisible(True)
+        r.SetPosition(pt(found[0], found[1]))
+        r.SetTextSize(pcbnew.VECTOR2I(mm(REF_SIZE), mm(REF_SIZE)))
+        r.SetTextThickness(mm(0.15))
+        r.SetTextAngleDegrees(found[2])
+        r.SetKeepUpright(True)
+        blocks.append(found[3])
+    return failed
 
 
 def silk(b):
@@ -203,6 +273,8 @@ def silk(b):
         text(b, *t)
     for _ref, x, y in PIN1:
         dot(b, x, y)
+    failed = place_refs(b, TEXTS)
+    print("reference designators on silk:", len(b.GetFootprints()) - len(failed), "not placed:", " ".join(failed) or "-")
 
 
 def import_ses():
@@ -284,7 +356,7 @@ def main():
     silk(b)
     tb = b.GetTitleBlock()
     tb.SetTitle("PCIe tuner external power board")
-    tb.SetRevision("A")
+    tb.SetRevision("B")
     tb.SetDate("2026-11-11")
     pcbnew.SaveBoard(dst, b, True)
     fix_paper(dst)

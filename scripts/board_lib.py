@@ -76,7 +76,7 @@ class Board:
             if k in c["fields"]:
                 fp.SetField(k, c["fields"][k])
                 fp.GetField(k).SetVisible(False)
-        if ref.startswith(("TP", "H", "JP3", "JP4")):
+        if ref.startswith(("TP", "H", "JP3", "JP4", "JP5")):
             fp.SetExcludedFromBOM(True)
             fp.SetExcludedFromPosFiles(True)
         self.b.Add(fp)
@@ -198,7 +198,7 @@ class Board:
         r.SetTextAngleDegrees(rot)
         r.SetKeepUpright(True)
 
-    def zone(self, net, layer, pts, clearance=0.25, min_width=0.25, priority=0, thermal=True, name=None):
+    def zone(self, net, layer, pts, clearance=0.25, min_width=0.25, priority=2, thermal=True, name=None):
         z = pcbnew.ZONE(self.b)
         z.SetLayer(layer)
         if net:

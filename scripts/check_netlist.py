@@ -119,7 +119,7 @@ class Checker:
 
         # ---- 2. 電源どうしの短絡 ---------------------------------------------
         rails = ["GND", "VIN", "VBUS1", "VBUS2", "+5V", "+3V3", "+3V3_BUCK", "+12V", "+12V_BOOST", "+12V_SW",
-                 "USBH_VBUS", "+3V3AUX"]
+                 "+12V_F", "USBH_VBUS", "+3V3AUX"]
         c.ok("電源のネットが別々に存在する (名前の取り違えで 1 つにまとまっていない)", all(r in c.nets for r in rails),
              f"{len(rails)} 本")
         links = {}
@@ -127,7 +127,8 @@ class Checker:
             if re.match(r"^(L|JP)\d+$", ref):
                 links[ref] = frozenset(c.two_pin(ref))
         expect = {"L1": {"SW_3V3", "+3V3_BUCK"}, "L2": {"VIN", "SW_12V"}, "JP1": {"+3V3_BUCK", "+3V3"},
-                  "JP2": {"+12V_SW", "+12V"}, "JP3": {"+5V", "USBH_VBUS"}, "JP4": {"+3V3", "+3V3AUX"}}
+                  "JP2": {"+12V_F", "+12V"}, "JP3": {"+5V", "USBH_VBUS"}, "JP4": {"+3V3", "+3V3AUX"},
+                  "JP5": {"+3V3_BUCK", "+3V3"}}
         c.ok("直流で素通しになる部品 (コイル・ジャンパー) がつなぐネットは決めたとおり",
              {k: set(v) for k, v in links.items()} == expect,
              "; ".join(f"{k}: {' - '.join(sorted(v))}" for k, v in sorted(links.items())))
@@ -139,8 +140,8 @@ class Checker:
             ns = {n for (r, p), n in c.pin.items() if r == ref and n in rails and n != "GND"}
             if len(ns) > 1:
                 span.append(f"{ref}:{'/'.join(sorted(ns))}")
-        expect_span = {"D1:VBUS1/VIN", "D2:VBUS2/VIN", "Q1:+12V_BOOST/+12V_SW", "U6:+5V/VIN"}
-        c.ok("端子のほかに 2 本以上の電源にまたがる部品は D1・D2・Q1・U6 だけ (3.3V と 12V と VIN を直接つなぐ部品はない)",
+        expect_span = {"D1:VBUS1/VIN", "D2:VBUS2/VIN", "Q1:+12V_BOOST/+12V_SW", "U6:+5V/VIN", "F1:+12V_F/+12V_SW"}
+        c.ok("端子のほかに 2 本以上の電源にまたがる部品は D1・D2・Q1・F1・U6 だけ (3.3V と 12V と VIN を直接つなぐ部品はない)",
              set(span) == expect_span, " ".join(span))
         r_span = []
         for ref in sorted(c.comps):
@@ -153,14 +154,15 @@ class Checker:
         # ---- 3. USB のデータ線 -----------------------------------------------
         dp = sorted(c.nets["USB_DP"])
         dn = sorted(c.nets["USB_DN"])
-        c.ok("USB_DP: J1 の A6・B6、U5 の 1・6、J4 の 5 だけ", dp == sorted([("J1", "A6"), ("J1", "B6"), ("U5", "1"), ("U5", "6"), ("J4", "5")]),
+        c.ok("USB_DP: J1 の A6・B6、U5 の 1 (IO1)、J4 の 5 だけ", dp == sorted([("J1", "A6"), ("J1", "B6"), ("U5", "1"), ("J4", "5")]),
              " ".join(f"{r}.{p}" for r, p in dp))
-        c.ok("USB_DN: J1 の A7・B7、U5 の 3・4、J4 の 3 だけ", dn == sorted([("J1", "A7"), ("J1", "B7"), ("U5", "3"), ("U5", "4"), ("J4", "3")]),
+        c.ok("USB_DN: J1 の A7・B7、U5 の 3 (IO2)、J4 の 3 だけ", dn == sorted([("J1", "A7"), ("J1", "B7"), ("U5", "3"), ("J4", "3")]),
              " ".join(f"{r}.{p}" for r, p in dn))
-        c.ok("J4: 1 = USBH_VBUS、7 = GND、9 と偶数のピンは未接続",
-             c.net("J4", "1") == "USBH_VBUS" and c.net("J4", "7") == "GND" and all(c.is_nc("J4", p) for p in "2 4 6 8 9 10".split()))
-        c.ok("U5: 2 = GND、5 (REF) は未接続 (REF の TVS は 6V で、9V の VBUS にはつなげない)",
-             c.net("U5", "2") == "GND" and c.is_nc("U5", "5"))
+        c.ok("J4: 1・2 = USBH_VBUS、7・8 = GND、4・6・9・10 は未接続",
+             c.net("J4", "1") == c.net("J4", "2") == "USBH_VBUS" and c.net("J4", "7") == c.net("J4", "8") == "GND"
+             and all(c.is_nc("J4", p) for p in "4 6 9 10".split()))
+        c.ok("U5: 2 = GND、5 (REF) は未接続 (REF の TVS は 6V で、9V の VBUS にはつなげない)、4・6 (IO3・IO4) も未接続",
+             c.net("U5", "2") == "GND" and all(c.is_nc("U5", p) for p in "456"))
         c.ok("J2 の D+/D-/SBU と J1 の SBU は未接続",
              all(c.is_nc("J2", p) for p in "A6 A7 B6 B7 A8 B8".split()) and all(c.is_nc("J1", p) for p in ("A8", "B8")))
 
@@ -169,8 +171,13 @@ class Checker:
             good = (c.net(u, "1") == vb and c.net(u, "8") == vb and c.net(j, "A4B9") == vb and c.net(j, "B4A9") == vb
                     and c.net(u, "7") == c.net(j, "A5") == f"{j}_CC1" and c.net(u, "6") == c.net(j, "B5") == f"{j}_CC2"
                     and c.net(u, "11") == "GND" and c.net(j, "A1B12") == "GND" and c.net(j, "B1A12") == "GND"
-                    and c.is_nc(u, "4") and c.is_nc(u, "5"))
-            c.ok(f"{u}: VHV(1)・VBUS(8) = {vb}、CC1(7)・CC2(6) = {j} の A5・B5、GND、DP/DM は未接続", good)
+                    and c.is_nc(u, "4") and c.is_nc(u, "5") and c.is_nc(u, "10"))
+            c.ok(f"{u}: VHV(1)・VBUS(8) = {vb}、CC1(7)・CC2(6) = {j} の A5・B5、GND、DP/DM と PG は未接続", good)
+            bl = c.between("R", vb, "GND")
+            rp = 1 / sum(1 / ohms(c.comps[r]["value"]) for r in bl) if bl else 0
+            pw = max(9.9 ** 2 / ohms(c.comps[r]["value"]) for r in bl) if bl else 9
+            c.ok(f"{vb}: GND へのブリーダ抵抗が合成 1kΩ 以下で、9.9V のとき 1 本 60mW 以下 (0603 の定格 100mW)",
+                 0 < rp <= 1000 and pw <= 0.06, f"{' '.join(bl)}: 合成 {rp:.0f}Ω、1 本 {pw * 1e3:.0f} mW")
             cfg = c.net(u, "9")
             rs = [r for r in c.between("R", cfg, "GND")]
             val = ohms(c.comps[rs[0]]["value"]) if rs else 0
@@ -186,10 +193,9 @@ class Checker:
         c.ok("U1 と U2 の I2C は別のバス (アドレスを選べないため)", c.net("U1", "2") != c.net("U2", "2") and c.net("U1", "3") != c.net("U2", "3"))
 
         # ---- 5. ダイオードの向き ---------------------------------------------
-        for ref, a, k in (("D1", "VBUS1", "VIN"), ("D2", "VBUS2", "VIN"), ("D3", "GND", "VIN"),
-                          ("D4", "SW_12V", "+12V_BOOST"), ("D5", "EN_3V3", "+5V"), ("LED1", "LED1_A", "PG1"),
-                          ("LED2", "LED2_A", "PG2"), ("LED3", "LED3_A", "GND"), ("LED4", "LED4_A", "GND"),
-                          ("LED5", "LED5_A", "GND")):
+        for ref, a, k in (("D1", "VBUS1", "VIN"), ("D2", "VBUS2", "VIN"),
+                          ("D4", "SW_12V", "+12V_BOOST"), ("D5", "EN_3V3", "+5V"), ("D6", "PERST#", "+3V3"),
+                          ("LED3", "LED3_A", "GND"), ("LED5", "LED5_A", "GND")):
             c.ok(f"{ref}: アノード = {a}、カソード = {k}", c.diode(ref) == (a, k), "%s -> %s" % c.diode(ref))
         c.ok("VIN から VBUS1・VBUS2 へ戻る道は D1・D2 (逆向き) だけ",
              {r for r, _ in c.nets["VBUS1"]} & {r for r, _ in c.nets["VIN"]} == {"D1"}
@@ -236,8 +242,13 @@ class Checker:
         c.ok("EN: それ以上の異常な電圧は D5 (EN -> +5V) が +5V + 0.7V = 5.7V 以下に抑える (最大定格 6V 未満)",
              c.diode("D5") == ("EN_3V3", "+5V"), f"20V のとき D5 に流れる電流 {(20 - 5.7) / R1 * 1e3:.2f} mA")
         users = sorted(f"{r}.{p}" for r, p in c.nets["EN_3V3"])
-        c.ok("EN_3V3 につながるのは U3 の EN・分圧・コンデンサ・D5・マイコンの PC0 だけ",
-             users == sorted(["U3.2", "U7.10", f"{r1[0]}.2", f"{r2[0]}.1", "C15.1", "D5.2"]), " ".join(users))
+        c.ok("EN_3V3 につながるのは U3 の EN・分圧・コンデンサ・D5・マイコンの PC3 だけ",
+             users == sorted(["U3.2", "U7.13", f"{r1[0]}.2", f"{r2[0]}.1", "C15.1", "D5.2"]), " ".join(users))
+        cen = farads(c.comps["C15"]["value"])[0]
+        import math as _m
+        ten = -(R1 * R2 / (R1 + R2)) * cen * _m.log(1 - 1.21 / (5 * ratio))
+        c.ok("EN: VBUS1 が 5V になってから EN がしきい値に届くまで 20ms 以上 (挿した直後のばたつきを避ける)", ten >= 0.02,
+             f"C15 {cen * 1e6:.1f}µF: {ten * 1e3:.0f} ms")
 
         # ---- 7. 12V の昇圧と出力スイッチ -------------------------------------
         good = (c.net("U4", "5") == "VIN" and c.net("U4", "2") == "GND" and c.net("U4", "4") == "EN_12V"
@@ -257,11 +268,22 @@ class Checker:
         rgs = c.between("R", "Q1_G", "+12V_BOOST")
         rg = c.between("R", "Q1_G", "Q2_D")
         vgs = -v12 * ohms(c.comps[rgs[0]]["value"]) / (ohms(c.comps[rgs[0]]["value"]) + ohms(c.comps[rg[0]]["value"]))
-        c.ok("Q1: ゲートはソースへ抵抗で引かれ (ふだんはオフ)、オンのときの Vgs は -4.5V から -20V の中", -20 < vgs <= -4.5,
-             f"{rgs[0]}/{rg[0]} -> Vgs = {vgs:.1f}V")
-        c.ok("Q2: 1 G = SW12_ON、2 S = GND、3 D = Q2_D。ゲートは抵抗で GND に落ちている (マイコンが空なら 12V は出ない)",
-             c.net("Q2", "1") == "SW12_ON" and c.net("Q2", "2") == "GND" and c.net("Q2", "3") == "Q2_D"
+        kdiv = ohms(c.comps[rgs[0]]["value"]) / (ohms(c.comps[rgs[0]]["value"]) + ohms(c.comps[rg[0]]["value"]))
+        c.ok("Q1 (AO3401A、Vgs の最大 ±12V): ゲートはソースへ抵抗で引かれ (ふだんはオフ)、オンのときの Vgs は -4.5V から -12V の中。"
+             "VIN が 20V (昇圧の出力に 19.5V が素通し) でも -12V を超えない", -12 < vgs <= -4.5 and 19.5 * kdiv < 12,
+             f"{rgs[0]}/{rg[0]} -> Vgs = {vgs:.1f}V、VIN 20V のとき {-19.5 * kdiv:.1f}V")
+        cdg = c.between("C", "Q1_G", "+12V_SW")
+        c.ok("Q1: ドレイン-ゲートの間に 47nF (立ち上がりを緩める)", len(cdg) == 1 and abs(farads(c.comps[cdg[0]]["value"])[0] - 47e-9) < 1e-12,
+             " ".join(cdg))
+        c.ok("Q2: 1 G = SW12_ON、3 D = Q2_D、2 S = Q2_S。ゲートは抵抗で GND に落ちている (マイコンが空なら 12V は出ない)",
+             c.net("Q2", "1") == "SW12_ON" and c.net("Q2", "2") == "Q2_S" and c.net("Q2", "3") == "Q2_D"
              and len(c.between("R", "SW12_ON", "GND")) == 1)
+        c.ok("Q3: 1 G = +3V3、3 D = Q2_S、2 S = GND (3.3V が無ければ、Q1 のゲートを引く道が切れて 12V は出ない)",
+             c.net("Q3", "1") == "+3V3" and c.net("Q3", "3") == "Q2_S" and c.net("Q3", "2") == "GND"
+             and sorted(c.nets["Q2_S"]) == [("Q2", "2"), ("Q3", "3")]
+             and sorted(r for r, _ in c.nets["Q2_D"]) == sorted(["Q2", rg[0]]))
+        c.ok("F1 (PTC): Q1 の出力 (+12V_SW) と JP2 (+12V_F) の間", set(c.two_pin("F1")) == {"+12V_SW", "+12V_F"}
+             and c.net("JP2", "1") == "+12V_F" and c.net("JP2", "2") == "+12V")
         c.ok("+12V の線に GND への抵抗がある (切ったあと 0V まで下げる)", len(c.between("R", "+12V", "GND")) == 1,
              " ".join(c.between("R", "+12V", "GND")))
 
@@ -269,11 +291,11 @@ class Checker:
         c.ok("U6: 1 GND、2 VIN、3 VOUT = +5V。入力と出力に 10µF", c.net("U6", "1") == "GND" and c.net("U6", "2") == "VIN"
              and c.net("U6", "3") == "+5V" and c.between("C", "+5V", "GND"))
         mcu = {"9": "+5V", "7": "GND", "1": "VIN_SENSE", "2": "VBUS1_SENSE", "3": "CC1_SENSE", "5": "CC2_SENSE",
-               "6": "SW1_IN", "8": "LED_STAT", "10": "EN_3V3", "11": "I2C1_SDA", "12": "I2C1_SCL", "13": "EN_12V",
-               "14": "SW12_ON", "15": "I2C2_SCL", "16": "I2C2_SDA", "18": "SWIO"}
+               "6": "12V_SENSE", "8": "LED_STAT", "10": "SW1_IN", "11": "I2C1_SDA", "12": "I2C1_SCL", "13": "EN_3V3",
+               "14": "PERST#", "15": "I2C2_SCL", "16": "I2C2_SDA", "18": "SWIO", "19": "EN_12V", "20": "SW12_ON"}
         bad = [f"{p}:{c.net('U7', p)}" for p, n in mcu.items() if c.net("U7", p) != n]
-        bad += [f"{p}:not NC" for p in ("4", "17", "19", "20") if not c.is_nc("U7", p)]
-        c.ok("U7: ピンの割り当てが README の表のとおり (ADC は A7・A5・A6・A1、I2C は PC1/PC2 と PC5/PC6、SWIO は PD1)",
+        bad += [f"{p}:not NC" for p in ("4", "17") if not c.is_nc("U7", p)]
+        c.ok("U7: ピンの割り当てが README の表のとおり (ADC は A7・A5・A6・A1・A0、I2C は PC1/PC2 と PC5/PC6、SWIO は PD1)",
              not bad, " ".join(bad))
         c.ok("J5: 1 = SWIO、2 = GND", c.net("J5", "1") == "SWIO" and c.net("J5", "2") == "GND")
         c.ok("SW1: 2 (共通) = マイコンの入力、1 = GND、3 は未接続。入力は +5V へプルアップ",
@@ -284,13 +306,13 @@ class Checker:
         def vdd(vin):
             return min(5.0, max(0.0, vin - 0.6))   # LDO の降下を大きめ (0.6V) に見る
 
-        for adc, src in (("VIN_SENSE", "VIN"), ("VBUS1_SENSE", "VBUS1")):
+        for adc, src in (("VIN_SENSE", "VIN"), ("VBUS1_SENSE", "VBUS1"), ("12V_SENSE", "+12V")):
             ra, rb2 = c.between("R", src, adc), c.between("R", adc, "GND")
             k = ohms(c.comps[rb2[0]]["value"]) / (ohms(c.comps[ra[0]]["value"]) + ohms(c.comps[rb2[0]]["value"]))
             worst = max((k * v - vdd(v), v) for v in [x / 10 for x in range(30, 201)])
             c.ok(f"{adc}: {src} が 3〜20V (TVS が抑える上限) のどこでも、ピンの電圧 ≤ マイコンの電源", worst[0] <= 0,
                  f"比 {k:.3f}: 5V->{k * 5:.2f}V, 9V->{k * 9:.2f}V, 20V->{k * 20:.2f}V (電源 5.0V)。余裕の最小 {-worst[0]:.2f}V @ {worst[1]}V")
-            c.ok(f"{adc}: {src} からマイコンのピンへは抵抗を通る (直結していない)", ("U7", "1") not in c.nets[src] and ("U7", "2") not in c.nets[src])
+            c.ok(f"{adc}: {src} からマイコンのピンへは抵抗を通る (直結していない)", "U7" not in {r for r, _ in c.nets[src]})
         for adc, src in (("CC1_SENSE", "J1_CC1"), ("CC2_SENSE", "J1_CC2")):
             rs = c.between("R", src, adc)
             r = ohms(c.comps[rs[0]]["value"])
@@ -305,11 +327,14 @@ class Checker:
         tau = ohms(c.comps[rp[0]]["value"]) * farads(c.comps[cp[0]]["value"])[0]
         import math
         t2 = -tau * math.log(1 - 2.0 / 3.3)
-        c.ok("PERST#: +3V3 へ抵抗、GND へコンデンサ。2.0V に届くまで 80ms 以上 (PCIe の T_PVPERL は 100ms)", len(rp) == 1 and len(cp) == 1 and t2 >= 0.08,
+        c.ok("PERST#: +3V3 へ抵抗、GND へコンデンサ。2.0V に届くまで 100ms 以上 (PCIe の T_PVPERL)", len(rp) == 1 and len(cp) == 1 and t2 >= 0.1,
              f"{rp[0]}·{cp[0]}: τ = {tau * 1e3:.0f} ms、2.0V まで {t2 * 1e3:.0f} ms")
+        c.ok("PERST#: D6 が抵抗に並列 (3.3V が落ちたらコンデンサをすぐ空にする)。マイコンの PC4 にもつながる",
+             c.diode("D6") == ("PERST#", "+3V3") and ("U7", "14") in c.nets["PERST#"])
 
         # ---- 10. コンデンサの耐圧 --------------------------------------------
-        need = {"VIN": 25, "VBUS1": 25, "VBUS2": 25, "+12V": 25, "+12V_BOOST": 25, "+12V_SW": 25, "Q1_G": 25}
+        need = {"VIN": 25, "VBUS1": 25, "VBUS2": 25, "+12V": 25, "+12V_BOOST": 25, "+12V_SW": 25, "+12V_F": 25,
+                "Q1_G": 25}
         low = []
         for ref in c.comps:
             if re.match(r"^C\d+$", ref):
@@ -319,8 +344,8 @@ class Checker:
         c.ok("VIN・VBUS・12V の線のコンデンサは耐圧 25V 以上", not low, " ".join(low) or "すべて 25V か 50V")
 
         # ---- 11. 部品の情報 --------------------------------------------------
-        nol = [r for r, d in c.comps.items() if not d["fields"].get("LCSC") and not re.match(r"^(TP|H|JP[34])", r)]
-        c.ok("部品を載せるものには全部 LCSC の品番がある", not nol, " ".join(nol) or f"{len(c.comps)} 個中、載せないのは TP・H・JP3・JP4")
+        nol = [r for r, d in c.comps.items() if not d["fields"].get("LCSC") and not re.match(r"^(TP|H|JP[345])", r)]
+        c.ok("部品を載せるものには全部 LCSC の品番がある", not nol, " ".join(nol) or f"{len(c.comps)} 個中、載せないのは TP・H・JP3・JP4・JP5")
         nofp = [r for r, d in c.comps.items() if not d["footprint"]]
         c.ok("全部の部品にフットプリントがある", not nofp, " ".join(nofp))
         single = [n for n, nodes in c.nets.items() if len(nodes) == 1 and not n.startswith("unconnected-")]

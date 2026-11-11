@@ -12,7 +12,7 @@
   穴と線 (めっきあり)       0.28 mm (0.35 推奨)       0.3 mm
   穴と線 (めっきなし)       0.2 mm                   0.2 mm
   銅と外形                  0.2 mm                   0.3 mm
-  シルクの線幅 / 文字の高さ  0.15 / 1.0 mm            0.15 / 1.0 mm
+  シルクの線幅 / 文字の高さ  0.15 / 1.0 mm            0.15 / 0.8 mm (部品番号だけ 0.8mm。意味を書いた文字は 1.0mm 以上)
   シルクとパッド            0.15 mm                  0.15 mm
 
 使い方: python scripts/gen_project.py
@@ -24,7 +24,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Power: 太い線は make_board.py が幅を決めて手で引く。ここの 0.5mm は、自動配線が引く枝 (分圧の抵抗などへの細い線) の幅
 POWER_NETS = ["VIN", "VBUS1", "VBUS2", "+3V3", "+3V3_BUCK", "+3V3AUX", "SW_3V3", "+12V", "+12V_BOOST", "+12V_SW",
-              "SW_12V", "+5V", "USBH_VBUS"]
+              "SW_12V", "+5V", "USBH_VBUS", "+12V_F"]
 
 
 # 基板の設定 (下限) より厳しくしたい所を、条件つきのルールで書く。
@@ -70,7 +70,7 @@ def main():
                     "min_microvia_drill": 0.1,
                     "min_resolved_spokes": 1,
                     "min_silk_clearance": 0.0,
-                    "min_text_height": 1.0,
+                    "min_text_height": 0.8,
                     "min_text_thickness": 0.15,
                     "min_through_hole_diameter": 0.3,
                     "min_track_width": 0.15,

@@ -9,15 +9,14 @@ footprint SOT-583-8_L2.1-W1.2-P0.50-LS1.6-BR: from EasyEDA, 8 pads, courtyard 2.
 footprint SOT-23-6_L2.9-W1.6-P0.95-LS2.8-BR: from EasyEDA, 6 pads, courtyard 4.1 x 3.4 mm
 footprint SOT-89-3_L4.5-W2.5-P1.50-LS4.2-BR: from EasyEDA, 3 pads, courtyard 5.68 x 4.96 mm
 footprint TSSOP-20_L6.5-W4.4-P0.65-LS6.4-BL: from EasyEDA, 20 pads, courtyard 6.96 x 7.78 mm
-footprint SOT-23-3_L2.9-W1.6-P1.90-LS2.8-BR: from EasyEDA, 3 pads, courtyard 3.85 x 3.38 mm
+footprint SOT-23_L2.9-W1.3-P1.90-LS2.4-BR: from EasyEDA, 3 pads, courtyard 3.6 x 3.3 mm
+footprint F1206: from EasyEDA, 2 pads, courtyard 4.84 x 2.48 mm
 footprint SOT-23-3_L2.9-W1.3-P1.90-LS2.4-BR: from EasyEDA, 3 pads, courtyard 3.3 x 3.36 mm
 footprint SMA_L4.4-W2.8-LS5.4-R-RD: from EasyEDA, 2 pads, courtyard 7.36 x 3.02 mm
 footprint SMA_L4.3-W2.6-LS5.2-RD: from EasyEDA, 2 pads, courtyard 6.7 x 3.16 mm
-footprint SOD-123FL_L2.8-W1.8-LS3.8-R-RD: from EasyEDA, 2 pads, courtyard 4.9 x 2.06 mm
 footprint SOD-123F_L2.7-W1.6-LS3.8-RD: from EasyEDA, 2 pads, courtyard 4.86 x 2.16 mm
 footprint IND-SMD_L7.0-W6.6: from EasyEDA, 2 pads, courtyard 8.7 x 6.9 mm
 footprint SW-TH_MSK12C02: from EasyEDA, 9 pads, courtyard 8.7 x 6.29 mm
-footprint LED0603-R-RD_WHITE: from EasyEDA, 2 pads, courtyard 3.18 x 1.81 mm
 footprint LED-SMD_L1.6-W0.8-R-RD: from EasyEDA, 2 pads, courtyard 3.47 x 1.7 mm
 footprint R0603: from EasyEDA, 2 pads, courtyard 3.08 x 1.62 mm
 footprint C0603: from EasyEDA, 2 pads, courtyard 3.08 x 1.72 mm
@@ -154,7 +153,7 @@ CH32V003 (C5187096): EasyEDA footprint TSSOP-20_L6.5-W4.4-P0.65-LS6.4-BL
   pin     7: ours VSS          EasyEDA VSS                                      ok
   pin     8: ours PD0          EasyEDA PD0/T1CH1N/OPN1/SDA_/UTX_                ok
   pin     9: ours VDD          EasyEDA VDD                                      ok
-AO3407A (C15155): EasyEDA footprint SOT-23-3_L2.9-W1.6-P1.90-LS2.8-BR
+AO3401A (C15127): EasyEDA footprint SOT-23_L2.9-W1.3-P1.90-LS2.4-BR
   pin     1: ours G            EasyEDA G                                        ok
   pin     2: ours S            EasyEDA S                                        ok
   pin     3: ours D            EasyEDA D                                        ok
@@ -166,8 +165,6 @@ SS54 (C22452): EasyEDA footprint SMA_L4.4-W2.8-LS5.4-R-RD
   EasyEDA: anode = pad 1, cathode = pad 2; our symbol D_A1K2 ok
 SS34 (C8678): EasyEDA footprint SMA_L4.3-W2.6-LS5.2-RD
   EasyEDA: anode = pad 2, cathode = pad 1; our symbol D_K1A2 ok
-SMF12A (C19077506): EasyEDA footprint SOD-123FL_L2.8-W1.8-LS3.8-R-RD
-  EasyEDA: anode = pad 1, cathode = pad 2; our symbol D_A1K2 ok
 1N4148W (C81598): EasyEDA footprint SOD-123F_L2.7-W1.6-LS3.8-RD
   EasyEDA: anode = pad 2, cathode = pad 1; our symbol D_K1A2 ok
 L_4U7 (C167220): EasyEDA footprint IND-SMD_L7.0-W6.6
@@ -177,8 +174,6 @@ MSK12C02 (C431540): EasyEDA footprint SW-TH_MSK12C02
   pin     2: ours COM          EasyEDA 2                                        ok (EasyEDA has no name; checked against the datasheet by hand)
   pin     3: ours B            EasyEDA 3                                        ok (EasyEDA has no name; checked against the datasheet by hand)
   pin     4: ours SHELL        EasyEDA 4                                        ok (EasyEDA has no name; checked against the datasheet by hand)
-LED_W (C2290): EasyEDA footprint LED0603-R-RD_WHITE
-  EasyEDA: anode = pad 1, cathode = pad 2; our symbol LED_A1K2 ok
 LED_R (C2286): EasyEDA footprint LED-SMD_L1.6-W0.8-R-RD
   EasyEDA: anode = pad 1, cathode = pad 2; our symbol LED_A1K2 ok
 

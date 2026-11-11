@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "D:\\danything\\pcie-tuner-board\\pcie-tuner-board.kicad_sch")
-		(date "2026-11-11T21:05:08")
+		(date "2026-11-11T22:16:32")
 		(tool "Eeschema 10.0.8")
 		(sheet
 			(number "1")
@@ -11,7 +11,7 @@
 			(title_block
 				(title "PCIe tuner external power board")
 				(company "danything")
-				(rev "A")
+				(rev "B")
 				(date "2026-11-11")
 				(source "pcie-tuner-board.kicad_sch")
 				(comment
@@ -114,21 +114,21 @@
 		)
 		(comp
 			(ref "C2")
-			(value "4.7nF 50V")
+			(value "100nF 50V")
 			(footprint "pcie-tuner:C0603")
-			(description "MLCC 4.7nF 50V")
+			(description "MLCC 100nF 50V")
 			(fields
 				(field
-					(name "LCSC") "C1621")
+					(name "LCSC") "C14663")
 				(field
-					(name "MPN") "CL10B472KB8NNNC")
+					(name "MPN") "CC0603KRX7R9BB104")
 				(field
 					(name "Footprint") "pcie-tuner:C0603")
 				(field
 					(name "Datasheet")
 				)
 				(field
-					(name "Description") "MLCC 4.7nF 50V")
+					(name "Description") "MLCC 100nF 50V")
 			)
 			(libsource
 				(lib "pcie-tuner")
@@ -137,11 +137,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "C1621")
+				(value "C14663")
 			)
 			(property
 				(name "MPN")
-				(value "CL10B472KB8NNNC")
+				(value "CC0603KRX7R9BB104")
 			)
 			(property
 				(name "Sheetname")
@@ -868,21 +868,21 @@
 		)
 		(comp
 			(ref "C15")
-			(value "100nF 50V")
+			(value "1uF 50V")
 			(footprint "pcie-tuner:C0603")
-			(description "MLCC 100nF 50V")
+			(description "MLCC 1uF 50V")
 			(fields
 				(field
-					(name "LCSC") "C14663")
+					(name "LCSC") "C15849")
 				(field
-					(name "MPN") "CC0603KRX7R9BB104")
+					(name "MPN") "CL10A105KB8NNNC")
 				(field
 					(name "Footprint") "pcie-tuner:C0603")
 				(field
 					(name "Datasheet")
 				)
 				(field
-					(name "Description") "MLCC 100nF 50V")
+					(name "Description") "MLCC 1uF 50V")
 			)
 			(libsource
 				(lib "pcie-tuner")
@@ -891,11 +891,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "C14663")
+				(value "C15849")
 			)
 			(property
 				(name "MPN")
-				(value "CC0603KRX7R9BB104")
+				(value "CL10A105KB8NNNC")
 			)
 			(property
 				(name "Sheetname")
@@ -1853,6 +1853,122 @@
 			)
 		)
 		(comp
+			(ref "C32")
+			(value "47nF 50V")
+			(footprint "pcie-tuner:C0603")
+			(description "MLCC 47nF 50V")
+			(fields
+				(field
+					(name "LCSC") "C1622")
+				(field
+					(name "MPN") "CL10B473KB8NNNC")
+				(field
+					(name "Footprint") "pcie-tuner:C0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "MLCC 47nF 50V")
+			)
+			(libsource
+				(lib "pcie-tuner")
+				(part "C")
+				(description "Capacitor (MLCC)")
+			)
+			(property
+				(name "LCSC")
+				(value "C1622")
+			)
+			(property
+				(name "MPN")
+				(value "CL10B473KB8NNNC")
+			)
+			(property
+				(name "Sheetname")
+				(value "pcie-tuner-board")
+			)
+			(property
+				(name "Sheetfile")
+				(value "pcie-tuner-board.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0562cc3c-3b26-5427-b922-e2091a8e8d44")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C33")
+			(value "100nF 50V")
+			(footprint "pcie-tuner:C0603")
+			(description "MLCC 100nF 50V")
+			(fields
+				(field
+					(name "LCSC") "C14663")
+				(field
+					(name "MPN") "CC0603KRX7R9BB104")
+				(field
+					(name "Footprint") "pcie-tuner:C0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "MLCC 100nF 50V")
+			)
+			(libsource
+				(lib "pcie-tuner")
+				(part "C")
+				(description "Capacitor (MLCC)")
+			)
+			(property
+				(name "LCSC")
+				(value "C14663")
+			)
+			(property
+				(name "MPN")
+				(value "CC0603KRX7R9BB104")
+			)
+			(property
+				(name "Sheetname")
+				(value "pcie-tuner-board")
+			)
+			(property
+				(name "Sheetfile")
+				(value "pcie-tuner-board.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "12fcc7c9-8964-5593-9583-12d67c9530de")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
 			(ref "D1")
 			(value "SS54")
 			(footprint "pcie-tuner:SMA_L4.4-W2.8-LS5.4-R-RD")
@@ -1954,64 +2070,6 @@
 				(tstamps "/")
 			)
 			(tstamps "e4350ed0-b731-5fb2-94df-a7ead9cd1143")
-			(units
-				(unit
-					(name "A")
-					(pins
-						(pin
-							(num "1")
-						)
-						(pin
-							(num "2")
-						)
-					)
-				)
-			)
-		)
-		(comp
-			(ref "D3")
-			(value "SMF12A")
-			(footprint "pcie-tuner:SOD-123FL_L2.8-W1.8-LS3.8-R-RD")
-			(description "TVS 12V 200W unidirectional")
-			(fields
-				(field
-					(name "LCSC") "C19077506")
-				(field
-					(name "MPN") "SMF12A")
-				(field
-					(name "Footprint") "pcie-tuner:SOD-123FL_L2.8-W1.8-LS3.8-R-RD")
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description") "TVS 12V 200W unidirectional")
-			)
-			(libsource
-				(lib "pcie-tuner")
-				(part "D_A1K2")
-				(description "Diode (pad 1 = anode, pad 2 = cathode)")
-			)
-			(property
-				(name "LCSC")
-				(value "C19077506")
-			)
-			(property
-				(name "MPN")
-				(value "SMF12A")
-			)
-			(property
-				(name "Sheetname")
-				(value "pcie-tuner-board")
-			)
-			(property
-				(name "Sheetfile")
-				(value "pcie-tuner-board.kicad_sch")
-			)
-			(sheetpath
-				(names "/")
-				(tstamps "/")
-			)
-			(tstamps "c47d00ab-01f1-598d-9412-1bdf8409cc33")
 			(units
 				(unit
 					(name "A")
@@ -2137,6 +2195,122 @@
 						)
 						(pin
 							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "D6")
+			(value "1N4148W")
+			(footprint "pcie-tuner:SOD-123F_L2.7-W1.6-LS3.8-RD")
+			(description "Switching diode 75V")
+			(fields
+				(field
+					(name "LCSC") "C81598")
+				(field
+					(name "MPN") "1N4148W")
+				(field
+					(name "Footprint") "pcie-tuner:SOD-123F_L2.7-W1.6-LS3.8-RD")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Switching diode 75V")
+			)
+			(libsource
+				(lib "pcie-tuner")
+				(part "D_K1A2")
+				(description "Diode (pad 1 = cathode, pad 2 = anode)")
+			)
+			(property
+				(name "LCSC")
+				(value "C81598")
+			)
+			(property
+				(name "MPN")
+				(value "1N4148W")
+			)
+			(property
+				(name "Sheetname")
+				(value "pcie-tuner-board")
+			)
+			(property
+				(name "Sheetfile")
+				(value "pcie-tuner-board.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "36fd1450-3f21-5baa-8100-53a570c183da")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "F1")
+			(value "nSMD075-13.2V")
+			(footprint "pcie-tuner:F1206")
+			(description "Resettable fuse 0.75A hold / 1.5A trip, 13.2V (TECHFUSE)")
+			(fields
+				(field
+					(name "LCSC") "C70079")
+				(field
+					(name "MPN") "nSMD075-13.2V")
+				(field
+					(name "Footprint") "pcie-tuner:F1206")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Resettable fuse 0.75A hold / 1.5A trip, 13.2V (TECHFUSE)")
+			)
+			(libsource
+				(lib "pcie-tuner")
+				(part "F")
+				(description "Resettable fuse (PTC)")
+			)
+			(property
+				(name "LCSC")
+				(value "C70079")
+			)
+			(property
+				(name "MPN")
+				(value "nSMD075-13.2V")
+			)
+			(property
+				(name "Sheetname")
+				(value "pcie-tuner-board")
+			)
+			(property
+				(name "Sheetfile")
+				(value "pcie-tuner-board.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "64c8e6b8-b978-50de-b171-27508409f49b")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
 						)
 					)
 				)
@@ -3109,6 +3283,69 @@
 			)
 		)
 		(comp
+			(ref "JP5")
+			(value "Solder jumper (closed)")
+			(footprint "pcie-tuner:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm")
+			(description "Solder jumper")
+			(fields
+				(field
+					(name "LCSC")
+				)
+				(field
+					(name "MPN")
+				)
+				(field
+					(name "Footprint") "pcie-tuner:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Solder jumper")
+			)
+			(libsource
+				(lib "pcie-tuner")
+				(part "JP_SOLDER")
+				(description "Solder jumper, 2 pads, bridged by default (cut to open)")
+			)
+			(property
+				(name "LCSC")
+				(value "")
+			)
+			(property
+				(name "MPN")
+				(value "")
+			)
+			(property
+				(name "Sheetname")
+				(value "pcie-tuner-board")
+			)
+			(property
+				(name "Sheetfile")
+				(value "pcie-tuner-board.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "25750a3d-3309-5c1a-bb65-442e158da3db")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
 			(ref "L1")
 			(value "4.7uH FXL0630")
 			(footprint "pcie-tuner:IND-SMD_L7.0-W6.6")
@@ -3225,122 +3462,6 @@
 			)
 		)
 		(comp
-			(ref "LED1")
-			(value "White")
-			(footprint "pcie-tuner:LED0603-R-RD_WHITE")
-			(description "LED white 0603")
-			(fields
-				(field
-					(name "LCSC") "C2290")
-				(field
-					(name "MPN") "KT-0603W")
-				(field
-					(name "Footprint") "pcie-tuner:LED0603-R-RD_WHITE")
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description") "LED white 0603")
-			)
-			(libsource
-				(lib "pcie-tuner")
-				(part "LED_A1K2")
-				(description "LED (pad 1 = anode, pad 2 = cathode)")
-			)
-			(property
-				(name "LCSC")
-				(value "C2290")
-			)
-			(property
-				(name "MPN")
-				(value "KT-0603W")
-			)
-			(property
-				(name "Sheetname")
-				(value "pcie-tuner-board")
-			)
-			(property
-				(name "Sheetfile")
-				(value "pcie-tuner-board.kicad_sch")
-			)
-			(sheetpath
-				(names "/")
-				(tstamps "/")
-			)
-			(tstamps "cecbd0b6-cf8f-5d6e-b557-df7e6d6b3427")
-			(units
-				(unit
-					(name "A")
-					(pins
-						(pin
-							(num "1")
-						)
-						(pin
-							(num "2")
-						)
-					)
-				)
-			)
-		)
-		(comp
-			(ref "LED2")
-			(value "White")
-			(footprint "pcie-tuner:LED0603-R-RD_WHITE")
-			(description "LED white 0603")
-			(fields
-				(field
-					(name "LCSC") "C2290")
-				(field
-					(name "MPN") "KT-0603W")
-				(field
-					(name "Footprint") "pcie-tuner:LED0603-R-RD_WHITE")
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description") "LED white 0603")
-			)
-			(libsource
-				(lib "pcie-tuner")
-				(part "LED_A1K2")
-				(description "LED (pad 1 = anode, pad 2 = cathode)")
-			)
-			(property
-				(name "LCSC")
-				(value "C2290")
-			)
-			(property
-				(name "MPN")
-				(value "KT-0603W")
-			)
-			(property
-				(name "Sheetname")
-				(value "pcie-tuner-board")
-			)
-			(property
-				(name "Sheetfile")
-				(value "pcie-tuner-board.kicad_sch")
-			)
-			(sheetpath
-				(names "/")
-				(tstamps "/")
-			)
-			(tstamps "1c83f649-7cc0-5600-9294-21d0773f5665")
-			(units
-				(unit
-					(name "A")
-					(pins
-						(pin
-							(num "1")
-						)
-						(pin
-							(num "2")
-						)
-					)
-				)
-			)
-		)
-		(comp
 			(ref "LED3")
 			(value "Red")
 			(footprint "pcie-tuner:LED-SMD_L1.6-W0.8-R-RD")
@@ -3384,64 +3505,6 @@
 				(tstamps "/")
 			)
 			(tstamps "824b0ac0-9910-544a-b165-2872e8cd63f1")
-			(units
-				(unit
-					(name "A")
-					(pins
-						(pin
-							(num "1")
-						)
-						(pin
-							(num "2")
-						)
-					)
-				)
-			)
-		)
-		(comp
-			(ref "LED4")
-			(value "Red")
-			(footprint "pcie-tuner:LED-SMD_L1.6-W0.8-R-RD")
-			(description "LED red 0603")
-			(fields
-				(field
-					(name "LCSC") "C2286")
-				(field
-					(name "MPN") "KT-0603R")
-				(field
-					(name "Footprint") "pcie-tuner:LED-SMD_L1.6-W0.8-R-RD")
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description") "LED red 0603")
-			)
-			(libsource
-				(lib "pcie-tuner")
-				(part "LED_A1K2")
-				(description "LED (pad 1 = anode, pad 2 = cathode)")
-			)
-			(property
-				(name "LCSC")
-				(value "C2286")
-			)
-			(property
-				(name "MPN")
-				(value "KT-0603R")
-			)
-			(property
-				(name "Sheetname")
-				(value "pcie-tuner-board")
-			)
-			(property
-				(name "Sheetfile")
-				(value "pcie-tuner-board.kicad_sch")
-			)
-			(sheetpath
-				(names "/")
-				(tstamps "/")
-			)
-			(tstamps "e9409363-e796-550e-9664-4bd312e0e05d")
 			(units
 				(unit
 					(name "A")
@@ -3516,21 +3579,21 @@
 		)
 		(comp
 			(ref "Q1")
-			(value "AO3407A")
-			(footprint "pcie-tuner:SOT-23-3_L2.9-W1.6-P1.90-LS2.8-BR")
-			(description "P-MOSFET -30V (AOS)")
+			(value "AO3401A")
+			(footprint "pcie-tuner:SOT-23_L2.9-W1.3-P1.90-LS2.4-BR")
+			(description "P-MOSFET -30V, Vgs +-12V (AOS)")
 			(fields
 				(field
-					(name "LCSC") "C15155")
+					(name "LCSC") "C15127")
 				(field
-					(name "MPN") "AO3407A")
+					(name "MPN") "AO3401A")
 				(field
-					(name "Footprint") "pcie-tuner:SOT-23-3_L2.9-W1.6-P1.90-LS2.8-BR")
+					(name "Footprint") "pcie-tuner:SOT-23_L2.9-W1.3-P1.90-LS2.4-BR")
 				(field
 					(name "Datasheet")
 				)
 				(field
-					(name "Description") "P-MOSFET -30V (AOS)")
+					(name "Description") "P-MOSFET -30V, Vgs +-12V (AOS)")
 			)
 			(libsource
 				(lib "pcie-tuner")
@@ -3539,11 +3602,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "C15155")
+				(value "C15127")
 			)
 			(property
 				(name "MPN")
-				(value "AO3407A")
+				(value "AO3401A")
 			)
 			(property
 				(name "Sheetname")
@@ -3637,6 +3700,67 @@
 			)
 		)
 		(comp
+			(ref "Q3")
+			(value "2N7002")
+			(footprint "pcie-tuner:SOT-23-3_L2.9-W1.3-P1.90-LS2.4-BR")
+			(description "N-MOSFET 60V (Changjing)")
+			(fields
+				(field
+					(name "LCSC") "C8545")
+				(field
+					(name "MPN") "2N7002")
+				(field
+					(name "Footprint") "pcie-tuner:SOT-23-3_L2.9-W1.3-P1.90-LS2.4-BR")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "N-MOSFET 60V (Changjing)")
+			)
+			(libsource
+				(lib "pcie-tuner")
+				(part "NMOS_GSD")
+				(description "N-channel MOSFET, SOT-23 (1=G 2=S 3=D)")
+			)
+			(property
+				(name "LCSC")
+				(value "C8545")
+			)
+			(property
+				(name "MPN")
+				(value "2N7002")
+			)
+			(property
+				(name "Sheetname")
+				(value "pcie-tuner-board")
+			)
+			(property
+				(name "Sheetfile")
+				(value "pcie-tuner-board.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "37430872-49c9-544d-b00f-26144781fd27")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
 			(ref "R1")
 			(value "6.8k")
 			(footprint "pcie-tuner:R0603")
@@ -3680,64 +3804,6 @@
 				(tstamps "/")
 			)
 			(tstamps "d81fa435-c1de-5026-a8d0-69c186054e6b")
-			(units
-				(unit
-					(name "A")
-					(pins
-						(pin
-							(num "1")
-						)
-						(pin
-							(num "2")
-						)
-					)
-				)
-			)
-		)
-		(comp
-			(ref "R2")
-			(value "4.7k")
-			(footprint "pcie-tuner:R0603")
-			(description "Resistor 4.7k 1% 0603")
-			(fields
-				(field
-					(name "LCSC") "C23162")
-				(field
-					(name "MPN") "0603WAF4701T5E")
-				(field
-					(name "Footprint") "pcie-tuner:R0603")
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description") "Resistor 4.7k 1% 0603")
-			)
-			(libsource
-				(lib "pcie-tuner")
-				(part "R")
-				(description "Resistor")
-			)
-			(property
-				(name "LCSC")
-				(value "C23162")
-			)
-			(property
-				(name "MPN")
-				(value "0603WAF4701T5E")
-			)
-			(property
-				(name "Sheetname")
-				(value "pcie-tuner-board")
-			)
-			(property
-				(name "Sheetfile")
-				(value "pcie-tuner-board.kicad_sch")
-			)
-			(sheetpath
-				(names "/")
-				(tstamps "/")
-			)
-			(tstamps "457d9dad-1dcb-5ffd-b698-81e47c7154e2")
 			(units
 				(unit
 					(name "A")
@@ -3854,64 +3920,6 @@
 				(tstamps "/")
 			)
 			(tstamps "e4273ef0-f0b9-5c44-858a-b43ae0cba281")
-			(units
-				(unit
-					(name "A")
-					(pins
-						(pin
-							(num "1")
-						)
-						(pin
-							(num "2")
-						)
-					)
-				)
-			)
-		)
-		(comp
-			(ref "R5")
-			(value "4.7k")
-			(footprint "pcie-tuner:R0603")
-			(description "Resistor 4.7k 1% 0603")
-			(fields
-				(field
-					(name "LCSC") "C23162")
-				(field
-					(name "MPN") "0603WAF4701T5E")
-				(field
-					(name "Footprint") "pcie-tuner:R0603")
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description") "Resistor 4.7k 1% 0603")
-			)
-			(libsource
-				(lib "pcie-tuner")
-				(part "R")
-				(description "Resistor")
-			)
-			(property
-				(name "LCSC")
-				(value "C23162")
-			)
-			(property
-				(name "MPN")
-				(value "0603WAF4701T5E")
-			)
-			(property
-				(name "Sheetname")
-				(value "pcie-tuner-board")
-			)
-			(property
-				(name "Sheetfile")
-				(value "pcie-tuner-board.kicad_sch")
-			)
-			(sheetpath
-				(names "/")
-				(tstamps "/")
-			)
-			(tstamps "80813386-1e2f-520d-b5db-d9bdcbbce969")
 			(units
 				(unit
 					(name "A")
@@ -4450,21 +4458,21 @@
 		)
 		(comp
 			(ref "R15")
-			(value "47k")
+			(value "100k")
 			(footprint "pcie-tuner:R0603")
-			(description "Resistor 47k 1% 0603")
+			(description "Resistor 100k 1% 0603")
 			(fields
 				(field
-					(name "LCSC") "C25819")
+					(name "LCSC") "C25803")
 				(field
-					(name "MPN") "0603WAF4702T5E")
+					(name "MPN") "0603WAF1003T5E")
 				(field
 					(name "Footprint") "pcie-tuner:R0603")
 				(field
 					(name "Datasheet")
 				)
 				(field
-					(name "Description") "Resistor 47k 1% 0603")
+					(name "Description") "Resistor 100k 1% 0603")
 			)
 			(libsource
 				(lib "pcie-tuner")
@@ -4473,11 +4481,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "C25819")
+				(value "C25803")
 			)
 			(property
 				(name "MPN")
-				(value "0603WAF4702T5E")
+				(value "0603WAF1003T5E")
 			)
 			(property
 				(name "Sheetname")
@@ -4550,64 +4558,6 @@
 				(tstamps "/")
 			)
 			(tstamps "a16539b4-45f5-58e0-842d-a64288e07e88")
-			(units
-				(unit
-					(name "A")
-					(pins
-						(pin
-							(num "1")
-						)
-						(pin
-							(num "2")
-						)
-					)
-				)
-			)
-		)
-		(comp
-			(ref "R17")
-			(value "4.7k")
-			(footprint "pcie-tuner:R0603")
-			(description "Resistor 4.7k 1% 0603")
-			(fields
-				(field
-					(name "LCSC") "C23162")
-				(field
-					(name "MPN") "0603WAF4701T5E")
-				(field
-					(name "Footprint") "pcie-tuner:R0603")
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description") "Resistor 4.7k 1% 0603")
-			)
-			(libsource
-				(lib "pcie-tuner")
-				(part "R")
-				(description "Resistor")
-			)
-			(property
-				(name "LCSC")
-				(value "C23162")
-			)
-			(property
-				(name "MPN")
-				(value "0603WAF4701T5E")
-			)
-			(property
-				(name "Sheetname")
-				(value "pcie-tuner-board")
-			)
-			(property
-				(name "Sheetfile")
-				(value "pcie-tuner-board.kicad_sch")
-			)
-			(sheetpath
-				(names "/")
-				(tstamps "/")
-			)
-			(tstamps "97b36a1c-d641-52a8-b397-06c159135122")
 			(units
 				(unit
 					(name "A")
@@ -5146,21 +5096,21 @@
 		)
 		(comp
 			(ref "R27")
-			(value "10k")
+			(value "15k")
 			(footprint "pcie-tuner:R0603")
-			(description "Resistor 10k 1% 0603")
+			(description "Resistor 15k 1% 0603")
 			(fields
 				(field
-					(name "LCSC") "C25804")
+					(name "LCSC") "C22809")
 				(field
-					(name "MPN") "0603WAF1002T5E")
+					(name "MPN") "0603WAF1502T5E")
 				(field
 					(name "Footprint") "pcie-tuner:R0603")
 				(field
 					(name "Datasheet")
 				)
 				(field
-					(name "Description") "Resistor 10k 1% 0603")
+					(name "Description") "Resistor 15k 1% 0603")
 			)
 			(libsource
 				(lib "pcie-tuner")
@@ -5169,11 +5119,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "C25804")
+				(value "C22809")
 			)
 			(property
 				(name "MPN")
-				(value "0603WAF1002T5E")
+				(value "0603WAF1502T5E")
 			)
 			(property
 				(name "Sheetname")
@@ -5188,6 +5138,354 @@
 				(tstamps "/")
 			)
 			(tstamps "d0b26d78-a54b-5f07-a2bf-8881bf76eb72")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R28")
+			(value "2k")
+			(footprint "pcie-tuner:R0603")
+			(description "Resistor 2k 1% 0603")
+			(fields
+				(field
+					(name "LCSC") "C22975")
+				(field
+					(name "MPN") "0603WAF2001T5E")
+				(field
+					(name "Footprint") "pcie-tuner:R0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Resistor 2k 1% 0603")
+			)
+			(libsource
+				(lib "pcie-tuner")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "LCSC")
+				(value "C22975")
+			)
+			(property
+				(name "MPN")
+				(value "0603WAF2001T5E")
+			)
+			(property
+				(name "Sheetname")
+				(value "pcie-tuner-board")
+			)
+			(property
+				(name "Sheetfile")
+				(value "pcie-tuner-board.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "8cdf15f5-e4e1-54e8-9e71-331b147da801")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R29")
+			(value "2k")
+			(footprint "pcie-tuner:R0603")
+			(description "Resistor 2k 1% 0603")
+			(fields
+				(field
+					(name "LCSC") "C22975")
+				(field
+					(name "MPN") "0603WAF2001T5E")
+				(field
+					(name "Footprint") "pcie-tuner:R0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Resistor 2k 1% 0603")
+			)
+			(libsource
+				(lib "pcie-tuner")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "LCSC")
+				(value "C22975")
+			)
+			(property
+				(name "MPN")
+				(value "0603WAF2001T5E")
+			)
+			(property
+				(name "Sheetname")
+				(value "pcie-tuner-board")
+			)
+			(property
+				(name "Sheetfile")
+				(value "pcie-tuner-board.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "724d998f-955f-5ed1-9974-e6a99c539a5f")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R30")
+			(value "2k")
+			(footprint "pcie-tuner:R0603")
+			(description "Resistor 2k 1% 0603")
+			(fields
+				(field
+					(name "LCSC") "C22975")
+				(field
+					(name "MPN") "0603WAF2001T5E")
+				(field
+					(name "Footprint") "pcie-tuner:R0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Resistor 2k 1% 0603")
+			)
+			(libsource
+				(lib "pcie-tuner")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "LCSC")
+				(value "C22975")
+			)
+			(property
+				(name "MPN")
+				(value "0603WAF2001T5E")
+			)
+			(property
+				(name "Sheetname")
+				(value "pcie-tuner-board")
+			)
+			(property
+				(name "Sheetfile")
+				(value "pcie-tuner-board.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "c0198dde-b3aa-5820-a38f-dc71e84d75d8")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R31")
+			(value "2k")
+			(footprint "pcie-tuner:R0603")
+			(description "Resistor 2k 1% 0603")
+			(fields
+				(field
+					(name "LCSC") "C22975")
+				(field
+					(name "MPN") "0603WAF2001T5E")
+				(field
+					(name "Footprint") "pcie-tuner:R0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Resistor 2k 1% 0603")
+			)
+			(libsource
+				(lib "pcie-tuner")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "LCSC")
+				(value "C22975")
+			)
+			(property
+				(name "MPN")
+				(value "0603WAF2001T5E")
+			)
+			(property
+				(name "Sheetname")
+				(value "pcie-tuner-board")
+			)
+			(property
+				(name "Sheetfile")
+				(value "pcie-tuner-board.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "20e8ec4e-cf18-51d6-87ce-5b6d5c07bfce")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R32")
+			(value "100k")
+			(footprint "pcie-tuner:R0603")
+			(description "Resistor 100k 1% 0603")
+			(fields
+				(field
+					(name "LCSC") "C25803")
+				(field
+					(name "MPN") "0603WAF1003T5E")
+				(field
+					(name "Footprint") "pcie-tuner:R0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Resistor 100k 1% 0603")
+			)
+			(libsource
+				(lib "pcie-tuner")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "LCSC")
+				(value "C25803")
+			)
+			(property
+				(name "MPN")
+				(value "0603WAF1003T5E")
+			)
+			(property
+				(name "Sheetname")
+				(value "pcie-tuner-board")
+			)
+			(property
+				(name "Sheetfile")
+				(value "pcie-tuner-board.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "30e4b1e4-3e9a-5f1a-85f8-62fed41f9081")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R33")
+			(value "33k")
+			(footprint "pcie-tuner:R0603")
+			(description "Resistor 33k 1% 0603")
+			(fields
+				(field
+					(name "LCSC") "C4216")
+				(field
+					(name "MPN") "0603WAF3302T5E")
+				(field
+					(name "Footprint") "pcie-tuner:R0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Resistor 33k 1% 0603")
+			)
+			(libsource
+				(lib "pcie-tuner")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "LCSC")
+				(value "C4216")
+			)
+			(property
+				(name "MPN")
+				(value "0603WAF3302T5E")
+			)
+			(property
+				(name "Sheetname")
+				(value "pcie-tuner-board")
+			)
+			(property
+				(name "Sheetfile")
+				(value "pcie-tuner-board.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "5332abfd-3449-5f18-9392-2b18144cc823")
 			(units
 				(unit
 					(name "A")
@@ -6421,6 +6719,37 @@
 		)
 		(libpart
 			(lib "pcie-tuner")
+			(part "F")
+			(description "Resettable fuse (PTC)")
+			(fields
+				(field
+					(name "Reference") "F")
+				(field
+					(name "Value") "F")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Resettable fuse (PTC)")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "pcie-tuner")
 			(part "HDR_1x2")
 			(description "Pin header 1x2, 2.54mm")
 			(fields
@@ -7329,6 +7658,12 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "D6")
+				(pin "1")
+				(pinfunction "K_1")
+				(pintype "passive")
+			)
+			(node
 				(ref "J3")
 				(pin "A10")
 				(pinfunction "+3.3V_A10")
@@ -7356,6 +7691,18 @@
 				(ref "JP4")
 				(pin "1")
 				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "JP5")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "Q3")
+				(pin "1")
+				(pinfunction "G_1")
 				(pintype "passive")
 			)
 			(node
@@ -7412,6 +7759,12 @@
 			)
 			(node
 				(ref "JP1")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "JP5")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
@@ -7541,13 +7894,13 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "R17")
+				(ref "R18")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
 			)
 			(node
-				(ref "R18")
+				(ref "R32")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
@@ -7608,10 +7961,33 @@
 		)
 		(net
 			(code "7")
+			(name "/+12V_F")
+			(class "Power")
+			(node
+				(ref "F1")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "JP2")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "8")
 			(name "/+12V_SW")
 			(class "Power")
 			(node
-				(ref "JP2")
+				(ref "C32")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "F1")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
@@ -7624,7 +8000,36 @@
 			)
 		)
 		(net
-			(code "8")
+			(code "9")
+			(name "/12V_SENSE")
+			(class "Default")
+			(node
+				(ref "C33")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R32")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R33")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U7")
+				(pin "6")
+				(pinfunction "PA2/A0_6")
+				(pintype "bidirectional")
+			)
+		)
+		(net
+			(code "10")
 			(name "/BST_3V3")
 			(class "Default")
 			(node
@@ -7641,7 +8046,7 @@
 			)
 		)
 		(net
-			(code "9")
+			(code "11")
 			(name "/CC1_SENSE")
 			(class "Default")
 			(node
@@ -7664,7 +8069,7 @@
 			)
 		)
 		(net
-			(code "10")
+			(code "12")
 			(name "/CC2_SENSE")
 			(class "Default")
 			(node
@@ -7687,7 +8092,7 @@
 			)
 		)
 		(net
-			(code "11")
+			(code "13")
 			(name "/CFG1_U1")
 			(class "Default")
 			(node
@@ -7704,7 +8109,7 @@
 			)
 		)
 		(net
-			(code "12")
+			(code "14")
 			(name "/CFG1_U2")
 			(class "Default")
 			(node
@@ -7721,7 +8126,7 @@
 			)
 		)
 		(net
-			(code "13")
+			(code "15")
 			(name "/EN_3V3")
 			(class "Default")
 			(node
@@ -7756,13 +8161,13 @@
 			)
 			(node
 				(ref "U7")
-				(pin "10")
-				(pinfunction "PC0_10")
+				(pin "13")
+				(pinfunction "PC3_13")
 				(pintype "bidirectional")
 			)
 		)
 		(net
-			(code "14")
+			(code "16")
 			(name "/EN_12V")
 			(class "Default")
 			(node
@@ -7779,13 +8184,13 @@
 			)
 			(node
 				(ref "U7")
-				(pin "13")
-				(pinfunction "PC3_13")
+				(pin "19")
+				(pinfunction "PD2/A3_19")
 				(pintype "bidirectional")
 			)
 		)
 		(net
-			(code "15")
+			(code "17")
 			(name "/FB_3V3")
 			(class "Default")
 			(node
@@ -7808,7 +8213,7 @@
 			)
 		)
 		(net
-			(code "16")
+			(code "18")
 			(name "/FB_12V")
 			(class "Default")
 			(node
@@ -7831,7 +8236,7 @@
 			)
 		)
 		(net
-			(code "17")
+			(code "19")
 			(name "/GND")
 			(class "GND")
 			(node
@@ -7973,6 +8378,12 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "C33")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
 				(ref "C4")
 				(pin "2")
 				(pinfunction "2_2")
@@ -8006,12 +8417,6 @@
 				(ref "C9")
 				(pin "2")
 				(pinfunction "2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "D3")
-				(pin "1")
-				(pinfunction "A_1")
 				(pintype "passive")
 			)
 			(node
@@ -8123,6 +8528,12 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "J4")
+				(pin "8")
+				(pinfunction "GND2_8")
+				(pintype "passive")
+			)
+			(node
 				(ref "J5")
 				(pin "2")
 				(pinfunction "2_2")
@@ -8135,19 +8546,13 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "LED4")
-				(pin "2")
-				(pinfunction "K_2")
-				(pintype "passive")
-			)
-			(node
 				(ref "LED5")
 				(pin "2")
 				(pinfunction "K_2")
 				(pintype "passive")
 			)
 			(node
-				(ref "Q2")
+				(ref "Q3")
 				(pin "2")
 				(pinfunction "S_2")
 				(pintype "passive")
@@ -8195,7 +8600,37 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "R28")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R29")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
 				(ref "R3")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R30")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R31")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R33")
 				(pin "2")
 				(pinfunction "2_2")
 				(pintype "passive")
@@ -8280,7 +8715,7 @@
 			)
 		)
 		(net
-			(code "18")
+			(code "20")
 			(name "/I2C1_SCL")
 			(class "Default")
 			(node
@@ -8297,7 +8732,7 @@
 			)
 		)
 		(net
-			(code "19")
+			(code "21")
 			(name "/I2C1_SDA")
 			(class "Default")
 			(node
@@ -8314,7 +8749,7 @@
 			)
 		)
 		(net
-			(code "20")
+			(code "22")
 			(name "/I2C2_SCL")
 			(class "Default")
 			(node
@@ -8331,7 +8766,7 @@
 			)
 		)
 		(net
-			(code "21")
+			(code "23")
 			(name "/I2C2_SDA")
 			(class "Default")
 			(node
@@ -8348,7 +8783,7 @@
 			)
 		)
 		(net
-			(code "22")
+			(code "24")
 			(name "/J1_CC1")
 			(class "Default")
 			(node
@@ -8371,7 +8806,7 @@
 			)
 		)
 		(net
-			(code "23")
+			(code "25")
 			(name "/J1_CC2")
 			(class "Default")
 			(node
@@ -8394,7 +8829,7 @@
 			)
 		)
 		(net
-			(code "24")
+			(code "26")
 			(name "/J2_CC1")
 			(class "Default")
 			(node
@@ -8411,7 +8846,7 @@
 			)
 		)
 		(net
-			(code "25")
+			(code "27")
 			(name "/J2_CC2")
 			(class "Default")
 			(node
@@ -8425,40 +8860,6 @@
 				(pin "6")
 				(pinfunction "CC2_6")
 				(pintype "bidirectional")
-			)
-		)
-		(net
-			(code "26")
-			(name "/LED1_A")
-			(class "Default")
-			(node
-				(ref "LED1")
-				(pin "1")
-				(pinfunction "A_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R2")
-				(pin "2")
-				(pinfunction "2_2")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "27")
-			(name "/LED2_A")
-			(class "Default")
-			(node
-				(ref "LED2")
-				(pin "1")
-				(pinfunction "A_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R5")
-				(pin "2")
-				(pinfunction "2_2")
-				(pintype "passive")
 			)
 		)
 		(net
@@ -8480,23 +8881,6 @@
 		)
 		(net
 			(code "29")
-			(name "/LED4_A")
-			(class "Default")
-			(node
-				(ref "LED4")
-				(pin "1")
-				(pinfunction "A_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R17")
-				(pin "2")
-				(pinfunction "2_2")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "30")
 			(name "/LED5_A")
 			(class "Default")
 			(node
@@ -8513,7 +8897,7 @@
 			)
 		)
 		(net
-			(code "31")
+			(code "30")
 			(name "/LED_STAT")
 			(class "Default")
 			(node
@@ -8530,13 +8914,19 @@
 			)
 		)
 		(net
-			(code "32")
+			(code "31")
 			(name "/PERST#")
 			(class "Default")
 			(node
 				(ref "C31")
 				(pin "1")
 				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "D6")
+				(pin "2")
+				(pinfunction "A_2")
 				(pintype "passive")
 			)
 			(node
@@ -8551,47 +8941,25 @@
 				(pinfunction "2_2")
 				(pintype "passive")
 			)
-		)
-		(net
-			(code "33")
-			(name "/PG1")
-			(class "Default")
 			(node
-				(ref "LED1")
-				(pin "2")
-				(pinfunction "K_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "U1")
-				(pin "10")
-				(pinfunction "PG_10")
-				(pintype "open_collector")
+				(ref "U7")
+				(pin "14")
+				(pinfunction "PC4_14")
+				(pintype "bidirectional")
 			)
 		)
 		(net
-			(code "34")
-			(name "/PG2")
-			(class "Default")
-			(node
-				(ref "LED2")
-				(pin "2")
-				(pinfunction "K_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "U2")
-				(pin "10")
-				(pinfunction "PG_10")
-				(pintype "open_collector")
-			)
-		)
-		(net
-			(code "35")
+			(code "32")
 			(name "/Q1_G")
 			(class "Default")
 			(node
 				(ref "C20")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C32")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
@@ -8616,7 +8984,7 @@
 			)
 		)
 		(net
-			(code "36")
+			(code "33")
 			(name "/Q2_D")
 			(class "Default")
 			(node
@@ -8633,7 +9001,24 @@
 			)
 		)
 		(net
-			(code "37")
+			(code "34")
+			(name "/Q2_S")
+			(class "Default")
+			(node
+				(ref "Q2")
+				(pin "2")
+				(pinfunction "S_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "Q3")
+				(pin "3")
+				(pinfunction "D_3")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "35")
 			(name "/SHIELD1")
 			(class "Default")
 			(node
@@ -8674,7 +9059,7 @@
 			)
 		)
 		(net
-			(code "38")
+			(code "36")
 			(name "/SS_3V3")
 			(class "Default")
 			(node
@@ -8691,7 +9076,7 @@
 			)
 		)
 		(net
-			(code "39")
+			(code "37")
 			(name "/SW1_IN")
 			(class "Default")
 			(node
@@ -8708,13 +9093,13 @@
 			)
 			(node
 				(ref "U7")
-				(pin "6")
-				(pinfunction "PA2/A0_6")
+				(pin "10")
+				(pinfunction "PC0_10")
 				(pintype "bidirectional")
 			)
 		)
 		(net
-			(code "40")
+			(code "38")
 			(name "/SW12_ON")
 			(class "Default")
 			(node
@@ -8731,13 +9116,13 @@
 			)
 			(node
 				(ref "U7")
-				(pin "14")
-				(pinfunction "PC4_14")
+				(pin "20")
+				(pinfunction "PD3/A4_20")
 				(pintype "bidirectional")
 			)
 		)
 		(net
-			(code "41")
+			(code "39")
 			(name "/SWIO")
 			(class "Default")
 			(node
@@ -8754,7 +9139,7 @@
 			)
 		)
 		(net
-			(code "42")
+			(code "40")
 			(name "/SW_3V3")
 			(class "Power")
 			(node
@@ -8777,7 +9162,7 @@
 			)
 		)
 		(net
-			(code "43")
+			(code "41")
 			(name "/SW_12V")
 			(class "Power")
 			(node
@@ -8800,13 +9185,19 @@
 			)
 		)
 		(net
-			(code "44")
+			(code "42")
 			(name "/USBH_VBUS")
 			(class "Power")
 			(node
 				(ref "J4")
 				(pin "1")
 				(pinfunction "VBUS_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J4")
+				(pin "2")
+				(pinfunction "VBUS2_2")
 				(pintype "passive")
 			)
 			(node
@@ -8817,7 +9208,7 @@
 			)
 		)
 		(net
-			(code "45")
+			(code "43")
 			(name "/USB_DN")
 			(class "USB")
 			(node
@@ -8844,15 +9235,9 @@
 				(pinfunction "IO2_3")
 				(pintype "passive")
 			)
-			(node
-				(ref "U5")
-				(pin "4")
-				(pinfunction "IO3_4")
-				(pintype "passive")
-			)
 		)
 		(net
-			(code "46")
+			(code "44")
 			(name "/USB_DP")
 			(class "USB")
 			(node
@@ -8879,15 +9264,9 @@
 				(pinfunction "IO1_1")
 				(pintype "passive")
 			)
-			(node
-				(ref "U5")
-				(pin "6")
-				(pinfunction "IO4_6")
-				(pintype "passive")
-			)
 		)
 		(net
-			(code "47")
+			(code "45")
 			(name "/VBUS1")
 			(class "Power")
 			(node
@@ -8915,13 +9294,19 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "R2")
+				(ref "R25")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
 			)
 			(node
-				(ref "R25")
+				(ref "R28")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R29")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
@@ -8946,7 +9331,7 @@
 			)
 		)
 		(net
-			(code "48")
+			(code "46")
 			(name "/VBUS1_SENSE")
 			(class "Default")
 			(node
@@ -8975,7 +9360,7 @@
 			)
 		)
 		(net
-			(code "49")
+			(code "47")
 			(name "/VBUS2")
 			(class "Power")
 			(node
@@ -9003,7 +9388,13 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "R5")
+				(ref "R30")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R31")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
@@ -9022,7 +9413,7 @@
 			)
 		)
 		(net
-			(code "50")
+			(code "48")
 			(name "/VIN")
 			(class "Power")
 			(node
@@ -9086,12 +9477,6 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "D3")
-				(pin "2")
-				(pinfunction "K_2")
-				(pintype "passive")
-			)
-			(node
 				(ref "L2")
 				(pin "1")
 				(pinfunction "1_1")
@@ -9129,7 +9514,7 @@
 			)
 		)
 		(net
-			(code "51")
+			(code "49")
 			(name "/VIN_SENSE")
 			(class "Default")
 			(node
@@ -9158,7 +9543,7 @@
 			)
 		)
 		(net
-			(code "52")
+			(code "50")
 			(name "unconnected-(J1-SBU1-PadA8)")
 			(class "Default")
 			(node
@@ -9169,7 +9554,7 @@
 			)
 		)
 		(net
-			(code "53")
+			(code "51")
 			(name "unconnected-(J1-SBU2-PadB8)")
 			(class "Default")
 			(node
@@ -9180,7 +9565,7 @@
 			)
 		)
 		(net
-			(code "54")
+			(code "52")
 			(name "unconnected-(J2-DN1-PadA7)")
 			(class "Default")
 			(node
@@ -9191,7 +9576,7 @@
 			)
 		)
 		(net
-			(code "55")
+			(code "53")
 			(name "unconnected-(J2-DN2-PadB7)")
 			(class "Default")
 			(node
@@ -9202,7 +9587,7 @@
 			)
 		)
 		(net
-			(code "56")
+			(code "54")
 			(name "unconnected-(J2-DP1-PadA6)")
 			(class "Default")
 			(node
@@ -9213,7 +9598,7 @@
 			)
 		)
 		(net
-			(code "57")
+			(code "55")
 			(name "unconnected-(J2-DP2-PadB6)")
 			(class "Default")
 			(node
@@ -9224,7 +9609,7 @@
 			)
 		)
 		(net
-			(code "58")
+			(code "56")
 			(name "unconnected-(J2-SBU1-PadA8)")
 			(class "Default")
 			(node
@@ -9235,7 +9620,7 @@
 			)
 		)
 		(net
-			(code "59")
+			(code "57")
 			(name "unconnected-(J2-SBU2-PadB8)")
 			(class "Default")
 			(node
@@ -9246,7 +9631,7 @@
 			)
 		)
 		(net
-			(code "60")
+			(code "58")
 			(name "unconnected-(J3-JTAG1(TRST#)-PadB9)")
 			(class "Default")
 			(node
@@ -9257,7 +9642,7 @@
 			)
 		)
 		(net
-			(code "61")
+			(code "59")
 			(name "unconnected-(J3-JTAG2(TCK)-PadA5)")
 			(class "Default")
 			(node
@@ -9268,7 +9653,7 @@
 			)
 		)
 		(net
-			(code "62")
+			(code "60")
 			(name "unconnected-(J3-JTAG3(TDI)-PadA6)")
 			(class "Default")
 			(node
@@ -9279,7 +9664,7 @@
 			)
 		)
 		(net
-			(code "63")
+			(code "61")
 			(name "unconnected-(J3-JTAG4(TDO)-PadA7)")
 			(class "Default")
 			(node
@@ -9290,7 +9675,7 @@
 			)
 		)
 		(net
-			(code "64")
+			(code "62")
 			(name "unconnected-(J3-JTAG5(TMS)-PadA8)")
 			(class "Default")
 			(node
@@ -9301,7 +9686,7 @@
 			)
 		)
 		(net
-			(code "65")
+			(code "63")
 			(name "unconnected-(J3-PERn0-PadA17)")
 			(class "Default")
 			(node
@@ -9312,7 +9697,7 @@
 			)
 		)
 		(net
-			(code "66")
+			(code "64")
 			(name "unconnected-(J3-PERp0-PadA16)")
 			(class "Default")
 			(node
@@ -9323,7 +9708,7 @@
 			)
 		)
 		(net
-			(code "67")
+			(code "65")
 			(name "unconnected-(J3-PETn0-PadB15)")
 			(class "Default")
 			(node
@@ -9334,7 +9719,7 @@
 			)
 		)
 		(net
-			(code "68")
+			(code "66")
 			(name "unconnected-(J3-PETp0-PadB14)")
 			(class "Default")
 			(node
@@ -9345,7 +9730,7 @@
 			)
 		)
 		(net
-			(code "69")
+			(code "67")
 			(name "unconnected-(J3-PRSNT1#-PadA1)")
 			(class "Default")
 			(node
@@ -9356,7 +9741,7 @@
 			)
 		)
 		(net
-			(code "70")
+			(code "68")
 			(name "unconnected-(J3-PRSNT2#-PadB17)")
 			(class "Default")
 			(node
@@ -9367,7 +9752,7 @@
 			)
 		)
 		(net
-			(code "71")
+			(code "69")
 			(name "unconnected-(J3-REFCLK+-PadA13)")
 			(class "Default")
 			(node
@@ -9378,7 +9763,7 @@
 			)
 		)
 		(net
-			(code "72")
+			(code "70")
 			(name "unconnected-(J3-REFCLK--PadA14)")
 			(class "Default")
 			(node
@@ -9389,7 +9774,7 @@
 			)
 		)
 		(net
-			(code "73")
+			(code "71")
 			(name "unconnected-(J3-RSVD-PadB12)")
 			(class "Default")
 			(node
@@ -9400,7 +9785,7 @@
 			)
 		)
 		(net
-			(code "74")
+			(code "72")
 			(name "unconnected-(J3-SMCLK-PadB5)")
 			(class "Default")
 			(node
@@ -9411,7 +9796,7 @@
 			)
 		)
 		(net
-			(code "75")
+			(code "73")
 			(name "unconnected-(J3-SMDAT-PadB6)")
 			(class "Default")
 			(node
@@ -9422,7 +9807,7 @@
 			)
 		)
 		(net
-			(code "76")
+			(code "74")
 			(name "unconnected-(J3-WAKE#-PadB11)")
 			(class "Default")
 			(node
@@ -9433,7 +9818,7 @@
 			)
 		)
 		(net
-			(code "77")
+			(code "75")
 			(name "unconnected-(J4-D2+-Pad6)")
 			(class "Default")
 			(node
@@ -9444,7 +9829,7 @@
 			)
 		)
 		(net
-			(code "78")
+			(code "76")
 			(name "unconnected-(J4-D2--Pad4)")
 			(class "Default")
 			(node
@@ -9455,18 +9840,7 @@
 			)
 		)
 		(net
-			(code "79")
-			(name "unconnected-(J4-GND2-Pad8)")
-			(class "Default")
-			(node
-				(ref "J4")
-				(pin "8")
-				(pinfunction "GND2_8")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "80")
+			(code "77")
 			(name "unconnected-(J4-KEY-Pad9)")
 			(class "Default")
 			(node
@@ -9477,7 +9851,7 @@
 			)
 		)
 		(net
-			(code "81")
+			(code "78")
 			(name "unconnected-(J4-NC-Pad10)")
 			(class "Default")
 			(node
@@ -9488,18 +9862,7 @@
 			)
 		)
 		(net
-			(code "82")
-			(name "unconnected-(J4-VBUS2-Pad2)")
-			(class "Default")
-			(node
-				(ref "J4")
-				(pin "2")
-				(pinfunction "VBUS2_2")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "83")
+			(code "79")
 			(name "unconnected-(SW1-B-Pad3)")
 			(class "Default")
 			(node
@@ -9510,7 +9873,7 @@
 			)
 		)
 		(net
-			(code "84")
+			(code "80")
 			(name "unconnected-(U1-DM-Pad5)")
 			(class "Default")
 			(node
@@ -9521,7 +9884,7 @@
 			)
 		)
 		(net
-			(code "85")
+			(code "81")
 			(name "unconnected-(U1-DP-Pad4)")
 			(class "Default")
 			(node
@@ -9532,7 +9895,18 @@
 			)
 		)
 		(net
-			(code "86")
+			(code "82")
+			(name "unconnected-(U1-PG-Pad10)")
+			(class "Default")
+			(node
+				(ref "U1")
+				(pin "10")
+				(pinfunction "PG_10")
+				(pintype "open_collector+no_connect")
+			)
+		)
+		(net
+			(code "83")
 			(name "unconnected-(U2-DM-Pad5)")
 			(class "Default")
 			(node
@@ -9543,7 +9917,7 @@
 			)
 		)
 		(net
-			(code "87")
+			(code "84")
 			(name "unconnected-(U2-DP-Pad4)")
 			(class "Default")
 			(node
@@ -9554,7 +9928,18 @@
 			)
 		)
 		(net
-			(code "88")
+			(code "85")
+			(name "unconnected-(U2-PG-Pad10)")
+			(class "Default")
+			(node
+				(ref "U2")
+				(pin "10")
+				(pinfunction "PG_10")
+				(pintype "open_collector+no_connect")
+			)
+		)
+		(net
+			(code "86")
 			(name "unconnected-(U3-RT-Pad1)")
 			(class "Default")
 			(node
@@ -9565,7 +9950,7 @@
 			)
 		)
 		(net
-			(code "89")
+			(code "87")
 			(name "unconnected-(U4-NC-Pad6)")
 			(class "Default")
 			(node
@@ -9573,6 +9958,28 @@
 				(pin "6")
 				(pinfunction "NC_6")
 				(pintype "no_connect")
+			)
+		)
+		(net
+			(code "88")
+			(name "unconnected-(U5-IO3-Pad4)")
+			(class "Default")
+			(node
+				(ref "U5")
+				(pin "4")
+				(pinfunction "IO3_4")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "89")
+			(name "unconnected-(U5-IO4-Pad6)")
+			(class "Default")
+			(node
+				(ref "U5")
+				(pin "6")
+				(pinfunction "IO4_6")
+				(pintype "passive+no_connect")
 			)
 		)
 		(net
@@ -9599,28 +10006,6 @@
 		)
 		(net
 			(code "92")
-			(name "unconnected-(U7-PD2{slash}A3-Pad19)")
-			(class "Default")
-			(node
-				(ref "U7")
-				(pin "19")
-				(pinfunction "PD2/A3_19")
-				(pintype "bidirectional+no_connect")
-			)
-		)
-		(net
-			(code "93")
-			(name "unconnected-(U7-PD3{slash}A4-Pad20)")
-			(class "Default")
-			(node
-				(ref "U7")
-				(pin "20")
-				(pinfunction "PD3/A4_20")
-				(pintype "bidirectional+no_connect")
-			)
-		)
-		(net
-			(code "94")
 			(name "unconnected-(U7-PD7{slash}NRST-Pad4)")
 			(class "Default")
 			(node

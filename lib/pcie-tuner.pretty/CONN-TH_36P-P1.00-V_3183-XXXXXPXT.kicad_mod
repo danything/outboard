@@ -155,7 +155,7 @@
 	)
 	(pad B11 thru_hole circle
 		(at 0.50 1.25 0.00)
-		(size 1.35 1.35)
+		(size 1.25 1.25)
 		(layers *.Cu *.Mask)
 		(drill 0.8)
 	)
@@ -221,7 +221,7 @@
 	)
 	(pad A11 thru_hole circle
 		(at 0.50 -1.25 0.00)
-		(size 1.35 1.35)
+		(size 1.25 1.25)
 		(layers *.Cu *.Mask)
 		(drill 0.8)
 	)
