@@ -128,7 +128,7 @@ class Checker:
                 links[ref] = frozenset(c.two_pin(ref))
         expect = {"L1": {"SW_3V3", "+3V3_BUCK"}, "L2": {"VIN", "SW_12V"}, "JP1": {"+3V3_BUCK", "+3V3"},
                   "JP2": {"+12V_F", "+12V"}, "JP3": {"+5V", "USBH_VBUS"}, "JP4": {"+3V3", "+3V3AUX"},
-                  "JP5": {"+3V3_BUCK", "+3V3"}}
+                  "JP5": {"+3V3_BUCK", "+3V3"}, "JP6": {"+12V_F", "+12V"}, "JP7": {"SW1_IN", "GND"}}
         c.ok("直流で素通しになる部品 (コイル・ジャンパー) がつなぐネットは決めたとおり",
              {k: set(v) for k, v in links.items()} == expect,
              "; ".join(f"{k}: {' - '.join(sorted(v))}" for k, v in sorted(links.items())))
@@ -275,9 +275,34 @@ class Checker:
         cdg = c.between("C", "Q1_G", "+12V_SW")
         c.ok("Q1: ドレイン-ゲートの間に 47nF (立ち上がりを緩める)", len(cdg) == 1 and abs(farads(c.comps[cdg[0]]["value"])[0] - 47e-9) < 1e-12,
              " ".join(cdg))
-        c.ok("Q2: 1 G = SW12_ON、3 D = Q2_D、2 S = Q2_S。ゲートは抵抗で GND に落ちている (マイコンが空なら 12V は出ない)",
-             c.net("Q2", "1") == "SW12_ON" and c.net("Q2", "2") == "Q2_S" and c.net("Q2", "3") == "Q2_D"
-             and len(c.between("R", "SW12_ON", "GND")) == 1)
+        c.ok("Q2: 1 G = Q2_G、3 D = Q2_D、2 S = Q2_S。ゲートは抵抗で GND に落ちている (マイコンが空なら 12V は出ない)。"
+             "マイコンの SW12_ON からは 10kΩ を通る",
+             c.net("Q2", "1") == "Q2_G" and c.net("Q2", "2") == "Q2_S" and c.net("Q2", "3") == "Q2_D"
+             and len(c.between("R", "Q2_G", "GND")) == 1 and len(c.between("R", "SW12_ON", "Q2_G")) == 1
+             and sorted(r for r, _ in c.nets["SW12_ON"]) == sorted(["U7", c.between("R", "SW12_ON", "Q2_G")[0]]))
+        # 過電圧の遮断: VIN -> D7 (ツェナー) -> R35 -> Q4 のベース (R36 で GND へ)。Q4 のコレクタが Q2 のゲートを GND に引く
+        rs, rbe = c.between("R", "OVP_Z", "OVP_B"), c.between("R", "OVP_B", "GND")
+        good = (c.diode("D7") == ("OVP_Z", "VIN") and len(rs) == 1 and len(rbe) == 1 and c.net("Q4", "1") == "OVP_B"
+                and c.net("Q4", "2") == "GND" and c.net("Q4", "3") == "Q2_G")
+        c.ok("過電圧の遮断: D7 (カソード = VIN) -> R35 -> Q4 のベース、R36 でベースを GND へ、Q4 のコレクタ = Q2 のゲート", good)
+        if good:
+            Rs, Rbe = ohms(c.comps[rs[0]]["value"]), ohms(c.comps[rbe[0]]["value"])
+            rser = ohms(c.comps[c.between("R", "SW12_ON", "Q2_G")[0]]["value"])
+            # 効きはじめ: ベースが Vbe に届く = ツェナーに Vbe/Rbe が流れる。Vz は BZT52B12 の 11.76〜12.24V (5mA のとき)。
+            # 数十 µA では Vz が下がるので、下がり幅を 0〜0.6V と見る。Vbe は 0.5〜0.7V
+            lo = (11.76 - 0.6) + 0.5 * (1 + Rs / Rbe)
+            hi = 12.24 + 0.7 * (1 + Rs / Rbe)
+            # 完全に切れる: Q2 のゲートを 1V (2N7002 の Vth の最小) より下げるのに要るコレクタ電流と、hFE 30 としたベース電流
+            ic = (5.0 - 0.5) / rser
+            hi_off = hi + (ic / 30) * Rs
+            ib15 = (15 - 12.24 - 0.7) / Rs - 0.7 / Rbe
+            c.ok("過電圧の遮断: 9V の PD (VIN の最大 9.5V) では必ず入り、15V では必ず切れる", lo > 9.5 + 1.0 and hi_off < 15 - 1.0
+                 and ib15 * 30 > ic,
+                 f"効きはじめる VIN {lo:.1f}〜{hi:.1f}V、確実に切れるのは {hi_off:.1f}V 以上。"
+                 f"15V のときベース電流 {ib15 * 1e3:.2f} mA (要るのは {ic / 30 * 1e3:.3f} mA)")
+            vgs_ovp = hi_off * kdiv
+            c.ok("Q1: 過電圧の遮断が効く手前 (VIN が最大でも上の値) まで入っていても、Vgs は -12V の中", vgs_ovp < 12 * 0.8,
+                 f"昇圧の出力が VIN の素通しで {hi_off:.1f}V になっても Vgs = {-vgs_ovp:.1f}V (最大定格 ±12V。データシートで確認)")
         c.ok("Q3: 1 G = +3V3、3 D = Q2_S、2 S = GND (3.3V が無ければ、Q1 のゲートを引く道が切れて 12V は出ない)",
              c.net("Q3", "1") == "+3V3" and c.net("Q3", "3") == "Q2_S" and c.net("Q3", "2") == "GND"
              and sorted(c.nets["Q2_S"]) == [("Q2", "2"), ("Q3", "3")]
@@ -298,9 +323,8 @@ class Checker:
         c.ok("U7: ピンの割り当てが README の表のとおり (ADC は A7・A5・A6・A1・A0、I2C は PC1/PC2 と PC5/PC6、SWIO は PD1)",
              not bad, " ".join(bad))
         c.ok("J5: 1 = SWIO、2 = GND", c.net("J5", "1") == "SWIO" and c.net("J5", "2") == "GND")
-        c.ok("SW1: 2 (共通) = マイコンの入力、1 = GND、3 は未接続。入力は +5V へプルアップ",
-             c.net("SW1", "2") == "SW1_IN" and c.net("SW1", "1") == "GND" and c.is_nc("SW1", "3")
-             and len(c.between("R", "+5V", "SW1_IN")) == 1)
+        c.ok("JP7 (開いたはんだジャンパー): マイコンの入力 SW1_IN と GND の間。入力は +5V へプルアップ",
+             set(c.two_pin("JP7")) == {"SW1_IN", "GND"} and len(c.between("R", "+5V", "SW1_IN")) == 1)
 
         # マイコンの ADC の入力が電源電圧を超えないこと
         def vdd(vin):
@@ -344,8 +368,8 @@ class Checker:
         c.ok("VIN・VBUS・12V の線のコンデンサは耐圧 25V 以上", not low, " ".join(low) or "すべて 25V か 50V")
 
         # ---- 11. 部品の情報 --------------------------------------------------
-        nol = [r for r, d in c.comps.items() if not d["fields"].get("LCSC") and not re.match(r"^(TP|H|JP[345])", r)]
-        c.ok("部品を載せるものには全部 LCSC の品番がある", not nol, " ".join(nol) or f"{len(c.comps)} 個中、載せないのは TP・H・JP3・JP4・JP5")
+        nol = [r for r, d in c.comps.items() if not d["fields"].get("LCSC") and not re.match(r"^(TP|H|JP\d|J4$|J5$)", r)]
+        c.ok("部品を載せるものには全部 LCSC の品番がある", not nol, " ".join(nol) or f"{len(c.comps)} 個中、載せないのは TP・H・はんだジャンパー・ピンヘッダ (J4・J5・JP1・JP2)")
         nofp = [r for r, d in c.comps.items() if not d["footprint"]]
         c.ok("全部の部品にフットプリントがある", not nofp, " ".join(nofp))
         single = [n for n, nodes in c.nets.items() if len(nodes) == 1 and not n.startswith("unconnected-")]

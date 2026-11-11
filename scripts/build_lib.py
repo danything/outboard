@@ -36,6 +36,7 @@ KICAD_COPY = {
     "TestPoint_Pad_D1.5mm": "TestPoint.pretty",
     "MountingHole_3.2mm_M3": "MountingHole.pretty",
     "SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm": "Jumper.pretty",
+    "SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm": "Jumper.pretty",
 }
 MARGIN = 0.15
 
@@ -112,6 +113,21 @@ def convert(name):
                 shutil.copyfile(os.path.join(SRC, "easyeda.3dshapes", base), os.path.join(DST3D, base))
                 c[1] = Str("${KIPRJMOD}/lib/pcie-tuner.3dshapes/" + base)
         out.append(c)
+    # 自分のパッドに重なるシルクの線は消す (はんだ付けの面に印刷が乗らないように)
+    boxes = [pad_bbox(c)[:2] for c in out if isinstance(c, list) and c and c[0] == "pad" and c[2] == "smd"]
+
+    def on_pad(c):
+        if not (isinstance(c, list) and c and c[0] == "fp_line" and find(c, "layer")[1] == "F.SilkS"):
+            return False
+        (ax, ay), (bx, by) = [(float(find(c, k)[1]), float(find(c, k)[2])) for k in ("start", "end")]
+        for (p1, p2) in boxes:
+            for i in range(11):
+                x, y = ax + (bx - ax) * i / 10, ay + (by - ay) * i / 10
+                if p1[0] - 0.2 <= x <= p2[0] + 0.2 and p1[1] - 0.2 <= y <= p2[1] + 0.2:
+                    return True
+        return False
+
+    out = [c for c in out if not on_pad(c)]
     x1 = min(p[0] for p in pts) - MARGIN
     x2 = max(p[0] for p in pts) + MARGIN
     y1 = min(p[1] for p in pts) - MARGIN
@@ -148,7 +164,7 @@ def check_symbols(report):
     bad = 0
     symof = {"USBC": "USB_C_16P", "PCIE": "PCIE_X1", "HDR10": "HDR_2x5", "HDR2": "HDR_1x2", "CH224A": "CH224A",
              "TPS62933": "TPS62933", "MT3608B": "MT3608B", "SRV05": "SRV05-4", "HT7550": "HT7550-1",
-             "CH32V003": "CH32V003F4P6", "AO3401A": "PMOS_GSD", "2N7002": "NMOS_GSD", "MSK12C02": "SW_SPDT"}
+             "CH32V003": "CH32V003F4P6", "AO3401A": "PMOS_GSD", "2N7002": "NMOS_GSD", "MMBT3904": "NPN_BEC"}
     for key, p in PARTS.items():
         lc = p.get("lcsc")
         if lc not in EASYEDA_SYMBOL:

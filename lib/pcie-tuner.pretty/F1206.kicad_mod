@@ -1,7 +1,7 @@
 (module "F1206"
 	(layer F.Cu)
 	(tedit 5DC5F6A4)
-	(descr "0.75A 13.2V")
+	(descr "0.75A 16V")
 	(attr smd)
 	(fp_text reference REF**
 		(at 0.000 -4.000)
@@ -33,7 +33,7 @@
 			)
 		)
 	)
-	(property "LCSC Part" "C70079")
+	(property "LCSC Part" "C70080")
 	(fp_line
 		(start -0.93 -1.09)
 		(end -2.12 -1.09)

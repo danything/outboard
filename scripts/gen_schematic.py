@@ -74,6 +74,8 @@ BOX = {
                                 None, ("8", "PD0", BI), ("18", "PD1/SWIO", BI)]),
     "PMOS_GSD": dict(prefix="Q", desc="P-channel MOSFET, SOT-23 (1=G 2=S 3=D)",
                      left=[("1", "G", PAS)], right=[("2", "S", PAS), ("3", "D", PAS)]),
+    "NPN_BEC": dict(prefix="Q", desc="NPN transistor, SOT-23 (1=B 2=E 3=C)",
+                    left=[("1", "B", PAS)], right=[("3", "C", PAS), ("2", "E", PAS)]),
     "NMOS_GSD": dict(prefix="Q", desc="N-channel MOSFET, SOT-23 (1=G 2=S 3=D)",
                      left=[("1", "G", PAS)], right=[("3", "D", PAS), ("2", "S", PAS)]),
     "USB_C_16P": dict(prefix="J", desc="USB Type-C receptacle, 16 pin (HRO TYPE-C-31-M-12)",
@@ -117,6 +119,8 @@ TWO = {
     "LED_K1A2": dict(prefix="LED", desc="LED (pad 1 = cathode, pad 2 = anode)", pins=("2", "1"), glyph="LED"),
     "JP_SOLDER": dict(prefix="JP", desc="Solder jumper, 2 pads, bridged by default (cut to open)", pins=("1", "2"),
                       glyph="JP"),
+    "JP_OPEN": dict(prefix="JP", desc="Solder jumper, 2 pads, open by default (solder to close)", pins=("1", "2"),
+                    glyph="C"),
 }
 
 
@@ -311,7 +315,8 @@ class Sch:
         assert not missing and not extra, (ref, missing, extra)
         value = value or PARTS[part]["value"]
         self._symbol(sym, ref, x, y, value, part, list(pins),
-                     (x - w / 2, y - top - 3.81, "left"), (x - w / 2, y - top + (n - 1) * 2.54 + 3.81, "left"))
+                     (x - w / 2, y - top - 3.81, "left"), (x - w / 2, y - top + (n - 1) * 2.54 + 3.81, "left"),
+                     in_bom=bool(PARTS[part].get("lcsc")))
         for num, (px, py, side, _nm, _et) in pins.items():
             self._attach(x + px, y - py, side, nets[num])
 
@@ -321,7 +326,7 @@ class Sch:
         value = value or PARTS[part]["value"]
         self._symbol(sym, ref, x, y, value, part, list(d["pins"]),
                      (x - 3.81, y + 2.54, "left"), (x - 3.81 + 1.3 * len(ref) + 1.0, y + 2.54, "left"),
-                     in_bom=(part != "JP_SOLDER"))   # はんだジャンパーは銅の模様だけで、載せる部品がない
+                     in_bom=bool(PARTS[part].get("lcsc")))   # はんだジャンパーは銅の模様だけで、載せる部品がない
         self._attach(x - 3.81, y, "L", net_l)
         self._attach(x + 3.81, y, "R", net_r)
 
@@ -483,7 +488,8 @@ def build() -> Sch:
             "A boost passes VIN to its output when stopped, so Q1 (AO3401A, Vgs max +-12V) cuts the output. Q2 and Q3 in series pull the gate down\n"
             "through 100k only when SW12_ON is high AND +3.3V is present: Vgs = -12.36 x 100k/200k = -6.2V (-9.8V if VIN = 20V).\n"
             "C32 47nF drain-gate slows the edge to about 2 V/ms. Q2 gate pulled down 100k -> off with a blank MCU.\n"
-            "F1 (PTC 0.75A hold) protects against a short on the card. R18 bleeds the +12V line to 0V when off.")
+            "F1 (PTC 0.75A hold) protects against a short on the card. R18 bleeds the +12V line to 0V when off.\n"
+            "Over-voltage lock: when VIN > about 13V (12.2 .. 13.6V), D7 + Q4 pull the gate of Q2 low, so Q1 cannot turn on (9V PD: always on, 15V: always off).")
     s.ic("U4", "MT3608B", g(bx + 35), g(by + 50), "MT3608B",
          {"5": "VIN", "4": "EN_12V", "2": "GND", "1": "SW_12V", "3": "FB_12V", "6": None})
     s.rows(g(bx + 90), g(by + 34), [
@@ -498,20 +504,26 @@ def build() -> Sch:
         ("R13", "R", "R_100K", "EN_12V", "GND"),
     ])
     s.ic("Q1", "PMOS_GSD", g(bx + 150), g(by + 40), "AO3401A", {"1": "Q1_G", "2": "+12V_BOOST", "3": "+12V_SW"})
-    s.ic("Q2", "NMOS_GSD", g(bx + 150), g(by + 54), "2N7002", {"1": "SW12_ON", "3": "Q2_D", "2": "Q2_S"})
+    s.ic("Q2", "NMOS_GSD", g(bx + 150), g(by + 54), "2N7002", {"1": "Q2_G", "3": "Q2_D", "2": "Q2_S"})
     s.ic("Q3", "NMOS_GSD", g(bx + 150), g(by + 64), "2N7002", {"1": "+3V3", "3": "Q2_S", "2": "GND"})
     s.rows(g(bx + 150), g(by + 72), [
         ("R14", "R", "R_100K", "Q1_G", "+12V_BOOST"),
         ("C20", "C", "C_100N", "Q1_G", "+12V_BOOST"),
         ("C32", "C", "C_47N", "Q1_G", "+12V_SW"),
         ("R15", "R", "R_100K", "Q1_G", "Q2_D"),
-        ("R16", "R", "R_100K", "SW12_ON", "GND"),
+        ("R16", "R", "R_100K", "Q2_G", "GND"),
+        ("R34", "R", "R_10K", "SW12_ON", "Q2_G"),
     ])
     s.ic("JP2", "HDR_1x2", g(bx + 200), g(by + 40), "HDR2", {"1": "+12V_F", "2": "+12V"}, value="JP2 12V current")
     s.rows(g(bx + 200), g(by + 56), [
         ("F1", "F", "PTC", "+12V_SW", "+12V_F"),
+        ("JP6", "JP_SOLDER", "JP_SOLDER", "+12V_F", "+12V"),
         ("R18", "R", "R_10K", "+12V", "GND"),
+        ("D7", PARTS["BZT52B12"]["sym"], "BZT52B12", "OVP_Z", "VIN"),
+        ("R35", "R", "R_10K", "OVP_Z", "OVP_B"),
+        ("R36", "R", "R_10K", "OVP_B", "GND"),
     ])
+    s.ic("Q4", "NPN_BEC", g(bx + 200), g(by + 100), "MMBT3904", {"1": "OVP_B", "3": "Q2_G", "2": "GND"})
     s.tp("TP3", g(bx + 200), g(by + 82), "+12V", "+12V")
 
     # ---------------- USB data --------------------------------------------
@@ -537,7 +549,7 @@ def build() -> Sch:
             "PC3 = EN_3V3 and PC4 = PERST# (drive low or leave Hi-Z, never push-pull high). PD2 = EN_12V, PD3 = SW12_ON (100k pull-downs).\n"
             "PA2/A0 = +12V sense (x 0.248: 12.36V -> 3.07V).\n"
             "I2C1 (PC1/PC2) -> U1. Remap I2C1 to PC5/PC6 (AFIO I2C1_RM = 10b) -> U2. No external pull-ups: CH224A has them inside.\n"
-            "J5: 1 = SWIO, 2 = GND (WCH-LinkE). SW1: closed to GND = manual 12V override.")
+            "J5: 1 = SWIO, 2 = GND (WCH-LinkE). JP7: solder closed = manual 12V override (replaces the slide switch).")
     s.ic("U7", "CH32V003F4P6", g(bx + 60), g(by + 75), "CH32V003",
          {"9": "+5V", "1": "VIN_SENSE", "2": "VBUS1_SENSE", "3": "CC1_SENSE", "5": "CC2_SENSE", "6": "12V_SENSE",
           "19": "EN_12V", "20": "SW12_ON", "4": None, "7": "GND", "10": "SW1_IN", "11": "I2C1_SDA", "12": "I2C1_SCL",
@@ -550,7 +562,7 @@ def build() -> Sch:
         ("R20", "R", "R_1K", "LED_STAT", "LED5_A"),
         ("LED5", PARTS["LED_R"]["sym"], "LED_R", "LED5_A", "GND"),
     ])
-    s.ic("SW1", "SW_SPDT", g(bx + 135), g(by + 96), "MSK12C02", {"2": "SW1_IN", "1": "GND", "3": None, "4": "GND"})
+    s.rows(g(bx + 135), g(by + 96), [("JP7", "JP_OPEN", "JP_OPEN", "SW1_IN", "GND")])
     s.ic("J5", "HDR_1x2", g(bx + 135), g(by + 112), "HDR2", {"1": "SWIO", "2": "GND"}, value="J5 SWIO / GND")
     s.rows(g(bx + 190), g(by + 50), [
         ("R21", "R", "R_100K", "J1_CC1", "CC1_SENSE"),

@@ -76,7 +76,7 @@ class Board:
             if k in c["fields"]:
                 fp.SetField(k, c["fields"][k])
                 fp.GetField(k).SetVisible(False)
-        if ref.startswith(("TP", "H", "JP3", "JP4", "JP5")):
+        if not c["fields"].get("LCSC"):
             fp.SetExcludedFromBOM(True)
             fp.SetExcludedFromPosFiles(True)
         self.b.Add(fp)

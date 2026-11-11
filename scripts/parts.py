@@ -23,7 +23,7 @@ FP = {
     "SMA_SS34": "SMA_L4.3-W2.6-LS5.2-RD",
     "SOD123F": "SOD-123F_L2.7-W1.6-LS3.8-RD",
     "IND": "IND-SMD_L7.0-W6.6",
-    "SW": "SW-TH_MSK12C02",
+    "SOD123": "SOD-123_L2.7-W1.6-LS3.7-RD",
     "LED_R": "LED-SMD_L1.6-W0.8-R-RD",
     "R0603": "R0603",
     "C0603": "C0603",
@@ -32,6 +32,7 @@ FP = {
     "TP": "TestPoint_Pad_D1.5mm",
     "HOLE": "MountingHole_3.2mm_M3",
     "JP_SOLDER": "SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm",
+    "JP_OPEN": "SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm",
 }
 
 
@@ -48,10 +49,12 @@ PARTS = {
                  desc="USB Type-C receptacle 16P (Korean Hroparts)"),
     "PCIE": dict(value="3183-10200P1T", fp="PCIE", lcsc="C404113", mpn="3183-10200P1T",
                  desc="PCIe x1 slot 36P through-hole (UMAX)"),
-    "HDR10": dict(value="PZ254V-12-10P", fp="HDR10", lcsc="C492422", mpn="PZ254V-12-10P",
-                  desc="Pin header 2x5 2.54mm (XFCN)"),
-    "HDR2": dict(value="PZ254V-11-02P", fp="HDR2", lcsc="C492401", mpn="PZ254V-11-02P",
-                 desc="Pin header 1x2 2.54mm (XFCN)"),
+    # ピンヘッダは JLCPCB では載せない (Extended の手数料を減らすため。穴だけ作り、要る所に自分ではんだ付けする)。
+    # 載せてもらうなら lcsc を "C492422" / "C492401" に戻す
+    "HDR10": dict(value="PZ254V-12-10P", fp="HDR10", lcsc="", mpn="PZ254V-12-10P",
+                  desc="Pin header 2x5 2.54mm (XFCN C492422) - not assembled"),
+    "HDR2": dict(value="PZ254V-11-02P", fp="HDR2", lcsc="", mpn="PZ254V-11-02P",
+                 desc="Pin header 1x2 2.54mm (XFCN C492401) - not assembled"),
     "CH224A": dict(value="CH224A", fp="ESSOP10", lcsc="C42459160", mpn="CH224A", desc="USB PD sink (WCH)"),
     "TPS62933": dict(value="TPS62933DRLR", fp="SOT583", lcsc="C3200405", mpn="TPS62933DRLR",
                      desc="Buck 3.8-30V 3A (TI)"),
@@ -62,8 +65,12 @@ PARTS = {
     "CH32V003": dict(value="CH32V003F4P6", fp="TSSOP20", lcsc="C5187096", mpn="CH32V003F4P6", desc="MCU (WCH)"),
     "AO3401A": dict(value="AO3401A", fp="SOT23_AO3401", lcsc="C15127", mpn="AO3401A",
                     desc="P-MOSFET -30V, Vgs +-12V (AOS)"),
-    "PTC": dict(value="nSMD075-13.2V", fp="F1206", lcsc="C70079", mpn="nSMD075-13.2V",
-                desc="Resettable fuse 0.75A hold / 1.5A trip, 13.2V (TECHFUSE)"),
+    "PTC": dict(value="nSMD075-16V", fp="F1206", lcsc="C70080", mpn="nSMD075-16V",
+                desc="Resettable fuse 0.75A hold / 1.5A trip, 16V (TECHFUSE)"),
+    "MMBT3904": dict(value="MMBT3904", fp="SOT23_2N", lcsc="C20526", mpn="MMBT3904", desc="NPN 40V 200mA (CJ)"),
+    "BZT52B12": dict(value="BZT52B12", fp="SOD123", lcsc="C22395569", mpn="BZT52B12", sym="D_K1A2",
+                     desc="Zener 12V 2% 500mW SOD-123"),
+    "JP_OPEN": dict(value="Solder jumper (open)", fp="JP_OPEN", lcsc="", mpn="", desc="Solder jumper, open"),
     "2N7002": dict(value="2N7002", fp="SOT23_2N", lcsc="C8545", mpn="2N7002", desc="N-MOSFET 60V (Changjing)"),
     "SS54": dict(value="SS54", fp="SMA_SS54", lcsc="C22452", mpn="SS54", sym="D_A1K2", desc="Schottky 40V 5A (MDD)"),
     "SS34": dict(value="SS34", fp="SMA_SS34", lcsc="C8678", mpn="SS34", sym="D_K1A2", desc="Schottky 40V 3A (MDD)"),
@@ -71,7 +78,6 @@ PARTS = {
                     desc="Switching diode 75V"),
     "L_4U7": dict(value="4.7uH FXL0630", fp="IND", lcsc="C167220", mpn="FXL0630-4R7-M",
                   desc="Inductor 4.7uH 6A (cjiang)"),
-    "MSK12C02": dict(value="MSK12C02", fp="SW", lcsc="C431540", mpn="MSK12C02", desc="Slide switch SPDT (SHOU HAN)"),
     "LED_R": dict(value="Red", fp="LED_R", lcsc="C2286", mpn="KT-0603R", sym="LED_A1K2", desc="LED red 0603"),
     "R_6K8": _r("6.8k", "C23212", "0603WAF6801T5E"),
     "R_10K": _r("10k", "C25804", "0603WAF1002T5E"),
@@ -101,5 +107,5 @@ EASYEDA_SYMBOL = {
     "C42459160": "CH224A", "C3200405": "TPS62933DRLR", "C19189893": "MT3608B", "C85364": "SRV05-4-P-T7",
     "C16106": "HT7550-1_C16106", "C5187096": "CH32V003F4P6", "C15127": "AO3401A", "C8545": "2N7002",
     "C22452": "SS54_C22452", "C8678": "SS34_C8678", "C81598": "1N4148W_C81598",
-    "C167220": "FXL0630-4R7-M", "C431540": "MSK12C02", "C2286": "KT-0603R",
+    "C167220": "FXL0630-4R7-M", "C20526": "MMBT3904-C20526", "C22395569": "BZT52B12_C22395569", "C2286": "KT-0603R",
 }

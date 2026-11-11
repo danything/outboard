@@ -1823,6 +1823,162 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "pcie-tuner:JP_OPEN"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "JP"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "JP_OPEN"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Solder jumper, 2 pads, open by default (solder to close)"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "JP_OPEN_0_1"
+				(polyline
+					(pts
+						(xy -2.54 0) (xy -0.635 0)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.635 1.905) (xy -0.635 -1.905)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.635 1.905) (xy 0.635 -1.905)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.635 0) (xy 2.54 0)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "JP_OPEN_1_1"
+				(pin passive line
+					(at -3.81 0 0)
+					(length 1.27)
+					(name "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 3.81 0 180)
+					(length 1.27)
+					(name "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "pcie-tuner:JP_SOLDER"
 			(pin_numbers
 				(hide yes)
@@ -2919,6 +3075,139 @@
 					(at 7.62 0 180)
 					(length 2.54)
 					(name "D"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "pcie-tuner:NPN_BEC"
+			(pin_names
+				(offset 0.762)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "Q"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "NPN_BEC"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "NPN transistor, SOT-23 (1=B 2=E 3=C)"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "NPN_BEC_0_1"
+				(rectangle
+					(start -5.08 2.54)
+					(end 5.08 -5.08)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+			)
+			(symbol "NPN_BEC_1_1"
+				(pin passive line
+					(at -7.62 0 0)
+					(length 2.54)
+					(name "B"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 -2.54 180)
+					(length 2.54)
+					(name "E"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 0 180)
+					(length 2.54)
+					(name "C"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -5169,7 +5458,7 @@
 		)
 		(uuid "ff3f4d06-3337-5f97-9ec1-d8fd80eddc3d")
 	)
-	(text "Vout = 0.6V x (1 + 100k/5.1k) = 12.36V. L = 4.7uH, D4 = SS34 (datasheet application). EN pulled down 100k -> off with a blank MCU.\nA boost passes VIN to its output when stopped, so Q1 (AO3401A, Vgs max +-12V) cuts the output. Q2 and Q3 in series pull the gate down\nthrough 100k only when SW12_ON is high AND +3.3V is present: Vgs = -12.36 x 100k/200k = -6.2V (-9.8V if VIN = 20V).\nC32 47nF drain-gate slows the edge to about 2 V/ms. Q2 gate pulled down 100k -> off with a blank MCU.\nF1 (PTC 0.75A hold) protects against a short on the card. R18 bleeds the +12V line to 0V when off."
+	(text "Vout = 0.6V x (1 + 100k/5.1k) = 12.36V. L = 4.7uH, D4 = SS34 (datasheet application). EN pulled down 100k -> off with a blank MCU.\nA boost passes VIN to its output when stopped, so Q1 (AO3401A, Vgs max +-12V) cuts the output. Q2 and Q3 in series pull the gate down\nthrough 100k only when SW12_ON is high AND +3.3V is present: Vgs = -12.36 x 100k/200k = -6.2V (-9.8V if VIN = 20V).\nC32 47nF drain-gate slows the edge to about 2 V/ms. Q2 gate pulled down 100k -> off with a blank MCU.\nF1 (PTC 0.75A hold) protects against a short on the card. R18 bleeds the +12V line to 0V when off.\nOver-voltage lock: when VIN > about 13V (12.2 .. 13.6V), D7 + Q4 pull the gate of Q2 low, so Q1 cannot turn on (9V PD: always on, 15V: always off)."
 		(exclude_from_sim no)
 		(at 241.5 147.5 0)
 		(effects
@@ -5271,7 +5560,7 @@
 		)
 		(uuid "716dd1cd-0857-5aea-b5d0-aae228e16aea")
 	)
-	(text "VDD = +5V (4.2 .. 5V). ADC reference = VDD, so firmware corrects with the internal Vref channel.\nCC1/CC2: 100k series + 100nF (the 100k keeps the load off the PD line; fault current into the pin < 0.2mA).\nVIN / VBUS1 sense = x 33k/(100k+33k) = 0.248: 5V -> 1.24V, 9V -> 2.23V, 20V (TVS clamp) -> 4.96V  (below VDD = 5V whenever VIN > 5.5V).\nPC3 = EN_3V3 and PC4 = PERST# (drive low or leave Hi-Z, never push-pull high). PD2 = EN_12V, PD3 = SW12_ON (100k pull-downs).\nPA2/A0 = +12V sense (x 0.248: 12.36V -> 3.07V).\nI2C1 (PC1/PC2) -> U1. Remap I2C1 to PC5/PC6 (AFIO I2C1_RM = 10b) -> U2. No external pull-ups: CH224A has them inside.\nJ5: 1 = SWIO, 2 = GND (WCH-LinkE). SW1: closed to GND = manual 12V override."
+	(text "VDD = +5V (4.2 .. 5V). ADC reference = VDD, so firmware corrects with the internal Vref channel.\nCC1/CC2: 100k series + 100nF (the 100k keeps the load off the PD line; fault current into the pin < 0.2mA).\nVIN / VBUS1 sense = x 33k/(100k+33k) = 0.248: 5V -> 1.24V, 9V -> 2.23V, 20V (TVS clamp) -> 4.96V  (below VDD = 5V whenever VIN > 5.5V).\nPC3 = EN_3V3 and PC4 = PERST# (drive low or leave Hi-Z, never push-pull high). PD2 = EN_12V, PD3 = SW12_ON (100k pull-downs).\nPA2/A0 = +12V sense (x 0.248: 12.36V -> 3.07V).\nI2C1 (PC1/PC2) -> U1. Remap I2C1 to PC5/PC6 (AFIO I2C1_RM = 10b) -> U2. No external pull-ups: CH224A has them inside.\nJ5: 1 = SWIO, 2 = GND (WCH-LinkE). JP7: solder closed = manual 12V override (replaces the slide switch)."
 		(exclude_from_sim no)
 		(at 21.5 261.5 0)
 		(effects
@@ -5422,10 +5711,6 @@
 	(no_connect
 		(at 248.92 86.36)
 		(uuid "25595752-6650-5889-9bf8-cbfd186978a5")
-	)
-	(no_connect
-		(at 165.1 353.06)
-		(uuid "354af271-b8ca-5c6d-8556-7c893d8d2947")
 	)
 	(no_connect
 		(at 347.98 320.04)
@@ -5943,6 +6228,16 @@
 	)
 	(wire
 		(pts
+			(xy 447.04 241.3) (xy 449.58 241.3)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "23a6740b-7550-5da3-b696-c9733e7faee5")
+	)
+	(wire
+		(pts
 			(xy 450.85 342.9) (xy 448.31 342.9)
 		)
 		(stroke
@@ -6030,6 +6325,16 @@
 			(type default)
 		)
 		(uuid "2c80bbfc-13d1-581a-9036-eb52a2b1d0ae")
+	)
+	(wire
+		(pts
+			(xy 443.23 228.6) (xy 445.77 228.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2d2a1fd7-cf62-5a22-bd26-fce38de7cbbd")
 	)
 	(wire
 		(pts
@@ -6220,6 +6525,16 @@
 			(type default)
 		)
 		(uuid "3f78b197-840f-5cad-9874-edadfce07502")
+	)
+	(wire
+		(pts
+			(xy 431.8 241.3) (xy 429.26 241.3)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "40a360d9-ccf2-566f-9551-9c7b959b67db")
 	)
 	(wire
 		(pts
@@ -6443,16 +6758,6 @@
 	)
 	(wire
 		(pts
-			(xy 165.1 350.52) (xy 167.64 350.52)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "52f90c71-e4db-5149-bc32-b519e9857fc4")
-	)
-	(wire
-		(pts
 			(xy 383.54 350.52) (xy 386.08 350.52)
 		)
 		(stroke
@@ -6480,6 +6785,16 @@
 			(type default)
 		)
 		(uuid "5528b421-73c0-5ae1-82a4-183b5ff8abb8")
+	)
+	(wire
+		(pts
+			(xy 447.04 243.84) (xy 449.58 243.84)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "55a07101-087b-5eae-8bad-13d9d21ab574")
 	)
 	(wire
 		(pts
@@ -6723,6 +7038,16 @@
 	)
 	(wire
 		(pts
+			(xy 158.75 353.06) (xy 161.29 353.06)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7067f5ba-ddf9-57ae-b817-0ed3a7c25528")
+	)
+	(wire
+		(pts
 			(xy 398.78 185.42) (xy 401.32 185.42)
 		)
 		(stroke
@@ -6790,6 +7115,16 @@
 			(type default)
 		)
 		(uuid "74f51cf9-6e34-5b3f-bd8e-a46cc409e7b1")
+	)
+	(wire
+		(pts
+			(xy 443.23 220.98) (xy 445.77 220.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "75acbe75-29a6-5bff-8241-6da1e1cb51ae")
 	)
 	(wire
 		(pts
@@ -7143,6 +7478,16 @@
 	)
 	(wire
 		(pts
+			(xy 435.61 213.36) (xy 433.07 213.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9329f67a-2f8f-59fa-bb18-a60d5598369f")
+	)
+	(wire
+		(pts
 			(xy 267.97 304.8) (xy 270.51 304.8)
 		)
 		(stroke
@@ -7183,6 +7528,16 @@
 	)
 	(wire
 		(pts
+			(xy 443.23 236.22) (xy 445.77 236.22)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "93fc5a35-44fb-549d-98c9-349b38b515c2")
+	)
+	(wire
+		(pts
 			(xy 292.1 63.5) (xy 289.56 63.5)
 		)
 		(stroke
@@ -7190,16 +7545,6 @@
 			(type default)
 		)
 		(uuid "94454933-72e2-5ca5-a51b-4d4edf02f515")
-	)
-	(wire
-		(pts
-			(xy 144.78 350.52) (xy 142.24 350.52)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "952d2fb3-f8cc-527e-b683-c45c9517899d")
 	)
 	(wire
 		(pts
@@ -7223,6 +7568,16 @@
 	)
 	(wire
 		(pts
+			(xy 387.35 251.46) (xy 384.81 251.46)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "98150959-62d5-51ea-a4fb-4baa9784986e")
+	)
+	(wire
+		(pts
 			(xy 184.15 213.36) (xy 186.69 213.36)
 		)
 		(stroke
@@ -7230,6 +7585,16 @@
 			(type default)
 		)
 		(uuid "988a4377-6c11-59fc-8241-fbcc959d4a32")
+	)
+	(wire
+		(pts
+			(xy 151.13 353.06) (xy 148.59 353.06)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9a20d6f4-3844-5c9a-ba28-64d6bddbee48")
 	)
 	(wire
 		(pts
@@ -7250,6 +7615,16 @@
 			(type default)
 		)
 		(uuid "9b24ea5c-3624-563f-9c58-9c4c26fcda1e")
+	)
+	(wire
+		(pts
+			(xy 435.61 228.6) (xy 433.07 228.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9b2eb0cf-07b2-5543-85e6-98a2b9443177")
 	)
 	(wire
 		(pts
@@ -7300,6 +7675,16 @@
 			(type default)
 		)
 		(uuid "9e97c86b-1d50-51bf-baf1-5c34f7572b94")
+	)
+	(wire
+		(pts
+			(xy 435.61 236.22) (xy 433.07 236.22)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9ecf3a36-d020-559b-807e-138af8618ee3")
 	)
 	(wire
 		(pts
@@ -7423,6 +7808,16 @@
 	)
 	(wire
 		(pts
+			(xy 443.23 213.36) (xy 445.77 213.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "abd9f61e-d5a9-56b2-b554-f7e39598bea1")
+	)
+	(wire
+		(pts
 			(xy 260.35 342.9) (xy 257.81 342.9)
 		)
 		(stroke
@@ -7440,6 +7835,16 @@
 			(type default)
 		)
 		(uuid "b0319426-57e5-516f-96e8-5d89deab3bed")
+	)
+	(wire
+		(pts
+			(xy 394.97 251.46) (xy 397.51 251.46)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b0cc7a18-836d-51d9-93be-770f1c234fb7")
 	)
 	(wire
 		(pts
@@ -8063,6 +8468,16 @@
 	)
 	(wire
 		(pts
+			(xy 435.61 220.98) (xy 433.07 220.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e467c14b-707c-5c0c-abcb-28f30da895e2")
+	)
+	(wire
+		(pts
 			(xy 127 73.66) (xy 129.54 73.66)
 		)
 		(stroke
@@ -8120,16 +8535,6 @@
 			(type default)
 		)
 		(uuid "e89bcaaf-ea47-5f27-a882-1d0a2cbc4ac2")
-	)
-	(wire
-		(pts
-			(xy 165.1 355.6) (xy 167.64 355.6)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e90b47c7-380c-5af4-966e-62c3142a6b40")
 	)
 	(wire
 		(pts
@@ -8671,6 +9076,16 @@
 		)
 		(uuid "111ffd96-f1cb-5073-a372-d55e9a1031b0")
 	)
+	(label "GND"
+		(at 161.29 353.06 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "12697be0-504a-5b4c-8810-22232b56f64a")
+	)
 	(label "+12V_BOOST"
 		(at 323.85 228.6 180)
 		(effects
@@ -8821,6 +9236,16 @@
 		)
 		(uuid "2246e909-925f-5980-858b-d75a15aa6d77")
 	)
+	(label "SW1_IN"
+		(at 148.59 353.06 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "227c8fec-0fd0-5301-be26-cedb0ed51a81")
+	)
 	(label "GND"
 		(at 386.08 312.42 0)
 		(effects
@@ -8961,16 +9386,6 @@
 		)
 		(uuid "2f26c63a-f6cd-52ba-9651-850dfcdadc2b")
 	)
-	(label "SW12_ON"
-		(at 381 195.58 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "2fea9f0b-27c3-5854-bebb-f3dcaffbdd2e")
-	)
 	(label "GND"
 		(at 461.01 304.8 0)
 		(effects
@@ -9001,16 +9416,6 @@
 		)
 		(uuid "31957a86-dd9b-5a9f-a6d7-cddb63c3f963")
 	)
-	(label "GND"
-		(at 167.64 355.6 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "3351365f-b45f-5ecf-a5a0-4171b3951537")
-	)
 	(label "VIN"
 		(at 323.85 190.5 180)
 		(effects
@@ -9040,6 +9445,16 @@
 			(justify left bottom)
 		)
 		(uuid "34787db5-2bc2-5392-ae27-149dc41a9280")
+	)
+	(label "GND"
+		(at 445.77 236.22 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "357a98e7-fdf3-5fb9-9b40-f9125544a451")
 	)
 	(label "GND"
 		(at 461.01 320.04 0)
@@ -9300,6 +9715,16 @@
 			(justify right bottom)
 		)
 		(uuid "448156c7-e276-5b1e-bbf7-62d2a5c70015")
+	)
+	(label "GND"
+		(at 445.77 213.36 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "44887a35-60bb-5574-b5b7-6c1dbf3f1f26")
 	)
 	(label "VBUS2"
 		(at 354.33 58.42 180)
@@ -9631,16 +10056,6 @@
 		)
 		(uuid "65b85d24-2bac-5f48-8026-28d3ca06fb42")
 	)
-	(label "SW12_ON"
-		(at 384.81 243.84 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "67176a22-fc6b-54d1-a00b-29c27662190e")
-	)
 	(label "Q1_G"
 		(at 384.81 236.22 180)
 		(effects
@@ -9681,6 +10096,16 @@
 		)
 		(uuid "68a702be-201f-5c3f-aa66-ebcccf78997b")
 	)
+	(label "OVP_B"
+		(at 445.77 228.6 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "69c689ab-8915-54c4-bc41-e1a3765c95dc")
+	)
 	(label "USBH_VBUS"
 		(at 538.48 215.9 0)
 		(effects
@@ -9700,6 +10125,16 @@
 			(justify left bottom)
 		)
 		(uuid "6af8065f-e802-5251-ac39-103e097ac7f2")
+	)
+	(label "SW12_ON"
+		(at 384.81 251.46 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "6c37c3d2-d1d9-5d96-9296-8703f4a99dd2")
 	)
 	(label "+3V3"
 		(at 386.08 322.58 0)
@@ -9801,6 +10236,16 @@
 		)
 		(uuid "7b156add-10d6-5b13-a80d-9d257aadd50d")
 	)
+	(label "Q2_G"
+		(at 381 195.58 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "7b50b1d6-533b-5a86-85ca-44720fc6cc63")
+	)
 	(label "EN_3V3"
 		(at 173.99 190.5 180)
 		(effects
@@ -9821,6 +10266,16 @@
 		)
 		(uuid "7d13f18c-a98d-5f9b-89bb-b46dfedfcd12")
 	)
+	(label "OVP_B"
+		(at 429.26 241.3 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "7e56c97d-046a-5049-9884-5f4261df2690")
+	)
 	(label "GND"
 		(at 461.01 350.52 0)
 		(effects
@@ -9830,6 +10285,16 @@
 			(justify left bottom)
 		)
 		(uuid "7ecea304-50dc-547b-8b17-e438f5130cea")
+	)
+	(label "VIN"
+		(at 445.77 220.98 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "7f25f784-7a8b-5554-bfa4-c3a650b3ca45")
 	)
 	(label "VIN"
 		(at 524.51 86.36 180)
@@ -10020,6 +10485,16 @@
 			(justify left bottom)
 		)
 		(uuid "921d8ee8-c217-5bec-a0ba-1ee57fe4f04e")
+	)
+	(label "+12V"
+		(at 445.77 205.74 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "927e0e91-da69-5628-983c-b7937249d179")
 	)
 	(label "PERST#"
 		(at 461.01 335.28 0)
@@ -10240,16 +10715,6 @@
 			(justify right bottom)
 		)
 		(uuid "a7e21f01-4c67-5e44-91c8-75aecc600356")
-	)
-	(label "GND"
-		(at 445.77 205.74 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "a967ab64-ea50-5985-9deb-e092000134c9")
 	)
 	(label "SW_3V3"
 		(at 113.03 213.36 180)
@@ -10481,6 +10946,16 @@
 		)
 		(uuid "c3d95004-b1e9-54e0-9cea-b41edf7e9e55")
 	)
+	(label "Q2_G"
+		(at 384.81 243.84 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "c5afa847-efd9-56ce-9f67-0886dddf2cee")
+	)
 	(label "GND"
 		(at 436.88 114.3 180)
 		(effects
@@ -10510,6 +10985,16 @@
 			(justify left bottom)
 		)
 		(uuid "c7aa9cde-9d99-5570-a99b-c04779de1654")
+	)
+	(label "OVP_B"
+		(at 433.07 236.22 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "c7d31140-0d00-538f-ad82-85aaf79127b7")
 	)
 	(label "Q1_G"
 		(at 384.81 213.36 180)
@@ -10701,6 +11186,16 @@
 		)
 		(uuid "d1b3e76e-9d5a-5b02-b075-20d7c8062c7b")
 	)
+	(label "OVP_Z"
+		(at 433.07 220.98 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "d1fc9fb3-ff9b-57ab-b848-6c3d3348e618")
+	)
 	(label "FB_3V3"
 		(at 113.03 228.6 180)
 		(effects
@@ -10720,6 +11215,16 @@
 			(justify right bottom)
 		)
 		(uuid "d428db0a-afef-5d40-9c12-943e86ec8463")
+	)
+	(label "GND"
+		(at 449.58 243.84 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d498e44a-3e70-5786-bfc0-4267b40ced0d")
 	)
 	(label "VBUS2"
 		(at 354.33 88.9 180)
@@ -10760,6 +11265,16 @@
 			(justify left bottom)
 		)
 		(uuid "d8653d66-32c9-525a-9b1e-9ef53c349fdd")
+	)
+	(label "+12V_F"
+		(at 433.07 205.74 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "d901999c-e1f2-5053-b2ba-aedcc5762e00")
 	)
 	(label "J1_CC1"
 		(at 204.47 304.8 180)
@@ -10931,15 +11446,15 @@
 		)
 		(uuid "e23b141d-900e-545b-b81d-f1503c5476be")
 	)
-	(label "GND"
-		(at 167.64 350.52 0)
+	(label "+12V"
+		(at 433.07 213.36 180)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left bottom)
+			(justify right bottom)
 		)
-		(uuid "e27dd416-43ec-5d5f-a704-a78db2156be8")
+		(uuid "e2567c89-5763-5f12-a574-850375e65be5")
 	)
 	(label "FB_3V3"
 		(at 73.66 195.58 0)
@@ -10981,6 +11496,16 @@
 		)
 		(uuid "e8bd12a0-71a7-5eae-a2c2-f93d6f660985")
 	)
+	(label "OVP_Z"
+		(at 433.07 228.6 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "eb7f644f-d42e-5c4c-9113-5f55171b66eb")
+	)
 	(label "+3V3_BUCK"
 		(at 436.88 119.38 180)
 		(effects
@@ -11001,16 +11526,6 @@
 		)
 		(uuid "ec229341-b6f2-5006-85fe-f253cc0ebbbe")
 	)
-	(label "SW1_IN"
-		(at 142.24 350.52 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "ec7a38d0-8fc8-5489-9b64-b7ab121318f3")
-	)
 	(label "+12V_SW"
 		(at 433.07 198.12 180)
 		(effects
@@ -11020,6 +11535,16 @@
 			(justify right bottom)
 		)
 		(uuid "eceafc70-33eb-5221-a469-a64b5a12ba37")
+	)
+	(label "Q2_G"
+		(at 397.51 251.46 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "edf6a9fb-840b-5d05-a22a-e5a275013107")
 	)
 	(label "VIN"
 		(at 367.03 88.9 0)
@@ -11060,6 +11585,16 @@
 			(justify left bottom)
 		)
 		(uuid "f241c842-2b52-5343-a8c2-0ca04165c450")
+	)
+	(label "Q2_G"
+		(at 449.58 241.3 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "f2a8d08f-8dcc-5c79-b99c-2b6898cec791")
 	)
 	(label "GND"
 		(at 125.73 190.5 0)
@@ -11200,16 +11735,6 @@
 			(justify right bottom)
 		)
 		(uuid "fa927580-a38e-57de-8d85-7efb279340d5")
-	)
-	(label "+12V"
-		(at 433.07 205.74 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "fbc1c3b5-df63-5310-827d-7b88d6393742")
 	)
 	(label "+3V3"
 		(at 448.31 304.8 180)
@@ -14653,8 +15178,8 @@
 		)
 	)
 	(symbol
-		(lib_id "pcie-tuner:SW_SPDT")
-		(at 154.94 353.06 0)
+		(lib_id "pcie-tuner:D_K1A2")
+		(at 439.42 220.98 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -14662,9 +15187,9 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(uuid "3f7d433b-286b-5a40-89e2-1f22720ed028")
-		(property "Reference" "SW1"
-			(at 147.32 346.71 0)
+		(uuid "447eb9f2-b88e-56ea-9b52-94c2a7b03946")
+		(property "Reference" "D7"
+			(at 435.61 223.52 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -14674,8 +15199,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "MSK12C02"
-			(at 147.32 359.41 0)
+		(property "Value" "BZT52B12"
+			(at 439.21 223.52 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -14685,8 +15210,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "pcie-tuner:SW-TH_MSK12C02"
-			(at 154.94 353.06 0)
+		(property "Footprint" "pcie-tuner:SOD-123_L2.7-W1.6-LS3.7-RD"
+			(at 439.42 220.98 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14697,7 +15222,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 154.94 353.06 0)
+			(at 439.42 220.98 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14707,8 +15232,8 @@
 				)
 			)
 		)
-		(property "Description" "Slide switch SPDT (SHOU HAN)"
-			(at 154.94 353.06 0)
+		(property "Description" "Zener 12V 2% 500mW SOD-123"
+			(at 439.42 220.98 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14718,8 +15243,8 @@
 				)
 			)
 		)
-		(property "LCSC" "C431540"
-			(at 154.94 353.06 0)
+		(property "LCSC" "C22395569"
+			(at 439.42 220.98 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14729,8 +15254,8 @@
 				)
 			)
 		)
-		(property "MPN" "MSK12C02"
-			(at 154.94 353.06 0)
+		(property "MPN" "BZT52B12"
+			(at 439.42 220.98 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14741,21 +15266,15 @@
 			)
 		)
 		(pin "2"
-			(uuid "d534dc25-dcf8-5c14-bb80-4bc401fd1c8d")
+			(uuid "1f494ec3-a189-5ef3-a0bc-5dacd4e6df65")
 		)
 		(pin "1"
-			(uuid "63c9fedb-b63c-56cf-b7e8-fb866a3bc0f5")
-		)
-		(pin "3"
-			(uuid "3c9b76b7-d60d-5c95-8c2f-b45839d6da7d")
-		)
-		(pin "4"
-			(uuid "8c3db359-c796-5453-acbe-1a85a2cec9c9")
+			(uuid "e388d526-f36d-5fc9-8e12-f689eb1ebc2f")
 		)
 		(instances
 			(project "pcie-tuner-board"
 				(path "/8a0fb4e6-d81e-58df-a1ca-d25e33a82b27"
-					(reference "SW1")
+					(reference "D7")
 					(unit 1)
 				)
 			)
@@ -15174,6 +15693,109 @@
 		)
 	)
 	(symbol
+		(lib_id "pcie-tuner:R")
+		(at 391.16 251.46 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "4e50c95f-9a40-5888-a9f3-e52ac74b7f21")
+		(property "Reference" "R34"
+			(at 387.35 254 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10k"
+			(at 392.25 254 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "pcie-tuner:R0603"
+			(at 391.16 251.46 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 391.16 251.46 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor 10k 1% 0603"
+			(at 391.16 251.46 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C25804"
+			(at 391.16 251.46 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0603WAF1002T5E"
+			(at 391.16 251.46 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "518832a5-368c-5f77-8be8-bf613c8313c7")
+		)
+		(pin "2"
+			(uuid "b82473e7-e46c-59e0-951e-eec2e8ebf904")
+		)
+		(instances
+			(project "pcie-tuner-board"
+				(path "/8a0fb4e6-d81e-58df-a1ca-d25e33a82b27"
+					(reference "R34")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "pcie-tuner:C")
 		(at 454.66 350.52 0)
 		(unit 1)
@@ -15381,6 +16003,109 @@
 	)
 	(symbol
 		(lib_id "pcie-tuner:JP_SOLDER")
+		(at 439.42 205.74 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "56d6e94a-0c94-5b32-8762-41b3bf7eded5")
+		(property "Reference" "JP6"
+			(at 435.61 208.28 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Solder jumper (closed)"
+			(at 440.51 208.28 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "pcie-tuner:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm"
+			(at 439.42 205.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 439.42 205.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Solder jumper"
+			(at 439.42 205.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" ""
+			(at 439.42 205.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 439.42 205.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "59ec1050-92b6-5cdf-a656-3c17fe62040b")
+		)
+		(pin "2"
+			(uuid "36bd53f3-8cf7-5795-9e90-bac5bf0e4370")
+		)
+		(instances
+			(project "pcie-tuner-board"
+				(path "/8a0fb4e6-d81e-58df-a1ca-d25e33a82b27"
+					(reference "JP6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "pcie-tuner:JP_SOLDER")
 		(at 454.66 358.14 0)
 		(unit 1)
 		(body_style 1)
@@ -15488,7 +16213,7 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
@@ -15537,7 +16262,7 @@
 				)
 			)
 		)
-		(property "Description" "Pin header 1x2 2.54mm (XFCN)"
+		(property "Description" "Pin header 1x2 2.54mm (XFCN C492401) - not assembled"
 			(at 154.94 368.3 0)
 			(hide yes)
 			(show_name no)
@@ -15548,7 +16273,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C492401"
+		(property "LCSC" ""
 			(at 154.94 368.3 0)
 			(hide yes)
 			(show_name no)
@@ -15607,7 +16332,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "nSMD075-13.2V"
+		(property "Value" "nSMD075-16V"
 			(at 439.21 200.66 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15640,7 +16365,7 @@
 				)
 			)
 		)
-		(property "Description" "Resettable fuse 0.75A hold / 1.5A trip, 13.2V (TECHFUSE)"
+		(property "Description" "Resettable fuse 0.75A hold / 1.5A trip, 16V (TECHFUSE)"
 			(at 439.42 198.12 0)
 			(hide yes)
 			(show_name no)
@@ -15651,7 +16376,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C70079"
+		(property "LCSC" "C70080"
 			(at 439.42 198.12 0)
 			(hide yes)
 			(show_name no)
@@ -15662,7 +16387,7 @@
 				)
 			)
 		)
-		(property "MPN" "nSMD075-13.2V"
+		(property "MPN" "nSMD075-16V"
 			(at 439.42 198.12 0)
 			(hide yes)
 			(show_name no)
@@ -17638,7 +18363,7 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
@@ -17687,7 +18412,7 @@
 				)
 			)
 		)
-		(property "Description" "Pin header 1x2 2.54mm (XFCN)"
+		(property "Description" "Pin header 1x2 2.54mm (XFCN C492401) - not assembled"
 			(at 180.34 228.6 0)
 			(hide yes)
 			(show_name no)
@@ -17698,7 +18423,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C492401"
+		(property "LCSC" ""
 			(at 180.34 228.6 0)
 			(hide yes)
 			(show_name no)
@@ -18558,6 +19283,109 @@
 	)
 	(symbol
 		(lib_id "pcie-tuner:R")
+		(at 439.42 236.22 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "a114b638-9686-51ee-8f3f-12e986f57cee")
+		(property "Reference" "R36"
+			(at 435.61 238.76 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10k"
+			(at 440.51 238.76 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "pcie-tuner:R0603"
+			(at 439.42 236.22 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 439.42 236.22 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor 10k 1% 0603"
+			(at 439.42 236.22 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C25804"
+			(at 439.42 236.22 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0603WAF1002T5E"
+			(at 439.42 236.22 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "738cfca7-921b-52fa-980f-af75804dc7f2")
+		)
+		(pin "2"
+			(uuid "177c41ac-70e4-571d-b461-5e199633dade")
+		)
+		(instances
+			(project "pcie-tuner-board"
+				(path "/8a0fb4e6-d81e-58df-a1ca-d25e33a82b27"
+					(reference "R36")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "pcie-tuner:R")
 		(at 391.16 243.84 0)
 		(unit 1)
 		(body_style 1)
@@ -18999,6 +19827,109 @@
 			(project "pcie-tuner-board"
 				(path "/8a0fb4e6-d81e-58df-a1ca-d25e33a82b27"
 					(reference "H1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "pcie-tuner:R")
+		(at 439.42 228.6 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "b01657fa-46a8-55fd-be92-14518c788cd8")
+		(property "Reference" "R35"
+			(at 435.61 231.14 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10k"
+			(at 440.51 231.14 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "pcie-tuner:R0603"
+			(at 439.42 228.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 439.42 228.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor 10k 1% 0603"
+			(at 439.42 228.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C25804"
+			(at 439.42 228.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0603WAF1002T5E"
+			(at 439.42 228.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "c892b405-c58f-507f-8007-f668a8f78227")
+		)
+		(pin "2"
+			(uuid "00b6ab6d-f65e-576e-b6c0-0bf2029603d7")
+		)
+		(instances
+			(project "pcie-tuner-board"
+				(path "/8a0fb4e6-d81e-58df-a1ca-d25e33a82b27"
+					(reference "R35")
 					(unit 1)
 				)
 			)
@@ -19935,7 +20866,7 @@
 	)
 	(symbol
 		(lib_id "pcie-tuner:R")
-		(at 439.42 205.74 0)
+		(at 439.42 213.36 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -19945,7 +20876,7 @@
 		(dnp no)
 		(uuid "c0ff5d4f-5c33-51c4-94a6-cb10526b0591")
 		(property "Reference" "R18"
-			(at 435.61 208.28 0)
+			(at 435.61 215.9 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -19956,7 +20887,7 @@
 			)
 		)
 		(property "Value" "10k"
-			(at 440.51 208.28 0)
+			(at 440.51 215.9 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -19967,7 +20898,7 @@
 			)
 		)
 		(property "Footprint" "pcie-tuner:R0603"
-			(at 439.42 205.74 0)
+			(at 439.42 213.36 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19978,7 +20909,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 439.42 205.74 0)
+			(at 439.42 213.36 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19989,7 +20920,7 @@
 			)
 		)
 		(property "Description" "Resistor 10k 1% 0603"
-			(at 439.42 205.74 0)
+			(at 439.42 213.36 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -20000,7 +20931,7 @@
 			)
 		)
 		(property "LCSC" "C25804"
-			(at 439.42 205.74 0)
+			(at 439.42 213.36 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -20011,7 +20942,7 @@
 			)
 		)
 		(property "MPN" "0603WAF1002T5E"
-			(at 439.42 205.74 0)
+			(at 439.42 213.36 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -20120,7 +21051,7 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
@@ -20169,7 +21100,7 @@
 				)
 			)
 		)
-		(property "Description" "Pin header 2x5 2.54mm (XFCN)"
+		(property "Description" "Pin header 2x5 2.54mm (XFCN C492422) - not assembled"
 			(at 523.24 220.98 0)
 			(hide yes)
 			(show_name no)
@@ -20180,7 +21111,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C492422"
+		(property "LCSC" ""
 			(at 523.24 220.98 0)
 			(hide yes)
 			(show_name no)
@@ -20644,6 +21575,109 @@
 			(project "pcie-tuner-board"
 				(path "/8a0fb4e6-d81e-58df-a1ca-d25e33a82b27"
 					(reference "R7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "pcie-tuner:JP_OPEN")
+		(at 154.94 353.06 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "c975c38a-5e69-5620-978a-64a4feeb579e")
+		(property "Reference" "JP7"
+			(at 151.13 355.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Solder jumper (open)"
+			(at 156.03 355.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "pcie-tuner:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
+			(at 154.94 353.06 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 154.94 353.06 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Solder jumper, open"
+			(at 154.94 353.06 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" ""
+			(at 154.94 353.06 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 154.94 353.06 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "dfc5b2f1-9996-5927-affa-9ab08807895b")
+		)
+		(pin "2"
+			(uuid "487109d8-c73c-5164-b77d-d8a0224f895e")
+		)
+		(instances
+			(project "pcie-tuner-board"
+				(path "/8a0fb4e6-d81e-58df-a1ca-d25e33a82b27"
+					(reference "JP7")
 					(unit 1)
 				)
 			)
@@ -21544,7 +22578,7 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
@@ -21593,7 +22627,7 @@
 				)
 			)
 		)
-		(property "Description" "Pin header 1x2 2.54mm (XFCN)"
+		(property "Description" "Pin header 1x2 2.54mm (XFCN C492401) - not assembled"
 			(at 439.42 182.88 0)
 			(hide yes)
 			(show_name no)
@@ -21604,7 +22638,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C492401"
+		(property "LCSC" ""
 			(at 439.42 182.88 0)
 			(hide yes)
 			(show_name no)
@@ -22535,6 +23569,112 @@
 			(project "pcie-tuner-board"
 				(path "/8a0fb4e6-d81e-58df-a1ca-d25e33a82b27"
 					(reference "#FLG03")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "pcie-tuner:NPN_BEC")
+		(at 439.42 241.3 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "ed0ba7f0-5f7f-5865-8231-842eda3ae9b3")
+		(property "Reference" "Q4"
+			(at 434.34 237.49 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MMBT3904"
+			(at 434.34 247.65 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "pcie-tuner:SOT-23-3_L2.9-W1.3-P1.90-LS2.4-BR"
+			(at 439.42 241.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 439.42 241.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "NPN 40V 200mA (CJ)"
+			(at 439.42 241.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C20526"
+			(at 439.42 241.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "MMBT3904"
+			(at 439.42 241.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "42a6ea0b-c702-562a-ae15-ac939b196564")
+		)
+		(pin "3"
+			(uuid "663fd248-78f4-57a2-9872-dd242f2d557a")
+		)
+		(pin "2"
+			(uuid "befe9f5c-a2ba-52b8-9755-afee44a5ce7a")
+		)
+		(instances
+			(project "pcie-tuner-board"
+				(path "/8a0fb4e6-d81e-58df-a1ca-d25e33a82b27"
+					(reference "Q4")
 					(unit 1)
 				)
 			)

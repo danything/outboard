@@ -207,6 +207,21 @@ def main():
        f"A10 まで {ra:.1f} mΩ、B8 まで {rb:.1f} mΩ")
     zones = {z.GetZoneName(): z for z in b.Zones()}
 
+    def copper(net):
+        """ネットの銅の面積 (mm2)。線は 長さ x 幅、面は塗りの面積。重なりは引かないので、少し多めに出る。"""
+        g = cache.setdefault(net, Net(b, net))
+        a = sum(math.hypot(nd[4] - nd[2], nd[5] - nd[3]) * nd[6] for nd in g.nodes if nd[0] == "seg")
+        code = b.FindNet("/" + net).GetNetCode()
+        for z in b.Zones():
+            if z.GetNetCode() == code and not z.GetIsRuleArea():
+                a += z.GetFilledArea() / 1e12
+        return a
+
+    for net, title, need in (("VBUS1", "D1 のアノード (VBUS1)", 80), ("VBUS2", "D2 のアノード (VBUS2)", 100),
+                             ("VIN", "D1・D2 のカソード (VIN。2 個で共用)", 150)):
+        a = copper(net)
+        ok(f"{title} につながる銅が {need}mm2 以上 (おもての線と面 + うらの面)", a >= need, f"約 {a:.0f} mm2")
+
     def in_zone(name, x, y):
         z = zones.get(name)
         return z is not None and z.HitTestFilledArea(z.GetLayer(), pcbnew.VECTOR2I(pcbnew.FromMM(x + OX), pcbnew.FromMM(y + OY)), 0)
@@ -251,8 +266,8 @@ def main():
     for t in b.GetTracks():
         if t.Type() != pcbnew.PCB_VIA_T and t.GetLayer() == pcbnew.B_Cu:
             lens[t.GetNetname().lstrip("/")] = lens.get(t.GetNetname().lstrip("/"), 0.0) + MM(t.GetLength())
-    ok("うらの面: SW12_ON は 0mm、+5V は 15mm 以下、EN_3V3 は 10mm 以下 (幹をくぐる所だけ)",
-       lens.get("SW12_ON", 0) < 0.01 and lens.get("+5V", 0) <= 15 and lens.get("EN_3V3", 0) <= 10,
+    ok("うらの面: SW12_ON と Q2_G は 0mm、+5V は 18mm 以下 (幹と VBUS1 の枝をくぐる所と、D5 への枝)、EN_3V3 は 10mm 以下",
+       lens.get("SW12_ON", 0) + lens.get("Q2_G", 0) < 0.01 and lens.get("+5V", 0) <= 18 and lens.get("EN_3V3", 0) <= 10,
        f"SW12_ON {lens.get('SW12_ON', 0):.1f}、+5V {lens.get('+5V', 0):.1f}、EN_3V3 {lens.get('EN_3V3', 0):.1f} mm。"
        f"長い順: " + ", ".join(f"{k} {v:.0f}" for k, v in sorted(lens.items(), key=lambda kv: -kv[1])[:8]))
     for fp in b.GetFootprints():
@@ -264,7 +279,7 @@ def main():
     shown = [fp.GetReference() for fp in b.GetFootprints()
              if fp.Reference().IsVisible() and fp.Reference().GetLayer() == pcbnew.F_SilkS]
     hidden = sorted(set(fp.GetReference() for fp in b.GetFootprints()) - set(shown))
-    ok("シルク: 部品番号が出ている数 (置き場所が無かったものは一覧に)", len(hidden) <= 6,
+    ok("シルク: 部品番号が全部出ている", len(hidden) == 0,
        f"{len(shown)} 個。出ていない: {' '.join(hidden) or 'なし'}")
     thin = 0
     for fp in b.GetFootprints():
@@ -291,7 +306,7 @@ def main():
     back = [fp.GetReference() for fp in b.GetFootprints() if fp.GetLayer() != pcbnew.F_Cu]
     ok("部品は全部おもて面", not back, " ".join(back) or f"{len(b.GetFootprints())} 個")
     bb = b.GetBoardEdgesBoundingBox()
-    ok("外形は 90 x 45mm", abs(MM(bb.GetWidth()) - 90.1) < 0.2 and abs(MM(bb.GetHeight()) - 45.1) < 0.2,
+    ok("外形は 90 x 48mm", abs(MM(bb.GetWidth()) - 90.1) < 0.2 and abs(MM(bb.GetHeight()) - 48.1) < 0.2,
        f"{MM(bb.GetWidth()) - 0.1:.1f} x {MM(bb.GetHeight()) - 0.1:.1f} mm (線の太さ 0.1mm を引いた値)")
     # ---- 線とビアの大きさ ------------------------------------------------------
     wmin, vmin, dmin, nv, lb, lf = 99, 99, 99, 0, 0.0, 0.0

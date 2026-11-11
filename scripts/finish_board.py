@@ -16,7 +16,7 @@ import pcbnew
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from board_lib import B, F, OX, OY, ROOT, fix_paper, mm, pt, unpt  # noqa: E402
 
-W, H = 90.0, 45.0
+W, H = 90.0, 48.0
 SILK = pcbnew.F_SilkS
 
 
@@ -169,7 +169,7 @@ TEXTS = [
     ("PWR ONLY", 75.5, 43.3),
     ("3V3", 11.4, 17.3),
     ("STAT", 61.7, 42.4),
-    ("SW1 12V", 47.6, 38.3),
+    ("12V ON", 52.25, 45.0),
     ("SWIO GND", 44.8, 40.2),
     ("VIN", 57.5, 30.0),
     ("3V3", 28.6, 13.6),
@@ -182,6 +182,7 @@ TEXTS = [
 PIN1 = [("U1", 71.9, 20.6), ("U2", 71.9, 29.9), ("U3", 47.3, 10.7), ("U4", 32.6, 38.75), ("U5", 72.2, 10.9),
         ("U6", 67.6, 28.0)]
 
+REF_FIXED = {"R35": (54.7, 31.1, 90)}     # 自動で置き場所が見つからなかった部品番号の位置 (手で決めた)
 REF_SIZE = 0.8      # 部品番号の文字の高さ (mm)。線は 0.15mm
 
 
@@ -242,6 +243,9 @@ def place_refs(b, texts):
             if found:
                 break
         r = fp.Reference()
+        if not found and ref in REF_FIXED:
+            px, py, rot = REF_FIXED[ref]
+            found = (px, py, rot, _box(px, py, th, tw) if rot else _box(px, py, tw, th))
         if not found:
             failed.append(ref)
             r.SetVisible(False)
@@ -259,7 +263,7 @@ def place_refs(b, texts):
 
 def silk(b):
     # 基板の外にはみ出す、部品のシルクの線を消す (USB-C の口とスイッチのつまみ)
-    for ref in ("J1", "J2", "SW1"):
+    for ref in ("J1", "J2"):
         fp = b.FindFootprintByReference(ref)
         for g in list(fp.GraphicalItems()):
             if g.GetLayer() != SILK:
