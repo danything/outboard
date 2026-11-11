@@ -320,7 +320,7 @@ def main():
     ok("うらの面の線の長さの合計が 300mm 以下 (目標は 150mm 以下。" + ("届いている" if lb <= 150 else "届いていない") + ")", lb <= 300.0,
        f"うら {lb:.0f} mm (おもて {lf:.0f} mm)。長い順: " + ", ".join(f"{k} {v:.0f}" for k, v in sorted(lens.items(), key=lambda kv: -kv[1])[:10]))
     boxes = {"降圧": (68.6, 8.4, 83.4, 39.0), "昇圧": (MB.U4X - 0.6, 45.2, 35.0, 60.2),
-             "USB のデータ線": (MB.JX + 7.12, MB.J1Y - 1.3, MB.JX + 16.92, MB.J1Y + 3.2)}
+             "USB のデータ線 (D+ 自身の A6 の渡り 2.3mm は除く)": (MB.JX + 7.12, MB.J1Y - 1.3, MB.JX + 16.92, MB.J1Y + 3.2)}
     for name, (bx1, by1, bx2, by2) in boxes.items():
         hit = sorted({net for net, lay, x1, y1, x2, y2, _w in segs if lay == pcbnew.B_Cu and net != "USB_DP"
                       and any(bx1 <= x1 + (x2 - x1) * k / 20 <= bx2 and by1 <= y1 + (y2 - y1) * k / 20 <= by2 for k in range(21))})
@@ -329,11 +329,13 @@ def main():
     # ---- スロット ----------------------------------------------------------------
     for num in ("A11", "B11"):
         pd = [p for p in fps["J3"].Pads() if p.GetNumber() == num][0]
-        gap = math.hypot(1.65, 1.25) - 2.40 / 2 - MM(pd.GetSizeX()) / 2
-        ok(f"J3: {num} のパッドと、切り欠きの横の柱の穴 (2.40mm) の間が 0.24mm 以上", gap >= 0.24, f"{gap:.3f} mm")
+        gap = math.hypot(1.65, 1.25) - 2.35 / 2 - MM(pd.GetSizeX()) / 2
+        wall = math.hypot(1.65, 1.25) - 2.35 / 2 - MM(pd.GetDrillSizeX()) / 2
+        ok(f"J3: {num} のパッドと、切り欠きの横の柱の穴 (2.35mm) の間が 0.27mm 以上、穴と穴の間の壁が 0.45mm 以上",
+           gap >= 0.27 - 1e-6 and wall >= 0.45, f"銅まで {gap:.3f} mm、穴の壁 {wall:.3f} mm")
     holes = sorted(round(MM(p.GetDrillSizeX()), 2) for p in fps["J3"].Pads() if p.GetAttribute() == pcbnew.PAD_ATTRIB_NPTH)
-    ok("J3: 柱の穴は 2.35mm (端。柱 ø2.05±0.10) と 2.40mm (切り欠きの横。柱 ø2.20±0.10)。図面の推奨は 2 か所とも ø2.35±0.05",
-       holes == [2.35, 2.4], str(holes))
+    ok("J3: 柱の穴は 2 か所とも 2.35mm (UMAX の図面の推奨 ø2.35±0.05。柱は ø2.20±0.10 と ø2.05±0.10)",
+       holes == [2.35, 2.35], str(holes))
     a1, a18, b1 = pos[("J3", "A1")], pos[("J3", "A18")], pos[("J3", "B1")]
     ok("J3: 1 番ピンが左 (ブラケットの側)、18 番が右。A 面が上、B 面が下", a1[0] < a18[0] and a1[1] < b1[1]
        and abs(a1[0] - b1[0]) < 0.01, f"A1 ({a1[0]:.2f}, {a1[1]:.2f})、B1 ({b1[0]:.2f}, {b1[1]:.2f})、A18 x={a18[0]:.2f}")
@@ -360,9 +362,17 @@ def main():
     ok("ブラケットをよける段: ブラケットが通る所で、基板の左の辺がブラケットの内の面から 0.5mm 以上引っ込んでいる",
        stepped and left_low - br_in >= 0.5 and left_low >= MB.STEP_X - 0.001,
        f"ブラケットの内の面 x={br_in:.2f}、基板の辺 x={left_low:.2f}、すきま {left_low - br_in:.2f} mm")
-    ya = sy - MB.BRACKET_A
-    ok("ブラケットをよける段: 段の位置が、ブラケットの A 面の側の端より 0.5mm 以上手前", ya - MB.STEP_Y >= 0.5,
-       f"ブラケットの端 y={ya:.2f} (推定)、段 y={MB.STEP_Y:.2f}、余裕 {ya - MB.STEP_Y:.2f} mm")
+    ya, ya2 = sy - MB.BRACKET_A, sy - MB.BRACKET_A_MAX
+    ok("ブラケットをよける段: 段の位置が、ブラケットの A 面の側の端より 0.5mm 以上手前 (張り出しを大きく読んだ 2.5mm でも)",
+       ya2 - MB.STEP_Y >= 0.5,
+       f"ブラケットの端 y={ya:.2f} (CEM 2.0 の図から 2.06mm) 〜 {ya2:.2f} (2.5mm と読んだとき)、段 y={MB.STEP_Y:.2f}、余裕 {ya - MB.STEP_Y:.2f} 〜 {ya2 - MB.STEP_Y:.2f} mm")
+    by = [(x, y, n) for x, y, n, _d, _h in vias if x < 3.0 and abs(y - MB.STEP_Y) < 2.5]
+    ok("段のそばのビアが、基板の端から 0.5mm 以上離れている",
+       all((y <= MB.STEP_Y - 0.8) or (x >= MB.STEP_X + 0.8) for x, y, _n in by), " ".join(f"({x:.1f}, {y:.1f})" for x, y, _n in by) or "近くに無い")
+    for j, (nm, wmin_) in (("J1", ("VBUS1", 0.8)), ("J2", ("VBUS2", 0.8))):
+        g = cache.setdefault(nm, Net(b, nm))
+        w = g.widest(f"{j}.A4B9", ("D1.1" if j == "J1" else "D2.1"))
+        ok(f"{j}: VBUS の上のパッドから面までの線が、パッドの列を出たあと 0.9mm (パッドの上だけ 0.6mm)", w is not None, f"{w}")
     for j in ("J1", "J2"):
         ok(f"{j}: 殻 (幅 8.94mm) が段より上にある (ブラケットと重ならない)", fpos[j][1] + 4.47 <= MB.STEP_Y - 0.5,
            f"殻の下の端 y={fpos[j][1] + 4.47:.2f}")

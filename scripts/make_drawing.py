@@ -227,8 +227,9 @@ def main():
     notes = [
         "(est) = estimated value, to be measured on the real card and case before ordering:",
         f"  - pin 1 centre to bracket outer face {MB.PIN1_TO_BRACKET:.2f} (from a KiCad library built from PCIe CEM 1.2; CEM itself not read)",
-        f"  - bracket plate {MB.BRACKET_T:.2f} thick, spans {MB.BRACKET_A:.2f} to the A side and {MB.BRACKET_B:.2f} to the B side of the slot centre line",
-        "  - the bracket tongue goes below the board surface, so the board edge is set back 1.5 mm for y >= 44",
+        f"  - bracket plate {MB.BRACKET_T:.2f} thick, 18.42 wide: {MB.BRACKET_A:.2f} (up to {MB.BRACKET_A_MAX:.1f} by another reading) to the A side and {MB.BRACKET_B:.2f} to the B side",
+        "    of the slot centre line (derived from PCIe CEM 2.0 figures 6-4 and 6-16)",
+        f"  - the bracket tongue goes below the board top surface (about 11.8 standard / 7.7 low profile), so the edge is set back 1.5 mm for y >= {MB.STEP_Y:.0f}",
         "USB-C mouth 0.99 beyond the board edge: outline of the JLCPCB (EasyEDA) footprint of TYPE-C-31-M-12; board edge",
         "  is 5.79 from the rear shell legs (datasheet drawing). Case panel: inner face = bracket plate, so the mouth",
         f"  sticks {MB.BRACKET_T:.2f} into the panel hole when the bracket is {MB.BRACKET_T:.2f} thick.",

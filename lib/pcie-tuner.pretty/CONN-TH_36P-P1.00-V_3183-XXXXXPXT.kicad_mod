@@ -293,8 +293,8 @@
 	)
 	(pad "" np_thru_hole circle
 		(at 2.15 0.00)
-		(size 2.4 2.4)
-		(drill 2.4)
+		(size 2.35 2.35)
+		(drill 2.35)
 		(layers *.Cu *.Mask)
 	)
 	(fp_circle

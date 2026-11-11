@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "D:\\danything\\pcie-tuner-board\\pcie-tuner-board.kicad_sch")
-		(date "2026-11-12T01:12:33")
+		(date "2026-11-12T01:39:11")
 		(tool "Eeschema 10.0.8")
 		(sheet
 			(number "1")
