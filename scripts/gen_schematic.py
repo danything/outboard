@@ -482,7 +482,7 @@ def build() -> Sch:
             "Vout = 0.6V x (1 + 100k/5.1k) = 12.36V. L = 4.7uH, D4 = SS34 (datasheet application). EN pulled down 100k -> off with a blank MCU.\n"
             "A boost passes VIN to its output when stopped, so Q1 (AO3401A, Vgs max +-12V) cuts the output. Q2 and Q3 in series pull the gate down\n"
             "through 100k only when SW12_ON is high AND +3.3V is present: Vgs = -12.36 x 100k/200k = -6.2V (-9.8V if VIN = 20V).\n"
-            "C32 47nF drain-gate slows the edge to about 1.3 V/ms. Q2 gate pulled down 100k -> off with a blank MCU.\n"
+            "C32 47nF drain-gate slows the edge to about 2 V/ms. Q2 gate pulled down 100k -> off with a blank MCU.\n"
             "F1 (PTC 0.75A hold) protects against a short on the card. R18 bleeds the +12V line to 0V when off.")
     s.ic("U4", "MT3608B", g(bx + 35), g(by + 50), "MT3608B",
          {"5": "VIN", "4": "EN_12V", "2": "GND", "1": "SW_12V", "3": "FB_12V", "6": None})

@@ -5169,7 +5169,7 @@
 		)
 		(uuid "ff3f4d06-3337-5f97-9ec1-d8fd80eddc3d")
 	)
-	(text "Vout = 0.6V x (1 + 100k/5.1k) = 12.36V. L = 4.7uH, D4 = SS34 (datasheet application). EN pulled down 100k -> off with a blank MCU.\nA boost passes VIN to its output when stopped, so Q1 (AO3401A, Vgs max +-12V) cuts the output. Q2 and Q3 in series pull the gate down\nthrough 100k only when SW12_ON is high AND +3.3V is present: Vgs = -12.36 x 100k/200k = -6.2V (-9.8V if VIN = 20V).\nC32 47nF drain-gate slows the edge to about 1.3 V/ms. Q2 gate pulled down 100k -> off with a blank MCU.\nF1 (PTC 0.75A hold) protects against a short on the card. R18 bleeds the +12V line to 0V when off."
+	(text "Vout = 0.6V x (1 + 100k/5.1k) = 12.36V. L = 4.7uH, D4 = SS34 (datasheet application). EN pulled down 100k -> off with a blank MCU.\nA boost passes VIN to its output when stopped, so Q1 (AO3401A, Vgs max +-12V) cuts the output. Q2 and Q3 in series pull the gate down\nthrough 100k only when SW12_ON is high AND +3.3V is present: Vgs = -12.36 x 100k/200k = -6.2V (-9.8V if VIN = 20V).\nC32 47nF drain-gate slows the edge to about 2 V/ms. Q2 gate pulled down 100k -> off with a blank MCU.\nF1 (PTC 0.75A hold) protects against a short on the card. R18 bleeds the +12V line to 0V when off."
 		(exclude_from_sim no)
 		(at 241.5 147.5 0)
 		(effects
