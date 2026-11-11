@@ -1,0 +1,4 @@
+(sym_lib_table
+	(version 7)
+	(lib (name "pcie-tuner")(type "KiCad")(uri "${KIPRJMOD}/lib/pcie-tuner.kicad_sym")(options "")(descr "pcie-tuner-board symbols"))
+)
