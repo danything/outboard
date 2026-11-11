@@ -319,7 +319,8 @@ class Sch:
         d = TWO[sym]
         value = value or PARTS[part]["value"]
         self._symbol(sym, ref, x, y, value, part, list(d["pins"]),
-                     (x - 3.81, y + 2.54, "left"), (x - 3.81 + 1.3 * len(ref) + 1.0, y + 2.54, "left"))
+                     (x - 3.81, y + 2.54, "left"), (x - 3.81 + 1.3 * len(ref) + 1.0, y + 2.54, "left"),
+                     in_bom=(part != "JP_SOLDER"))   # はんだジャンパーは銅の模様だけで、載せる部品がない
         self._attach(x - 3.81, y, "L", net_l)
         self._attach(x + 3.81, y, "R", net_r)
 

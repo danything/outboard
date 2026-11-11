@@ -9,7 +9,8 @@
   ビアの外径 - 穴           0.1 mm 以上 (0.15 推奨)   0.3 mm (輪の幅 0.15)
   スルーホールの輪          0.18 mm (0.25 推奨)       0.2 mm 以上
   穴と穴 (パッド)           0.45 mm                  0.45 mm
-  穴と線                    0.28 mm (0.35 推奨)       0.3 mm
+  穴と線 (めっきあり)       0.28 mm (0.35 推奨)       0.3 mm
+  穴と線 (めっきなし)       0.2 mm                   0.2 mm
   銅と外形                  0.2 mm                   0.3 mm
   シルクの線幅 / 文字の高さ  0.15 / 1.0 mm            0.15 / 1.0 mm
   シルクとパッド            0.15 mm                  0.15 mm
@@ -21,8 +22,22 @@ import os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# Power: 太い線は make_board.py が幅を決めて手で引く。ここの 0.5mm は、自動配線が引く枝 (分圧の抵抗などへの細い線) の幅
 POWER_NETS = ["VIN", "VBUS1", "VBUS2", "+3V3", "+3V3_BUCK", "+3V3AUX", "SW_3V3", "+12V", "+12V_BOOST", "+12V_SW",
-              "SW_12V", "GND", "+5V", "USBH_VBUS"]
+              "SW_12V", "+5V", "USBH_VBUS"]
+
+
+# 基板の設定 (下限) より厳しくしたい所を、条件つきのルールで書く。
+# 穴と銅: JLCPCB の最小は、めっきのない穴 (NPTH) が 0.2mm、めっきのある穴が 0.28mm (推奨 0.35mm)。
+# 基板の設定は 0.2mm (下限) にしておき、NPTH が相手でないときは 0.3mm を求める。
+# NPTH だけ 0.2mm まで許すのは、PCIe スロットの位置決めの柱の穴と 11 番ピンの間隔が、
+# 部品の寸法で 0.22mm に決まっているため。
+DRU = """(version 1)
+
+(rule "Plated hole to copper of another net: 0.3mm"
+	(condition "!(A.Pad_Type == 'NPTH, mechanical') && !(B.Pad_Type == 'NPTH, mechanical')")
+	(constraint hole_clearance (min 0.3mm)))
+"""
 
 
 def netclass(name, clearance, width, **kw):
@@ -49,7 +64,7 @@ def main():
                     "min_connection": 0.0,
                     "min_copper_edge_clearance": 0.3,
                     "min_groove_width": 0.0,
-                    "min_hole_clearance": 0.3,
+                    "min_hole_clearance": 0.2,
                     "min_hole_to_hole": 0.45,
                     "min_microvia_diameter": 0.2,
                     "min_microvia_drill": 0.1,
@@ -83,14 +98,15 @@ def main():
         "net_settings": {
             "classes": [
                 netclass("Default", 0.2, 0.25),
-                netclass("Power", 0.2, 0.8, priority=1),
+                netclass("Power", 0.2, 0.5, priority=1),
+                netclass("GND", 0.2, 0.5, priority=3),
                 netclass("USB", 0.2, 0.8, priority=2, diff_pair_width=0.8, diff_pair_gap=0.15),
             ],
             "meta": {"version": 4},
             "net_colors": None,
             "netclass_assignments": None,
             "netclass_patterns": [{"netclass": "Power", "pattern": "/" + n} for n in POWER_NETS]
-            + [{"netclass": "USB", "pattern": "/USB_D[PN]"}],
+            + [{"netclass": "USB", "pattern": "/USB_D[PN]"}, {"netclass": "GND", "pattern": "/GND"}],
         },
         "pcbnew": {"last_paths": {}, "page_layout_descr_file": ""},
         "schematic": {"legacy_lib_dir": "", "legacy_lib_list": []},
@@ -100,7 +116,9 @@ def main():
     with open(os.path.join(ROOT, "pcie-tuner-board.kicad_pro"), "w", encoding="utf-8", newline="\n") as fh:
         json.dump(pro, fh, indent=2)
         fh.write("\n")
-    print("wrote pcie-tuner-board.kicad_pro")
+    with open(os.path.join(ROOT, "pcie-tuner-board.kicad_dru"), "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(DRU)
+    print("wrote pcie-tuner-board.kicad_pro and .kicad_dru")
 
 
 if __name__ == "__main__":

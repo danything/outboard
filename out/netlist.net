@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "D:\\danything\\pcie-tuner-board\\pcie-tuner-board.kicad_sch")
-		(date "2026-11-11T20:14:57")
+		(date "2026-11-11T21:05:08")
 		(tool "Eeschema 10.0.8")
 		(sheet
 			(number "1")
@@ -3023,6 +3023,9 @@
 				(name "Sheetfile")
 				(value "pcie-tuner-board.kicad_sch")
 			)
+			(property
+				(name "exclude_from_bom")
+			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
@@ -3082,6 +3085,9 @@
 			(property
 				(name "Sheetfile")
 				(value "pcie-tuner-board.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
 			)
 			(sheetpath
 				(names "/")
@@ -7827,7 +7833,7 @@
 		(net
 			(code "17")
 			(name "/GND")
-			(class "Power")
+			(class "GND")
 			(node
 				(ref "C1")
 				(pin "2")

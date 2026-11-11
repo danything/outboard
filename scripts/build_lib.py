@@ -9,7 +9,9 @@ EasyEDA のフットプリントに加える変更 (パッドの位置・大き�
   - コートヤードを、パッドと外形を囲む四角に作り直す (EasyEDA のものは部品の胴体だけで、パッドより小さい)
   - シルクの 1 番ピンの点 (線幅 0.06mm。JLCPCB の最小 0.15mm より細い) を消す。印は make_board.py が付け直す
   - 3D モデルの場所をプロジェクトからの相対にする
-  - PCIe スロット: 位置決めの柱の穴を 2.5mm から、データシートの推奨の 2.35mm にする
+  - PCIe スロット: 位置決めの柱の穴を 2.5mm から、データシートの推奨の 2.35mm にする。
+    ピンの穴を 0.914mm から 0.8mm に、パッドを 1.524mm から 1.35mm にする (データシートの推奨の穴は 0.70±0.08mm)
+  - USB-C: GND と VBUS のパッド (多角形) を、データシートのとおり 0.6 x 1.3mm の四角にする
   - スライドスイッチ: 属性を through_hole から smd にする (パッドは表面実装。位置ファイルに出すため)
 
 使い方: "C:\\Program Files\\KiCad\\10.0\\bin\\python.exe" scripts/build_lib.py
@@ -71,7 +73,7 @@ def convert(name):
             layer = lay[1] if lay else None
             if c[0] in ("fp_line", "fp_circle", "fp_arc", "fp_poly", "fp_rect") and layer == "F.CrtYd":
                 continue
-            if c[0] == "fp_circle" and layer == "F.SilkS" and float(find(c, "width")[1]) < 0.1:
+            if c[0] == "fp_circle" and layer == "F.SilkS" and (float(find(c, "width")[1]) < 0.1 or name.startswith("LED")):
                 continue
             if c[0] == "pad":
                 pts += pad_bbox(c)
@@ -82,6 +84,19 @@ def convert(name):
                     c[2] = Sym("np_thru_hole")
                 elif c[2] == "thru_hole" and c[1] == "":
                     c[2] = Sym("np_thru_hole")
+                elif name.startswith("CONN-TH_36P") and c[2] == "thru_hole":
+                    # EasyEDA は穴 0.914mm・パッド 1.524mm。データシートの推奨の穴は 0.70±0.08mm。
+                    # 柱の穴との間隔 (穴と穴 0.45mm、穴と銅 0.2mm) を守るため、穴 0.8mm・パッド 1.35mm にする
+                    find(c, "drill")[1] = Sym("0.8")
+                    find(c, "size")[1] = Sym("1.35")
+                    find(c, "size")[2] = Sym("1.35")
+                elif name.startswith("USB-C_SMD") and c[2] == "smd" and c[3] == "custom":
+                    # GND と VBUS のパッド: EasyEDA は多角形 (線幅ぶん太って 0.7mm 幅)。
+                    # データシートの推奨のとおり 0.6 x 1.3mm の四角にする
+                    c[3] = Sym("rect")
+                    find(c, "size")[1] = Sym("0.6")
+                    find(c, "size")[2] = Sym("1.3")
+                    c[:] = [x for x in c if not (isinstance(x, list) and x and x[0] in ("primitives", "options"))]
             if c[0] == "fp_line" and layer in ("F.SilkS", "F.Fab"):
                 for k in ("start", "end"):
                     e = find(c, k)
