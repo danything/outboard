@@ -21,6 +21,7 @@ footprint LED-SMD_L1.6-W0.8-R-RD: from EasyEDA, 2 pads, courtyard 3.47 x 1.7 mm
 footprint R0603: from EasyEDA, 2 pads, courtyard 3.08 x 1.62 mm
 footprint C0603: from EasyEDA, 2 pads, courtyard 3.08 x 1.72 mm
 footprint C0805: from EasyEDA, 2 pads, courtyard 4.22 x 2.1 mm
+footprint R0805: from EasyEDA, 2 pads, courtyard 3.82 x 2.14 mm
 footprint TestPoint_Pad_D1.5mm: copied from KiCad TestPoint.pretty
 footprint MountingHole_3.2mm_M3: copied from KiCad MountingHole.pretty
 footprint SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm: copied from KiCad Jumper.pretty
@@ -80,6 +81,17 @@ PCIE (C404113): EasyEDA footprint CONN-TH_36P-P1.00-V_3183-XXXXXPXT
   pin    B7: ours GND          EasyEDA B7                                       ok (EasyEDA has no name; checked against the datasheet by hand)
   pin    B8: ours +3.3V        EasyEDA B8                                       ok (EasyEDA has no name; checked against the datasheet by hand)
   pin    B9: ours JTAG1(TRST#) EasyEDA B9                                       ok (EasyEDA has no name; checked against the datasheet by hand)
+HDR10 (C492422): EasyEDA footprint HDR-TH_10P-P2.54-V-M-R2-C5-S2.54
+  pin     1: ours VBUS         EasyEDA 1                                        ok (EasyEDA has no name; checked against the datasheet by hand)
+  pin    10: ours NC           EasyEDA 10                                       ok (EasyEDA has no name; checked against the datasheet by hand)
+  pin     2: ours VBUS2        EasyEDA 2                                        ok (EasyEDA has no name; checked against the datasheet by hand)
+  pin     3: ours D-           EasyEDA 3                                        ok (EasyEDA has no name; checked against the datasheet by hand)
+  pin     4: ours D2-          EasyEDA 4                                        ok (EasyEDA has no name; checked against the datasheet by hand)
+  pin     5: ours D+           EasyEDA 5                                        ok (EasyEDA has no name; checked against the datasheet by hand)
+  pin     6: ours D2+          EasyEDA 6                                        ok (EasyEDA has no name; checked against the datasheet by hand)
+  pin     7: ours GND          EasyEDA 7                                        ok (EasyEDA has no name; checked against the datasheet by hand)
+  pin     8: ours GND2         EasyEDA 8                                        ok (EasyEDA has no name; checked against the datasheet by hand)
+  pin     9: ours KEY          EasyEDA 9                                        ok (EasyEDA has no name; checked against the datasheet by hand)
 CH224A (C42459160): EasyEDA footprint ESSOP-10_L4.9-W3.9-P1.0-LS6.0-TL-EP
   pin     1: ours VHV          EasyEDA VHV                                      ok
   pin    10: ours PG           EasyEDA PG                                       ok
@@ -144,6 +156,8 @@ AO3401A (C15127): EasyEDA footprint SOT-23_L2.9-W1.3-P1.90-LS2.4-BR
   pin     1: ours G            EasyEDA G                                        ok
   pin     2: ours S            EasyEDA S                                        ok
   pin     3: ours D            EasyEDA D                                        ok
+PTC (C7542961): EasyEDA footprint F1206
+  2 pins, no polarity: {'1': '1', '2': '2'}
 MMBT3904 (C20526): EasyEDA footprint SOT-23-3_L2.9-W1.3-P1.90-LS2.4-BR
   pin     1: ours B            EasyEDA B                                        ok
   pin     2: ours E            EasyEDA E                                        ok

@@ -1,7 +1,7 @@
 (module "C0603"
 	(layer F.Cu)
 	(tedit 5DC5F6A4)
-	(descr "47nF (473) ±10% 50V")
+	(descr "33nF (333) ±10% 50V")
 	(attr smd)
 	(fp_text reference REF**
 		(at 0.000 -4.000)
@@ -33,7 +33,7 @@
 			)
 		)
 	)
-	(property "LCSC Part" "C1622")
+	(property "LCSC Part" "C21117")
 	(fp_line
 		(start -0.28 0.71)
 		(end -1.08 0.71)

@@ -81,9 +81,14 @@ def convert(name):
             if c[0] == "pad":
                 pts += pad_bbox(c)
                 if name.startswith("CONN-TH_36P") and c[2] == "thru_hole" and c[1] == "" and float(find(c, "drill")[1]) == 2.5:
-                    find(c, "drill")[1] = Sym("2.35")
-                    find(c, "size")[1] = Sym("2.35")
-                    find(c, "size")[2] = Sym("2.35")
+                    # 柱の穴。UMAX の図面 (318307001、4/5 枚目) の推奨は 2 か所とも ø2.35±0.05。
+                    # 柱そのものは、切り欠きの横が ø2.20±0.10、端が ø2.05±0.10 (1/5 枚目、DUAL POST TYPE)。
+                    # 切り欠きの横の穴は、推奨の幅の上限の 2.40 にする (柱の最大 2.30 に対して、穴が 0.05 小さく
+                    # 仕上がっても 0.05 残る)。端の穴は 2.35 のまま (柱の最大 2.15 に対して 0.15 以上残る)
+                    d = "2.4" if abs(float(find(c, "at")[1]) - 2.15) < 0.01 else "2.35"
+                    find(c, "drill")[1] = Sym(d)
+                    find(c, "size")[1] = Sym(d)
+                    find(c, "size")[2] = Sym(d)
                     c[2] = Sym("np_thru_hole")
                 elif c[2] == "thru_hole" and c[1] == "":
                     c[2] = Sym("np_thru_hole")
@@ -91,7 +96,7 @@ def convert(name):
                     # EasyEDA は穴 0.914mm・パッド 1.524mm。データシートの推奨の穴は 0.70±0.08mm。
                     # 柱の穴との間隔 (穴と穴 0.45mm、穴と銅 0.2mm) を守るため、穴 0.8mm・パッド 1.35mm にする
                     find(c, "drill")[1] = Sym("0.8")
-                    # 柱の穴のとなりの 11 番ピン (A11・B11) だけ 1.25mm にして、柱の穴との間を 0.27mm にする
+                    # 柱の穴のとなりの 11 番ピン (A11・B11) だけ 1.25mm にして、柱の穴との間を 0.245mm にする (穴 2.40 のとき)
                     d = "1.25" if c[1] in ("A11", "B11") else "1.35"
                     find(c, "size")[1] = Sym(d)
                     find(c, "size")[2] = Sym(d)
@@ -214,6 +219,11 @@ def main():
             txt = open(os.path.join(KICAD_FP, KICAD_COPY[name], name + ".kicad_mod"), encoding="utf-8").read()
             # KiCad の標準のシルクの線は 0.12mm。JLCPCB の最小 0.15mm に太らせる
             txt = txt.replace("(width 0.12)", "(width 0.15)")
+            if "Bridged" in name:
+                # 閉じたはんだジャンパーの橋 (銅) を、幅 0.6mm から 1.0mm に太らせる (JP5 に 3A が流れる)
+                thin = "(xy 0.25 -0.3) (xy -0.25 -0.3) (xy -0.25 0.3) (xy 0.25 0.3)"
+                assert thin in txt, name
+                txt = txt.replace(thin, "(xy 0.25 -0.5) (xy -0.25 -0.5) (xy -0.25 0.5) (xy 0.25 0.5)")
             with open(os.path.join(DST, name + ".kicad_mod"), "w", encoding="utf-8", newline="\n") as fh:
                 fh.write(txt)
             report.append(f"footprint {name}: copied from KiCad {KICAD_COPY[name]}")

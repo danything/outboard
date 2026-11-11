@@ -4,7 +4,8 @@ fab/gerber/                    ガーバーとドリル (zip の中身)
 fab/pcie-tuner-board-gerber.zip  JLCPCB の「Add gerber file」に上げる
 fab/bom.csv                    Comment, Designator, Footprint, LCSC Part #
 fab/cpl.csv                    Designator, Mid X, Mid Y, Layer, Rotation
-out/schematic.pdf, out/board-top.png, out/board-bottom.png, out/board-layers.pdf, out/assembly-top.pdf
+out/schematic.pdf, out/board-top.png, out/board-bottom.png, out/board-layers.pdf, out/assembly-top.pdf,
+out/dimensions.pdf・.svg (寸法の図。scripts/make_drawing.py)
 
 部品の位置 (cpl.csv) の回転: フットプリントは EasyEDA (JLCPCB のライブラリ) のものをそのまま使っているので、
 KiCad の角度をそのまま出している (補正は 0)。JLCPCB の画面の部品の配置の絵で、1 つずつ向きを確かめること。
@@ -89,14 +90,17 @@ def main():
             n += 1
     # ---- 見るためのファイル ------------------------------------------------------
     run("sch", "export", "pdf", "-o", os.path.join(out, "schematic.pdf"), SCH)
-    run("pcb", "render", "-o", os.path.join(out, "board-top.png"), "--side", "top", "-w", "2400", "-h", "1300",
+    run("pcb", "render", "-o", os.path.join(out, "board-top.png"), "--side", "top", "-w", "2400", "-h", "1800",
         "--background", "opaque", "--quality", "basic", PCB)
-    run("pcb", "render", "-o", os.path.join(out, "board-bottom.png"), "--side", "bottom", "-w", "2400", "-h", "1300",
+    run("pcb", "render", "-o", os.path.join(out, "board-bottom.png"), "--side", "bottom", "-w", "2400", "-h", "1800",
         "--background", "opaque", "--quality", "basic", PCB)
     run("pcb", "export", "pdf", "--mode-multipage", "-o", os.path.join(out, "board-layers.pdf"),
         "-l", "F.Cu,B.Cu,F.SilkS,F.Mask", "--cl", "Edge.Cuts", PCB)
     run("pcb", "export", "pdf", "--mode-single", "-o", os.path.join(out, "assembly-top.pdf"),
         "-l", "F.Fab,F.SilkS,F.CrtYd,Edge.Cuts", PCB)
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "make_drawing.py")])
+    if r.returncode:
+        raise SystemExit("make_drawing.py failed")
     print(f"gerber files {len(glob.glob(os.path.join(ger, '*')))}, bom lines {len(groups)}, "
           f"parts to place {n}, zip {os.path.getsize(zpath)} bytes")
 

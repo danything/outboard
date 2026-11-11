@@ -2,6 +2,8 @@
 
 - build/route.dsn: 基板。GND は自動配線に引かせない (ビアとベタでつなぐ)。DSN の中で GND は「GND」という
   ネットクラスになっていて、route.sh が freerouting に無視させる。
+  電源の銅の面 (VIN・VBUS の面と、うらの帯) の所は、自動配線の線とビアを通さない: KiCad の基板には無い
+  「通行止め」を DSN にだけ足す (面を線が横切ると、面が切れてしまうため)。
 - build/route.rules: 自動配線の設定。うらの面は GND のベタにしたいので、うらを通る線とビアのコストを高くして、
   できるだけおもてで引かせる。
 
@@ -52,6 +54,23 @@ def main():
     if not ok:
         print("ExportSpecctraDSN failed")
         return 1
+    # 電源の面の「通行止め」を足す
+    extra = []
+    for z in b.Zones():
+        if z.GetIsRuleArea() or z.GetNetname() == "/GND" or z.GetZoneName().startswith("U3-"):
+            continue
+        ch = z.Outline().Outline(0)
+        pts = " ".join(f"{ch.CPoint(i).x // 1000} {-(ch.CPoint(i).y // 1000)}" for i in range(ch.PointCount()))
+        first = f"{ch.CPoint(0).x // 1000} {-(ch.CPoint(0).y // 1000)}"
+        layer = b.GetLayerName(z.GetLayer())
+        for kind in ("wire_keepout", "via_keepout"):
+            extra.append(f'    ({kind} "" (polygon {layer} 0  {pts}  {first}))\n')
+    txt = open(dst, encoding="utf-8").read()
+    i = txt.index("    (wire_keepout")
+    txt = txt[:i] + "".join(extra) + txt[i:]
+    with open(dst, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(txt)
+    print("added keepouts over", len(extra) // 2, "power zones")
     with open(os.path.join(ROOT, "build", "route.rules"), "w", encoding="utf-8", newline="\n") as fh:
         fh.write(RULES % dict(via=int(os.environ.get("VIA_COST", "150")), bot=os.environ.get("BOT_COST", "4.0"),
                               bot2=os.environ.get("BOT_COST2", "5.0")))

@@ -1,7 +1,7 @@
 (module "R0603"
 	(layer F.Cu)
 	(tedit 5DC5F6A4)
-	(descr "2KΩ (2001) ±1%")
+	(descr "150KΩ (1503) ±1%")
 	(attr smd)
 	(fp_text reference REF**
 		(at 0.000 -4.000)
@@ -33,7 +33,7 @@
 			)
 		)
 	)
-	(property "LCSC Part" "C22975")
+	(property "LCSC Part" "C22807")
 	(fp_line
 		(start 0.43 0.66)
 		(end 1.39 0.66)

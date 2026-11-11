@@ -28,6 +28,7 @@ FP = {
     "R0603": "R0603",
     "C0603": "C0603",
     "C0805": "C0805",
+    "R0805": "R0805",
     # KiCad 10.0.8 の標準ライブラリから写したもの (部品を載せない)
     "TP": "TestPoint_Pad_D1.5mm",
     "HOLE": "MountingHole_3.2mm_M3",
@@ -49,10 +50,10 @@ PARTS = {
                  desc="USB Type-C receptacle 16P (Korean Hroparts)"),
     "PCIE": dict(value="3183-10200P1T", fp="PCIE", lcsc="C404113", mpn="3183-10200P1T",
                  desc="PCIe x1 slot 36P through-hole (UMAX)"),
-    # ピンヘッダは JLCPCB では載せない (Extended の手数料を減らすため。穴だけ作り、要る所に自分ではんだ付けする)。
-    # 載せてもらうなら lcsc を "C492422" / "C492401" に戻す
-    "HDR10": dict(value="PZ254V-12-10P", fp="HDR10", lcsc="", mpn="PZ254V-12-10P",
-                  desc="Pin header 2x5 2.54mm (XFCN C492422) - not assembled"),
+    # J4 (2x5) は JLCPCB に載せてもらう (rev C)。1x2 のヘッダ (JP1・JP2・J5) は載せない (穴だけ作り、要る所に自分ではんだ付けする)。
+    # 1x2 も載せてもらうなら lcsc を "C492401" に戻す
+    "HDR10": dict(value="PZ254V-12-10P", fp="HDR10", lcsc="C492422", mpn="PZ254V-12-10P",
+                  desc="Pin header 2x5 2.54mm (XFCN)"),
     "HDR2": dict(value="PZ254V-11-02P", fp="HDR2", lcsc="", mpn="PZ254V-11-02P",
                  desc="Pin header 1x2 2.54mm (XFCN C492401) - not assembled"),
     "CH224A": dict(value="CH224A", fp="ESSOP10", lcsc="C42459160", mpn="CH224A", desc="USB PD sink (WCH)"),
@@ -65,8 +66,8 @@ PARTS = {
     "CH32V003": dict(value="CH32V003F4P6", fp="TSSOP20", lcsc="C5187096", mpn="CH32V003F4P6", desc="MCU (WCH)"),
     "AO3401A": dict(value="AO3401A", fp="SOT23_AO3401", lcsc="C15127", mpn="AO3401A",
                     desc="P-MOSFET -30V, Vgs +-12V (AOS)"),
-    "PTC": dict(value="nSMD075-16V", fp="F1206", lcsc="C70080", mpn="nSMD075-16V",
-                desc="Resettable fuse 0.75A hold / 1.5A trip, 16V (TECHFUSE)"),
+    "PTC": dict(value="1206L110/16NR", fp="F1206", lcsc="C7542961", mpn="1206L110/16NR",
+                desc="Resettable fuse 1.1A hold / 2.2A trip, 16V (LUTE)"),
     "MMBT3904": dict(value="MMBT3904", fp="SOT23_2N", lcsc="C20526", mpn="MMBT3904", desc="NPN 40V 200mA (CJ)"),
     "BZT52B12": dict(value="BZT52B12", fp="SOD123", lcsc="C22395569", mpn="BZT52B12", sym="D_K1A2",
                      desc="Zener 12V 2% 500mW SOD-123"),
@@ -89,10 +90,12 @@ PARTS = {
     "R_15K": _r("15k", "C22809", "0603WAF1502T5E"),
     "R_68K": _r("68k", "C23231", "0603WAF6802T5E"),
     "R_33K": _r("33k", "C4216", "0603WAF3302T5E"),
-    "R_2K": _r("2k", "C22975", "0603WAF2001T5E"),
+    "R_150K": _r("150k", "C22807", "0603WAF1503T5E"),
+    # VBUS のブリーダ用。0805 (125mW)。1 つの端子に 4 本 (2 直列 x 2 並列 = 1kΩ)
+    "R_1K_0805": dict(value="1k", fp="R0805", lcsc="C17513", mpn="0805W8F1001T5E", desc="Resistor 1k 1% 0805 125mW"),
     "C_100N": _c("100nF 50V", "C0603", "C14663", "CC0603KRX7R9BB104"),
     "C_1U": _c("1uF 50V", "C0603", "C15849", "CL10A105KB8NNNC"),
-    "C_47N": _c("47nF 50V", "C0603", "C1622", "CL10B473KB8NNNC"),
+    "C_33N": _c("33nF 50V", "C0603", "C21117", "CL10B333KB8NNNC"),
     "C_10U": _c("10uF 25V", "C0805", "C15850", "CL21A106KAYNNNE"),
     "C_22U": _c("22uF 25V", "C0805", "C45783", "CL21A226MAQNNNE"),
     # 部品を載せないもの
@@ -107,5 +110,5 @@ EASYEDA_SYMBOL = {
     "C42459160": "CH224A", "C3200405": "TPS62933DRLR", "C19189893": "MT3608B", "C85364": "SRV05-4-P-T7",
     "C16106": "HT7550-1_C16106", "C5187096": "CH32V003F4P6", "C15127": "AO3401A", "C8545": "2N7002",
     "C22452": "SS54_C22452", "C8678": "SS34_C8678", "C81598": "1N4148W_C81598",
-    "C167220": "FXL0630-4R7-M", "C20526": "MMBT3904-C20526", "C22395569": "BZT52B12_C22395569", "C2286": "KT-0603R",
+    "C167220": "FXL0630-4R7-M", "C7542961": "1206L110_16NR", "C20526": "MMBT3904-C20526", "C22395569": "BZT52B12_C22395569", "C2286": "KT-0603R",
 }

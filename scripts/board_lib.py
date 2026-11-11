@@ -1,4 +1,9 @@
-"""pcbnew で基板を組み立てるための小道具。座標は「基板の左上の角を (0, 0)、x は右、y は下」の mm。"""
+"""pcbnew で基板を組み立てるための小道具。座標は「基板の左上の角を (0, 0)、x は右、y は下」の mm。
+
+枠 (frame): 回路のひとかたまり (降圧・昇圧・USB の線など) は、rev B で確かめた座標のまま書いてあり、
+`with bd.frame(k, 古い基準点, 新しい基準点):` の中では、place・track・via・zone・keepout・P がその座標を
+「90 度 x k だけ回して平行移動」して基板の座標に直す。P は逆に、基板のパッドの位置を枠の中の座標で返す。
+"""
 from __future__ import annotations
 
 import math
@@ -13,7 +18,8 @@ from sexpr import find, find_all, parse  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LIBDIR = os.path.join(ROOT, "lib", "pcie-tuner.pretty")
-OX, OY = 20.0, 20.0          # 基板の左上の角の、KiCad の紙の上での位置 (紙は 130 x 85mm)
+OX, OY = 20.0, 20.0          # 基板の左上の角の、KiCad の紙の上での位置 (紙は 130 x 105mm)
+PAPER = (130, 105)
 F, B = pcbnew.F_Cu, pcbnew.B_Cu
 
 
@@ -52,14 +58,52 @@ class Board:
         self.uuids = netlist_uuids()
         self.fps = {}
         self.netinfo = {}
+        self.xf = (0, 0.0, 0.0)      # 枠: (k, tx, ty)。枠の中の (x, y) を 90 度 x k 回してから (tx, ty) を足す
         for name in self.nets:
             ni = pcbnew.NETINFO_ITEM(self.b, "/" + name if not name.startswith("unconnected-") else name)
             self.b.Add(ni)
             self.netinfo[name] = ni
 
+    # ---- 枠 ---------------------------------------------------------------
+    @staticmethod
+    def _rot(x, y, k):
+        for _ in range(k % 4):
+            x, y = y, -x             # KiCad の角度で +90 度 (画面では反時計回り)
+        return x, y
+
+    def to_board(self, x, y):
+        k, tx, ty = self.xf
+        x, y = self._rot(x, y, k)
+        return x + tx, y + ty
+
+    def to_frame(self, x, y):
+        k, tx, ty = self.xf
+        return self._rot(x - tx, y - ty, -k)
+
+    def frame(self, k=0, old=(0.0, 0.0), new=(0.0, 0.0)):
+        """枠の中の点 old が、基板の点 new に来るように、90 度 x k の回転と平行移動を決める。"""
+        bd = self
+
+        class _F:
+            def __enter__(self_inner):
+                self_inner.prev = bd.xf
+                assert bd.xf == (0, 0.0, 0.0), "枠は入れ子にしない"
+                rx, ry = bd._rot(old[0], old[1], k)
+                bd.xf = (k % 4, new[0] - rx, new[1] - ry)
+
+            def __exit__(self_inner, *a):
+                bd.xf = self_inner.prev
+        return _F()
+
     # ---- 部品 -------------------------------------------------------------
     def place(self, ref, x, y, rot=0, pin1=None):
         """部品を置く。pin1 に 'N' 'S' 'E' 'W' を渡すと、パッド 1 がその向きに来る角度を選ぶ。"""
+        k = self.xf[0]
+        x, y = self.to_board(x, y)
+        rot = rot + 90 * k
+        if pin1:
+            v = self._rot(*{"N": (0, -1), "S": (0, 1), "E": (1, 0), "W": (-1, 0)}[pin1], k)
+            pin1 = {(0, -1): "N", (0, 1): "S", (1, 0): "E", (-1, 0): "W"}[v]
         c = self.comps[ref]
         lib, name = c["footprint"].split(":")
         fp = pcbnew.FootprintLoad(LIBDIR, name)
@@ -106,7 +150,12 @@ class Board:
         """パッドの中心 (基板の座標)。同じ番号のパッドが複数あるときは which で選ぶ。"""
         pads = [pd for pd in self.fps[ref].Pads() if pd.GetNumber() == num]
         pads.sort(key=lambda p: (p.GetPosition().x, p.GetPosition().y))
-        return unpt(pads[which].GetPosition())
+        return self.to_frame(*unpt(pads[which].GetPosition()))
+
+    def G(self, ref, num):
+        """パッドの中心 (枠に関係なく、基板の座標)。"""
+        pads = [pd for pd in self.fps[ref].Pads() if pd.GetNumber() == num]
+        return unpt(pads[0].GetPosition())
 
     def padnet(self, ref, num):
         return self.pin[(ref, num)]
@@ -114,6 +163,7 @@ class Board:
     # ---- 配線 -------------------------------------------------------------
     def track(self, net, width, pts, layer=F):
         ni = self.netinfo[net]
+        pts = [self.to_board(*p) for p in pts]
         for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
             if abs(x1 - x2) < 1e-6 and abs(y1 - y2) < 1e-6:
                 continue
@@ -127,6 +177,7 @@ class Board:
 
     def via(self, net, x, y, dia=0.6, drill=0.3):
         v = pcbnew.PCB_VIA(self.b)
+        x, y = self.to_board(x, y)
         v.SetPosition(pt(x, y))
         v.SetViaType(pcbnew.VIATYPE_THROUGH)
         v.SetWidth(pcbnew.F_Cu, mm(dia)) if _via_width_takes_layer() else v.SetWidth(mm(dia))
@@ -206,6 +257,7 @@ class Board:
         ol = z.Outline()
         ol.NewOutline()
         for x, y in pts:
+            x, y = self.to_board(x, y)
             ol.Append(mm(x + OX), mm(y + OY))
         z.SetLocalClearance(mm(clearance))
         z.SetMinThickness(mm(min_width))
@@ -234,6 +286,7 @@ class Board:
         ol = z.Outline()
         ol.NewOutline()
         for x, y in pts:
+            x, y = self.to_board(x, y)
             ol.Append(mm(x + OX), mm(y + OY))
         z.SetZoneName(name)
         self.b.Add(z)
@@ -248,7 +301,7 @@ def fix_paper(path):
     """紙の大きさを基板に合わせる (PDF や SVG に書き出したとき、基板が紙いっぱいに写るように)。"""
     import re
     t = open(path, encoding="utf-8").read()
-    t2 = re.sub(r'\(paper "[^"]*"[^)]*\)', '(paper "User" 130 85)', t, count=1)
+    t2 = re.sub(r'\(paper "[^"]*"[^)]*\)', '(paper "User" %d %d)' % PAPER, t, count=1)
     if t2 != t:
         open(path, "w", encoding="utf-8", newline="\n").write(t2)
 

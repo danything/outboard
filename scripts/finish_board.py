@@ -15,8 +15,8 @@ import pcbnew
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from board_lib import B, F, OX, OY, ROOT, fix_paper, mm, pt, unpt  # noqa: E402
+from make_board import H, J1Y, SLOT, STEP_X, STEP_Y, W  # noqa: E402
 
-W, H = 90.0, 48.0
 SILK = pcbnew.F_SilkS
 
 
@@ -65,12 +65,14 @@ def stitch(b, gnd, zt, zb, step=2.5):
         if bb.GetWidth() > 0:
             boxes.append((pcbnew.ToMM(bb.GetLeft()) - OX - 0.5, pcbnew.ToMM(bb.GetTop()) - OY - 0.5,
                           pcbnew.ToMM(bb.GetRight()) - OX + 0.5, pcbnew.ToMM(bb.GetBottom()) - OY + 0.5))
+    near = [unpt(v.GetPosition()) for v in b.GetTracks() if v.Type() == pcbnew.PCB_VIA_T]   # すでにあるビア
     n = 0
     y = 1.5
     while y <= H - 1.5:
         x = 1.5
         while x <= W - 1.5:
             if not any(x1 <= x <= x2 and y1 <= y <= y2 for x1, y1, x2, y2 in boxes) \
+                    and not any(math.hypot(x - vx, y - vy) < 1.2 for vx, vy in near) \
                     and in_fill(zt, F, x, y, 0.7) and in_fill(zb, B, x, y, 0.7):
                 v = pcbnew.PCB_VIA(b)
                 v.SetPosition(pt(x, y))
@@ -132,6 +134,84 @@ def island_vias(b, gnd, zt, zb):
     return added, failed
 
 
+def join_islands(b, gnd, zt, zb):
+    """おもてとうらの GND のベタの島を、ビアとスルーホールのパッドでつながる組に分け、いちばん大きい組に
+    つながっていない組があれば、その島と、大きい組の (反対の面の) 島が重なる所にビアを 1 つ足す。
+    (うらの線でうらのベタが区切られ、おもてもまわりを線に囲まれていると、ビアがあっても全体から浮く。)"""
+    isl = []                                    # (面, 島の SHAPE_POLY_SET, 外接の四角, 面積)
+    for z, layer in ((zt, F), (zb, B)):
+        polys = z.GetFilledPolysList(layer)
+        for i in range(polys.OutlineCount()):
+            sub = pcbnew.SHAPE_POLY_SET()
+            sub.AddOutline(polys.Outline(i))
+            for h in range(polys.HoleCount(i)):
+                sub.AddHole(polys.Hole(i, h))
+            isl.append((layer, sub, polys.Outline(i).BBox(), sub.Area()))
+    parent = list(range(len(isl)))
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    def at(pos, layer, slack=0):
+        for i, (lay, sub, bb, _a) in enumerate(isl):
+            if lay == layer and (sub.Contains(pos, -1, slack) if slack else bb.Contains(pos) and sub.Contains(pos)):
+                return i
+        return None
+
+    links = [(v.GetPosition(), 0) for v in b.GetTracks() if v.Type() == pcbnew.PCB_VIA_T and v.GetNetCode() == gnd.GetNetCode()]
+    for fp in b.GetFootprints():
+        for pd in fp.Pads():
+            if pd.GetNetCode() == gnd.GetNetCode() and pd.GetAttribute() == pcbnew.PAD_ATTRIB_PTH:
+                links.append((pd.GetPosition(), max(pd.GetSizeX(), pd.GetSizeY()) // 2 + mm(0.45)))
+    for pos, slack in links:
+        i, j = at(pos, F, slack), at(pos, B, slack)
+        if i is not None and j is not None:
+            parent[find(i)] = find(j)
+    big = find(max(range(len(isl)), key=lambda i: isl[i][3]))
+    todo = {}
+    for i in range(len(isl)):
+        if find(i) != big:
+            todo.setdefault(find(i), []).append(i)
+    added, failed = 0, []
+    for root, members in todo.items():
+        if not any(isl[i][3] > mm(1.0) * mm(1.0) and any(at(pos, isl[i][0], s) == i for pos, s in links) for i in members):
+            continue                            # ビアもパッドも無い切れ端 (KiCad が消すか、パッドにぶら下がっているだけ)
+        done = False
+        for i in sorted(members, key=lambda i: -isl[i][3]):
+            layer, sub, bb, _a = isl[i]
+            other = B if layer == F else F
+            x1, y1 = unpt(pcbnew.VECTOR2I(bb.GetLeft(), bb.GetTop()))
+            x2, y2 = unpt(pcbnew.VECTOR2I(bb.GetRight(), bb.GetBottom()))
+            y = y1 + 0.4
+            while y < y2 and not done:
+                x = x1 + 0.4
+                while x < x2 and not done:
+                    if sub.Contains(pt(x, y)) and in_fill(zt, F, x, y, 0.36) and in_fill(zb, B, x, y, 0.36):
+                        j = at(pt(x, y), other)
+                        if j is not None and find(j) == big:
+                            v = pcbnew.PCB_VIA(b)
+                            v.SetPosition(pt(x, y))
+                            v.SetViaType(pcbnew.VIATYPE_THROUGH)
+                            v.SetWidth(F, mm(0.6))
+                            v.SetDrill(mm(0.3))
+                            v.SetLayerPair(F, B)
+                            v.SetNet(gnd)
+                            b.Add(v)
+                            added += 1
+                            done = True
+                    x += 0.2
+                y += 0.2
+            if done:
+                break
+        if not done:
+            bb = isl[members[0]][2]
+            failed.append(tuple(round(v, 1) for v in unpt(pcbnew.VECTOR2I(bb.GetLeft(), bb.GetTop()))))
+    return added, failed
+
+
 def text(b, s, x, y, size=1.0, thick=0.15, rot=0):
     t = pcbnew.PCB_TEXT(b)
     t.SetText(s)
@@ -155,34 +235,33 @@ def dot(b, x, y, r=0.2):
 
 # シルクの文字 (文字, x, y[, 大きさ, 線の太さ])。大きさは JLCPCB の最小 (高さ 1.0mm・線 0.15mm) 以上
 TEXTS = [
-    ("PCIe TUNER EXT PWR", 16.5, 3.0, 1.2, 0.18),
-    ("rev B  2026-11", 16.5, 5.2),
-    ("<- BRACKET SIDE", 15.0, 8.0),
-    ("3V3", 31.4, 9.4),
-    ("AUX", 22.2, 29.1),
-    ("J4 USB", 68.5, 2.4),
-    ("KEY", 72.9, 5.6),
-    ("1=5V", 68.6, 18.4),
-    ("1 PC", 77.3, 6.6, 1.3, 0.2),
-    ("DATA+PWR", 76.3, 8.7),
-    ("2 CHARGER", 75.5, 41.4, 1.3, 0.2),
-    ("PWR ONLY", 75.5, 43.3),
-    ("3V3", 11.4, 17.3),
-    ("STAT", 61.7, 42.4),
-    ("12V ON", 52.25, 45.0),
-    ("SWIO GND", 44.8, 40.2),
-    ("VIN", 57.5, 30.0),
-    ("3V3", 28.6, 13.6),
-    ("12V", 5.2, 37.3),
-    ("5V", 55.9, 39.3),
-    ("GND", 47.0, 15.9),
+    ("PCIe TUNER EXT PWR", 66.5, 59.2, 1.1, 0.17),
+    ("rev C  2026-11", 66.5, 61.2),
+    ("BRACKET", 6.0, 46.0),
+    ("SIDE", 6.0, 47.6),
+    ("J4 USB", 21.5, 42.9),
+    ("1=5V", 21.5, 24.9),
+    ("1 PC", 3.6, 37.3, 1.2, 0.18),
+    ("2 CHG", 4.0, 19.0, 1.2, 0.18),
+    ("3V3", 39.0, 2.9),
+    ("STAT", 46.0, 2.9),
+    ("12V ON", 71.0, 18.6),
+    ("SWIO GND", 66.9, 8.4),
+    ("VIN", 46.5, 16.2),
+    ("3V3", 70.2, 42.4),
+    ("12V", 51.3, 60.7),
+    ("5V", 61.0, 9.0),
+    ("GND", 8.0, 52.2),
+    ("AUX", 60.6, 53.8),
+    ("JP1 3V3", 78.6, 40.6),
+    ("JP2 12V", 34.0, 60.6),
 ]
 
 # 1 番ピンの印 (参照名, 印の位置)。make_board.py の配置と合わせてある
-PIN1 = [("U1", 71.9, 20.6), ("U2", 71.9, 29.9), ("U3", 47.3, 10.7), ("U4", 32.6, 38.75), ("U5", 72.2, 10.9),
-        ("U6", 67.6, 28.0)]
+PIN1 = [("U1", 32.75, 37.75), ("U2", 17.55, 15.75), ("U4", 21.9, 51.4), ("U5", 17.8, 33.1),
+        ("U6", 57.6, 13.4)]
 
-REF_FIXED = {"R35": (54.7, 31.1, 90)}     # 自動で置き場所が見つからなかった部品番号の位置 (手で決めた)
+REF_FIXED = {}     # 自動で置き場所が見つからなかった部品番号の位置 (手で決める)
 REF_SIZE = 0.8      # 部品番号の文字の高さ (mm)。線は 0.15mm
 
 
@@ -236,6 +315,8 @@ def place_refs(b, texts):
                 bx = _box(px, py, th, tw) if rot else _box(px, py, tw, th)
                 if bx[0] < 0.5 or bx[1] < 0.5 or bx[2] > W - 0.5 or bx[3] > H - 0.5:
                     continue
+                if bx[0] < STEP_X + 0.5 and bx[3] > STEP_Y - 0.5:      # ブラケットをよけて引っ込めた所
+                    continue
                 if any(_hit(bx, k) for k in blocks):
                     continue
                 found = (px, py, rot, bx)
@@ -281,38 +362,126 @@ def silk(b):
     print("reference designators on silk:", len(b.GetFootprints()) - len(failed), "not placed:", " ".join(failed) or "-")
 
 
+def _inside(poly, x, y):
+    n, c = len(poly), False
+    for i in range(n):
+        (x1, y1), (x2, y2) = poly[i], poly[(i + 1) % n]
+        if (y1 > y) != (y2 > y) and x < x1 + (x2 - x1) * (y - y1) / (y2 - y1):
+            c = not c
+    return c
+
+
+def _dseg(px, py, ax, ay, bx, by):
+    dx, dy = bx - ax, by - ay
+    L2 = dx * dx + dy * dy
+    u = 0 if L2 == 0 else max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / L2))
+    return math.hypot(px - (ax + u * dx), py - (ay + u * dy))
+
+
 def import_ses():
     """自動配線の結果を取り込んで build/routed.kicad_pcb に保存する。
-    (1 つの Python の中で基板を 2 回読むと pcbnew の型がこわれるので、取り込みと仕上げは別のプロセスにする)"""
+    (1 つの Python の中で基板を 2 回読むと pcbnew の型がこわれるので、取り込みと仕上げは別のプロセスにする)
+
+    取り込んだあと、どこにもつながっていない線の端と、片方の面にしかつながっていないビアを消す。
+    手で引いた線は「ここから先は自動配線に任せる」所で止めてあり、自動配線が別の所につないだときに
+    その先が余るため。GND の線とビアには触らない (GND のベタは、このあと finish で足す)。"""
     src = os.path.join(ROOT, "build", "pre_route.kicad_pcb")
     ses = os.path.join(ROOT, "routing", "route.ses")
     b = pcbnew.LoadBoard(src)
+    gnd = b.FindNet("/GND").GetNetCode()
+    pads, zones = [], []
+    for fp in b.GetFootprints():
+        for pd in fp.Pads():
+            bb = pd.GetBoundingBox()
+            th = pd.GetAttribute() == pcbnew.PAD_ATTRIB_PTH
+            pads.append((pd.GetNetCode(), None if th else F, bb.GetLeft(), bb.GetTop(), bb.GetRight(), bb.GetBottom()))
+    for z in b.Zones():
+        if not z.GetIsRuleArea():
+            ch = z.Outline().Outline(0)
+            zones.append((z.GetNetCode(), z.GetLayer(), [(ch.CPoint(i).x, ch.CPoint(i).y) for i in range(ch.PointCount())]))
     n0 = len(b.GetTracks())
     ok = pcbnew.ImportSpecctraSES(b, ses)
     print("ImportSpecctraSES:", ok, "tracks+vias", n0, "->", len(b.GetTracks()))
     if not ok:
         return 1
-    # 自動配線が残した、片方の面にしか線がつながっていないビアを消す (手で置いたビアは固定してあるので残る)
     items = []
     for t in b.GetTracks():
         via = t.Type() == pcbnew.PCB_VIA_T
-        items.append((via, t.GetNetCode(), None if via else t.GetLayer(), t.GetStartX(), t.GetStartY(),
-                      t.GetEndX(), t.GetEndY(), t.IsLocked(), t))
-    drop = []
-    for it in items:
-        if not it[0] or it[7]:
-            continue
-        layers = set()
-        for o in items:
-            if o[0] or o[1] != it[1]:
+        if not via and t.GetWidth() < mm(0.15):
+            t.SetWidth(mm(0.15))        # 自動配線がピンの間で 0.125mm にしぼった所。JLCPCB の標準の最小 0.15mm に戻す
+        items.append(dict(via=via, net=t.GetNetCode(), layer=None if via else t.GetLayer(), x1=t.GetStartX(),
+                          y1=t.GetStartY(), x2=t.GetEndX(), y2=t.GetEndY(),
+                          w=t.GetWidth(F) if via else t.GetWidth(), obj=t))
+    tol = mm(0.02)
+    alive = [it for it in items if it["net"] != gnd]
+
+    def touches(it, x, y, layer):
+        """点 (x, y) が、layer の面で、it 以外の同じネットの銅 (パッド・面・線・ビア) に乗っているか。"""
+        for net, lay, l, tp, r, bt in pads:
+            if net == it["net"] and (lay is None or lay == layer) and l - tol <= x <= r + tol and tp - tol <= y <= bt + tol:
+                return True
+        for net, lay, poly in zones:
+            if net == it["net"] and lay == layer and _inside(poly, x, y):
+                return True
+        for o in alive:
+            if o is it or o["net"] != it["net"]:
                 continue
-            if min(math.hypot(o[3] - it[3], o[4] - it[4]), math.hypot(o[5] - it[3], o[6] - it[4])) < mm(0.31):
-                layers.add(o[2])
-        if len(layers) < 2:
-            drop.append(it[8])
-    for v in drop:
-        b.Remove(v)
-    print("removed one-sided vias:", len(drop))
+            if o["via"]:
+                if math.hypot(o["x1"] - x, o["y1"] - y) <= o["w"] / 2 + tol:
+                    return True
+            elif o["layer"] == layer and _dseg(x, y, o["x1"], o["y1"], o["x2"], o["y2"]) <= o["w"] / 2 + tol:
+                return True
+        return False
+
+    def trim(it):
+        """片方の端だけ浮いている線: 途中にほかの線やビアがつながっていれば、浮いた端をそこまで縮める。"""
+        ok1 = touches(it, it["x1"], it["y1"], it["layer"])
+        ok2 = touches(it, it["x2"], it["y2"], it["layer"])
+        if ok1 == ok2:
+            return False
+        cx, cy = (it["x1"], it["y1"]) if ok1 else (it["x2"], it["y2"])     # つながっている端
+        best = None
+        for o in alive:
+            if o is it or o["net"] != it["net"] or not (o["via"] or o["layer"] == it["layer"]):
+                continue
+            for x, y in ((o["x1"], o["y1"]), (o["x2"], o["y2"])):
+                if _dseg(x, y, it["x1"], it["y1"], it["x2"], it["y2"]) <= tol:
+                    d = math.hypot(x - cx, y - cy)
+                    if d > mm(0.05) and (best is None or d > best[0]):
+                        best = (d, x, y)
+        if best is None:
+            return False
+        pos = pcbnew.VECTOR2I(int(best[1]), int(best[2]))
+        if ok1:
+            it["obj"].SetEnd(pos)
+            it["x2"], it["y2"] = best[1], best[2]
+        else:
+            it["obj"].SetStart(pos)
+            it["x1"], it["y1"] = best[1], best[2]
+        return True
+
+    dropped = 0
+    while True:
+        drop = []
+        for it in alive:
+            if it["via"]:
+                if sum(1 for lay in (F, B) if touches(it, it["x1"], it["y1"], lay)) < 2:
+                    drop.append(it)
+            elif not (touches(it, it["x1"], it["y1"], it["layer"]) and touches(it, it["x2"], it["y2"], it["layer"])):
+                if not trim(it):
+                    drop.append(it)
+            elif not it["obj"].IsLocked() and any(
+                    o is not it and not o["via"] and o["net"] == it["net"] and o["layer"] == it["layer"]
+                    and _dseg(it["x1"], it["y1"], o["x1"], o["y1"], o["x2"], o["y2"]) <= o["w"] / 2
+                    and _dseg(it["x2"], it["y2"], o["x1"], o["y1"], o["x2"], o["y2"]) <= o["w"] / 2 for o in alive):
+                drop.append(it)          # 自動配線が残した、ほかの線の上に乗っているだけの短い切れ端
+        if not drop:
+            break
+        for it in drop:
+            alive.remove(it)
+            b.Remove(it["obj"])
+        dropped += len(drop)
+    print("removed dangling tracks and vias:", dropped)
     pcbnew.SaveBoard(os.path.join(ROOT, "build", "routed.kicad_pcb"), b, True)
     return 0
 
@@ -331,20 +500,24 @@ def main():
     # GND のベタ (両面)。基板の外形より外まで描いておけば、外形との間隔はルール (0.3mm) で決まる
     outline = [(-1, -1), (W + 1, -1), (W + 1, H + 1), (-1, H + 1)]
     # スロットのピンの間には、おもてのベタを入れない (細い切れ端の島ができるだけなので。ピンの GND はうらのベタでつながる)
-    ko = pcbnew.ZONE(b)
-    ko.SetIsRuleArea(True)
-    ko.SetLayer(F)
-    ko.SetDoNotAllowZoneFills(True)
-    ko.SetDoNotAllowTracks(False)
-    ko.SetDoNotAllowVias(False)
-    ko.SetDoNotAllowPads(False)
-    ko.SetDoNotAllowFootprints(False)
-    ko.SetZoneName("slot-no-top-pour")
-    kol = ko.Outline()
-    kol.NewOutline()
-    for x, y in ((6.9, 18.2), (28.3, 18.2), (28.3, 26.8), (6.9, 26.8)):
-        kol.Append(mm(x + OX), mm(y + OY))
-    b.Add(ko)
+    sx, sy = SLOT
+    # J4 のピンの間も同じ (CC の線が間を通るので、切れ端しか残らない)
+    for name, box in (("slot-no-top-pour", (sx - 10.7, sy - 4.3, sx + 10.7, sy + 4.3)),
+                      ("j4-no-top-pour", (19.2, J1Y - 4.0, 24.7, J1Y + 8.5))):
+        ko = pcbnew.ZONE(b)
+        ko.SetIsRuleArea(True)
+        ko.SetLayer(F)
+        ko.SetDoNotAllowZoneFills(True)
+        ko.SetDoNotAllowTracks(False)
+        ko.SetDoNotAllowVias(False)
+        ko.SetDoNotAllowPads(False)
+        ko.SetDoNotAllowFootprints(False)
+        ko.SetZoneName(name)
+        kol = ko.Outline()
+        kol.NewOutline()
+        for x, y in ((box[0], box[1]), (box[2], box[1]), (box[2], box[3]), (box[0], box[3])):
+            kol.Append(mm(x + OX), mm(y + OY))
+        b.Add(ko)
     zt = add_zone(b, gnd, F, outline, "GND-top")
     zb = add_zone(b, gnd, B, outline, "GND-bottom")
     fill(b)
@@ -357,11 +530,17 @@ def main():
         if not added:
             break
         fill(b)
+    for _ in range(6):
+        added, failed = join_islands(b, gnd, zt, zb)
+        print("vias joining floating GND islands:", added, "could not join:", failed)
+        if not added:
+            break
+        fill(b)
     silk(b)
     tb = b.GetTitleBlock()
     tb.SetTitle("PCIe tuner external power board")
-    tb.SetRevision("B")
-    tb.SetDate("2026-11-11")
+    tb.SetRevision("C")
+    tb.SetDate("2026-11-12")
     pcbnew.SaveBoard(dst, b, True)
     fix_paper(dst)
     print("saved", dst)

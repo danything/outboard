@@ -3,3 +3,7 @@
 (rule "Plated hole to copper of another net: 0.3mm"
 	(condition "!(A.Pad_Type == 'NPTH, mechanical') && !(B.Pad_Type == 'NPTH, mechanical')")
 	(constraint hole_clearance (min 0.3mm)))
+
+(rule "CC lines stay out from under the USB-C shells"
+	(condition "(A.NetName == '/J1_CC1' || A.NetName == '/J1_CC2' || A.NetName == '/J2_CC1' || A.NetName == '/J2_CC2') && (A.intersectsArea('J1-shell-no-via') || A.intersectsArea('J2-shell-no-via'))")
+	(constraint disallow track via))

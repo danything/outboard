@@ -30,7 +30,9 @@
       },
       "rule_severities": {
         "lib_footprint_issues": "ignore",
-        "lib_footprint_mismatch": "ignore"
+        "lib_footprint_mismatch": "ignore",
+        "courtyards_overlap": "error",
+        "malformed_courtyard": "error"
       },
       "track_widths": [
         0.0,
@@ -143,11 +145,11 @@
         "line_style": 0,
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
-        "name": "USB",
+        "name": "Hand",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "priority": 2,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.8,
+        "track_width": 0.5,
         "via_diameter": 0.6,
         "via_drill": 0.3,
         "wire_width": 6
@@ -161,63 +163,139 @@
     "netclass_patterns": [
       {
         "netclass": "Power",
-        "pattern": "/VIN"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "/VBUS1"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "/VBUS2"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "/+3V3"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "/+3V3_BUCK"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "/+3V3AUX"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "/SW_3V3"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "/+12V"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "/+12V_BOOST"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "/+12V_SW"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "/SW_12V"
-      },
-      {
-        "netclass": "Power",
         "pattern": "/+5V"
       },
       {
-        "netclass": "Power",
+        "netclass": "Hand",
+        "pattern": "/VIN"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/VBUS1"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/VBUS2"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/+3V3"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/+3V3_BUCK"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/+3V3AUX"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/SW_3V3"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/+12V"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/+12V_BOOST"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/+12V_SW"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/SW_12V"
+      },
+      {
+        "netclass": "Hand",
         "pattern": "/USBH_VBUS"
       },
       {
-        "netclass": "Power",
+        "netclass": "Hand",
         "pattern": "/+12V_F"
       },
       {
-        "netclass": "USB",
-        "pattern": "/USB_D[PN]"
+        "netclass": "Hand",
+        "pattern": "/BLD1"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/BLD2"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/USB_DP"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/USB_DN"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/J1_CC1"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/J1_CC2"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/J2_CC1"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/J2_CC2"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/SHIELD1"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/CFG1_U1"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/CFG1_U2"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/OVP_Z"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/OVP_B"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/Q1_G"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/Q2_D"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/Q2_S"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/BST_3V3"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/SS_3V3"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/FB_3V3"
+      },
+      {
+        "netclass": "Hand",
+        "pattern": "/FB_12V"
       },
       {
         "netclass": "GND",

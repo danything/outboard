@@ -22,9 +22,14 @@ import os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Power: 太い線は make_board.py が幅を決めて手で引く。ここの 0.5mm は、自動配線が引く枝 (分圧の抵抗などへの細い線) の幅
-POWER_NETS = ["VIN", "VBUS1", "VBUS2", "+3V3", "+3V3_BUCK", "+3V3AUX", "SW_3V3", "+12V", "+12V_BOOST", "+12V_SW",
-              "SW_12V", "+5V", "USBH_VBUS", "+12V_F"]
+# Power: 自動配線が引く電源 (+5V だけ)。幅 0.5mm
+POWER_NETS = ["+5V"]
+# Hand: make_board.py が端から端まで手で引くネット。自動配線には触らせない (route.sh が Hand のクラスを無視させる)。
+# 引き残しがあれば DRC の「未配線」で分かる
+HAND_NETS = ["VIN", "VBUS1", "VBUS2", "+3V3", "+3V3_BUCK", "+3V3AUX", "SW_3V3", "+12V", "+12V_BOOST", "+12V_SW",
+             "SW_12V", "USBH_VBUS", "+12V_F", "BLD1", "BLD2", "USB_DP", "USB_DN", "J1_CC1", "J1_CC2", "J2_CC1",
+             "J2_CC2", "SHIELD1", "CFG1_U1", "CFG1_U2", "OVP_Z", "OVP_B", "Q1_G", "Q2_D", "Q2_S",
+             "BST_3V3", "SS_3V3", "FB_3V3", "FB_12V"]
 
 
 # 基板の設定 (下限) より厳しくしたい所を、条件つきのルールで書く。
@@ -37,6 +42,10 @@ DRU = """(version 1)
 (rule "Plated hole to copper of another net: 0.3mm"
 	(condition "!(A.Pad_Type == 'NPTH, mechanical') && !(B.Pad_Type == 'NPTH, mechanical')")
 	(constraint hole_clearance (min 0.3mm)))
+
+(rule "CC lines stay out from under the USB-C shells"
+	(condition "(A.NetName == '/J1_CC1' || A.NetName == '/J1_CC2' || A.NetName == '/J2_CC1' || A.NetName == '/J2_CC2') && (A.intersectsArea('J1-shell-no-via') || A.intersectsArea('J2-shell-no-via'))")
+	(constraint disallow track via))
 """
 
 
@@ -83,6 +92,8 @@ def main():
                     # 既定のまま。ここに書いたものだけ既定から変えている
                     "lib_footprint_issues": "ignore",      # フットプリントは基板の中で 1 番ピンの印などを足しているため
                     "lib_footprint_mismatch": "ignore",
+                    "courtyards_overlap": "error",         # 部品の外枠どうしの重なり (rev C から 0 件にしている)
+                    "malformed_courtyard": "error",
                 },
                 "track_widths": [0.0, 0.2, 0.25, 0.4, 0.8, 1.0, 1.5, 2.0],
                 "via_dimensions": [{"diameter": 0.0, "drill": 0.0}, {"diameter": 0.6, "drill": 0.3},
@@ -100,13 +111,14 @@ def main():
                 netclass("Default", 0.2, 0.25),
                 netclass("Power", 0.2, 0.5, priority=1),
                 netclass("GND", 0.2, 0.5, priority=3),
-                netclass("USB", 0.2, 0.8, priority=2, diff_pair_width=0.8, diff_pair_gap=0.15),
+                netclass("Hand", 0.2, 0.5, priority=2),
             ],
             "meta": {"version": 4},
             "net_colors": None,
             "netclass_assignments": None,
             "netclass_patterns": [{"netclass": "Power", "pattern": "/" + n} for n in POWER_NETS]
-            + [{"netclass": "USB", "pattern": "/USB_D[PN]"}, {"netclass": "GND", "pattern": "/GND"}],
+            + [{"netclass": "Hand", "pattern": "/" + n} for n in HAND_NETS]
+            + [{"netclass": "GND", "pattern": "/GND"}],
         },
         "pcbnew": {"last_paths": {}, "page_layout_descr_file": ""},
         "schematic": {"legacy_lib_dir": "", "legacy_lib_list": []},

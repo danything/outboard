@@ -1,0 +1,18 @@
+* off.cir - scene 3: turn off from steady state (0.5 A load). SWN opens at t = 1 ms
+.param VBST=12.36
+.param RSRC=1
+.param R14=100k
+.param R15=150k
+.param C20=1u
+.param C32=33n
+.param CL=100u
+.param RL=24
+.param VTO=-0.9
+.param CS=44u
+VB   src 0 {VBST}
+RSRC src s {RSRC}
+CS   s 0 {CS}
+VCTL ctl 0 PWL(0 1 1m 1 1.001m 0)
+.include hs_switch.cir
+.tran 20u 1200m 0 100u
+.end
