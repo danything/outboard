@@ -381,16 +381,6 @@ export const boostLoop = check("boostLoop", (b) => {
   return out;
 });
 
-export const POWER_CHECKS: Check[] = [
-  ruleTargets,
-  netWidth,
-  powerPaths,
-  viaCount,
-  diodeCopper,
-  fuseDistance,
-  boostLoop,
-];
-
 /**
  * Every pad the rules name must exist and be on the net the rule says, so a
  * renamed pin or net cannot quietly turn a rule off. Needs no routing.
@@ -421,3 +411,13 @@ export const ruleTargets: Check = (circuit) => {
     if (!b.parts.has(ref)) out.add(`${ref} is not on the board`);
   return [...out].map((message) => ({ check: "ruleTargets", message }));
 };
+
+export const POWER_CHECKS: Check[] = [
+  ruleTargets,
+  netWidth,
+  powerPaths,
+  viaCount,
+  diodeCopper,
+  fuseDistance,
+  boostLoop,
+];
