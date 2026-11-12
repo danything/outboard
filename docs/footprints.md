@@ -9,7 +9,7 @@
 - **向き (どちらが 1 番か) は EasyEDA (JLCPCB のライブラリ) の同じ品番のフットプリントに合わせてある。** 配置表の回転が JLCPCB の側と同じ意味になるようにするため。J3 だけは例外 (下)。
 - パッドの番号は rev D の KiCad のライブラリと同じ。回路のつながりの検査 (段階 2) は、この番号で比べる。
 - パッドの大きさと位置は、メーカーの推奨ランドがあればそれに合わせる。合わせた数字は `lib/footprints.test.ts` が検査していて、ランドを変えると検査も変えることになる。
-- 絵は [`__snapshots__/footprints.circuit-pcb.snap.svg`](../__snapshots__/footprints.circuit-pcb.snap.svg) (おもて) と [`footprints.circuit-bottom.snap.svg`](../__snapshots__/footprints.circuit-bottom.snap.svg) (うら。J3 の A 列)。
+- 絵は [`__snapshots__/land-patterns.circuit-pcb.snap.svg`](../__snapshots__/land-patterns.circuit-pcb.snap.svg) (おもて) と [`land-patterns.circuit-bottom.snap.svg`](../__snapshots__/land-patterns.circuit-bottom.snap.svg) (うら。J3 の A 列)。
 
 ## 突き合わせの表
 
