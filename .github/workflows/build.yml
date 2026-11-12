@@ -23,7 +23,7 @@ jobs:
       - run: bun run lint
       # circuit.json・絵・KiCad の基板・見るためのページ (dist/)。外の部品検索は切ってある (package.json)
       - run: bun run build
-      # 型検査 → 検査のテスト → tsci check → 自前の基板の検査
+      # 型検査 → 検査のテスト → 自前の検査 (基板・回路の値・rev D とのネットリストの比べ)
       - run: bun run check
       # リポジトリに入っている絵 (__snapshots__) と同じ絵が出ること
       - run: bun run snapshot

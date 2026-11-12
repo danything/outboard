@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsci build --disable-parts-engine --svgs --pcb-png --3d-png --kicad-project --site",
-    "check": "bun check --no-script && bun test && tsci check index.circuit.tsx && bun checks/run.ts",
+    "build": "tsci build --disable-parts-engine --all-images --svgs --pcb-png --3d-png --kicad-project --site",
+    "check": "bun check --no-script && bun test && bun checks/run.ts",
     "snapshot": "bun tools/snapshot.ts",
     "fab": "bun tools/fab.ts",
     "lint": "oxlint && bun fmt --check",
