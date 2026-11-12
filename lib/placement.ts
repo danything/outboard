@@ -104,7 +104,7 @@ const absolute = (
 
 const J1: Point = { x: USBC_ORIGIN_X, y: J1_Y };
 const J2: Point = { x: USBC_ORIGIN_X, y: J2_Y };
-const U7: Point = { x: 44.5, y: 28.3 };
+const U7: Point = { x: 40, y: 27.8 };
 const BAND: Point = { x: 53, y: 17.4 };
 const Q1: Point = { x: 77.6, y: 19.6 };
 const LED_Y = BOARD_DEPTH - LED_EDGE_DISTANCE;
@@ -205,43 +205,44 @@ export const BLOCKS = {
     ],
     parts: absolute(U7, {
       U7: p("TSSOP20", U7.x, U7.y, 90),
-      J5: p("HEADER_1X2", 44.5, 22.4, "W"),
-      // Decoupling next to VDD (pin 9).
-      C21: p("C0603", 50.6, 25.6, "W"),
-      C22: p("C0603", 50.6, 27.35, "W"),
-      // Series parts of the lines that cross the VIN band, in the order of
-      // the pins they come from (3, 2, 1), and the VIN divider at pin 1.
-      R38: p("R0603", 50.6, 29.1, "W"),
-      R34: p("R0603", 50.6, 30.9, "W"),
-      R23: p("R0603", 50.6, 32.7, "E"),
-      R24: p("R0603", 47.4, 33.3, "E"),
-      C25: p("C0603", 44.3, 33.3, "E"),
-      // 12 V divider: the sense line arrives from the north, under D1.
-      R33: p("R0603", 50.3, 22.7, "N"),
-      C33: p("C0603", 52.05, 22.7, "N"),
-      // PERST#: pin 13 leaves under the body to the north.
-      R37: p("R0603", 39.6, 23.3, "E"),
-      R8: p("R0603", 41.1, 33, "W"),
-      D5: p("SOD123F", 37, 33, "W"),
-      // 5 V regulator, tab (VIN) to the east.
-      U6: p("SOT89", 36, 28.3, 180),
-      C7: p("C0805", 30.9, 26.6, "E"),
-      C6: p("C0805", 30.9, 29, "E"),
-      TP4: p("TESTPOINT_1V5", 30.9, 31.6),
-      TP5: p("TESTPOINT_1V5", 33, 33.2),
-      // Dividers and capacitors of what is sensed at the ports, nearest them.
-      // CC2 arrives north of CC1 (J1's pads), so its divider is the north row.
-      R22: p("R0603", 20, 25.8, "W"),
-      R21: p("R0603", 20, 27.6, "W"),
-      R25: p("R0603", 20, 29.4, "W"),
-      R26: p("R0603", 20, 31.2, "W"),
-      C24: p("C0603", 23.6, 25.8, "W"),
-      C23: p("C0603", 23.6, 27.6, "W"),
-      C26: p("C0603", 23.6, 29.4, "W"),
-      R19: p("R0603", 26.9, 27.6, "W"),
-      JP7: p("SOLDER_JUMPER", 26.9, 29.7, "W"),
+      // East. Pin 9 (VDD) is fed from under the body; its pad carries 5 V on
+      // to the decoupling, R19 and D5. The 12 V sense line runs west at pin 6
+      // between the pads of D5, with the EN_12V line south of it.
+      C22: p("C0603", 44.85, 26.1, "N"),
+      C21: p("C0603", 46.6, 26.1, "N"),
+      D5: p("SOD123F", 48.95, 27.4, "N"),
+      R38: p("R0603", 45.5, 29.3, "W"),
+      R34: p("R0603", 47.2, 30.95, "W"),
+      C25: p("C0603", 44.6, 32.65, "E"),
+      R24: p("R0603", 47.8, 32.65, "W"),
+      R23: p("R0603", 51.2, 32.3, "E"),
+      // North-east: the 12 V sense line comes down between the pads of R8.
+      JP7: p("SOLDER_JUMPER", 45.15, 21.6, 0),
+      C33: p("C0603", 48.18, 21.5, "E"),
+      R8: p("R0603", 51.45, 21.6, "W"),
+      R19: p("R0603", 45.4, 23.45, "E"),
+      R33: p("R0603", 49.7, 23.45, "W"),
+      // North: PERST# leaves under the body to the north; SWIO goes down to
+      // the bottom under the body and comes up at J5.
+      // TP4 before R37: bottom labels are placed in this order, a test point right under it.
+      TP4: p("TESTPOINT_1V5", 35.4, 22.4),
+      R37: p("R0603", 37.4, 22.75, "S"),
+      J5: p("HEADER_1X2", 41.0, 22.02, "W"),
+      // 5 V regulator in the south-west corner, under the lines to the ports.
+      U6: p("SOT89", 24.855, 31.82, 0),
+      C7: p("C0805", 28.515, 31.6, "N"),
+      C6: p("C0805", 20.305, 32.19, "N"),
+      TP5: p("TESTPOINT_1V5", 39.1, 39.2),
+      // Dividers on the rows west of U7; the capacitors next to the pins.
+      R22: p("R0603", 23.15, 26.6, "W"),
+      R25: p("R0603", 23.15, 28.3, "W"),
+      R21: p("R0603", 26.3, 27.45, "W"),
+      R26: p("R0603", 28.7, 27.55, "S"),
+      C26: p("C0603", 31.65, 30.025, "S"),
+      C23: p("C0603", 33.4, 29.375, "S"),
+      C24: p("C0603", 35.15, 27.525, "N"),
       // Status LED on the far edge.
-      R20: p("R0603", 41, LED_Y, "W"),
+      R20: p("R0603", 41, LED_Y + 0.1, "W"),
       LED5: p("LED0603", 44.5, LED_Y, "W"),
     }),
   },
@@ -552,7 +553,7 @@ export const HANDOFFS: Handoff[] = [
     32.7,
     0.3,
     "top",
-    "R23, then west along y 34.1 and north between the pads of D5 to U6",
+    "R23, then west along the far edge of the block (y 34.0; north of the LED via near here) and under U6 to its tab and C6",
   ),
   h(
     "V12_BOOST",
@@ -639,7 +640,16 @@ export const HANDOFFS: Handoff[] = [
     "down to y 28.33 before x 18.7, between the rows of R21 and R25; hops under the CC sense lines on the way to pins 11 and 12",
   ),
   h("I2C1_SCL", "pdPc", "mcu", 17.6, 28.8, 0.15, "top", "up to y 28.68"),
-  h("VBUS1", "pdPc", "mcu", 17.6, 29.8, 0.3, "top", "R25, R8"),
+  h(
+    "VBUS1",
+    "pdPc",
+    "mcu",
+    17.6,
+    29.8,
+    0.3,
+    "top",
+    "R25 (VBUS1_SENSE divider)",
+  ),
   h(
     "I2C2_SDA",
     "pdCharger",
@@ -651,10 +661,29 @@ export const HANDOFFS: Handoff[] = [
     "VBUS2 reaches its strip south of U2, so nothing is crossed here",
   ),
   h("I2C2_SCL", "pdCharger", "mcu", 19.4, 34.3),
-  h("V5", "mcu", "usb", 33, 24.7, 0.5, "top", "JP3"),
+  h(
+    "V5",
+    "mcu",
+    "usb",
+    34.2,
+    24.0,
+    0.5,
+    "top",
+    "straight to pad 1 of JP3; the mcu side comes up from the bottom north of the lines to the ports",
+  ),
   // --- Through the gap between the pads of a diode ---------------------------
   h("V12_SENSE", "switch12", "input", 51.3, 17.2, 0.2, "top", "under D1"),
   h("V12_SENSE", "input", "mcu", 51.3, 20.6, 0.2, "top", "to R33 and C33"),
+  h(
+    "VBUS1",
+    "input",
+    "mcu",
+    50.1,
+    20.6,
+    0.3,
+    "top",
+    "from the anode area of D1 to R8 (the pull-up of EN_3V3)",
+  ),
   h("LED_STAT", "mcu", "input", 51.3, 34.3, 0.2, "top", "under D2"),
   h("LED_STAT", "input", "mcu", 47.5, 39.5, 0.2, "top", "west to R20"),
   // --- Under the VIN band on the bottom; vias just outside it, no crossings ---
@@ -666,7 +695,7 @@ export const HANDOFFS: Handoff[] = [
     27.6,
     0.2,
     "bottom",
-    "via at (52.4, 28.2) between C22 and R38",
+    "via at (52.1, 26.9), north of the ground groove under the band (y 27.9..28.8)",
   ),
   h(
     "EN_12V",
@@ -686,7 +715,7 @@ export const HANDOFFS: Handoff[] = [
     29.1,
     0.2,
     "bottom",
-    "via at (52.4, 29.5) east of R38",
+    "via at (51.9, 29.1), on the edge of the pocket of C5's ground vias",
   ),
   h(
     "EN_3V3",
@@ -708,7 +737,7 @@ export const HANDOFFS: Handoff[] = [
     30.9,
     0.2,
     "bottom",
-    "via at (52.4, 31.1) east of R34",
+    "via at (51.9, 30.9), on the edge of the pocket of C5's ground vias",
   ),
   h(
     "Q2_G",
@@ -750,6 +779,6 @@ export const HANDOFFS: Handoff[] = [
     20.6,
     0.2,
     "bottom",
-    "via at (38.9, 21) beside R37; bottom under VBUS1 and the 12 V row to a via at (49.15, 13.6) east of the V12 leg; top along y 13.65 to D6, R27 and C31; a via at (56, 13.65) and bottom north to A11 under the 3.3 V row (about 21 mm of bottom in all)",
+    "via at (37.4, 21.1) north of R37; bottom under VBUS1 and the 12 V row to a via at (49.15, 13.6) east of the V12 leg; top along y 13.65 to D6, R27 and C31; a via at (56, 13.65) and bottom north to A11 under the 3.3 V row (about 21 mm of bottom in all)",
   ),
 ];
