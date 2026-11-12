@@ -1,8 +1,5 @@
+node_modules/
+dist/
 build/
-*-backups/
-*.lck
-fp-info-cache
-*.kicad_prl
-~*
-*.bak
-__pycache__/
+.tscircuit/
+*.log
