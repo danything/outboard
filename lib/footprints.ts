@@ -391,6 +391,8 @@ export const PCIE_X1_STRADDLE: FootprintDef = {
     { x: -14.3, y: 0.69, diameter: 2.0 },
     { x: 14.3, y: 0.69, diameter: 2.0 },
   ],
+  // Soldered by hand on both sides (JLCPCB), so no stencil opening on either.
+  noPaste: true,
   courtyard: box(-17.65, -5.8, 17.65, 3.2),
   height: 4.5,
 };

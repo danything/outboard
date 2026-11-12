@@ -76,11 +76,18 @@ const obstacles = (): Rect[] => {
   }
   for (const h of MOUNTING_HOLE_POSITIONS)
     out.push({ x0: h.x - 1.6, y0: h.y - 1.6, x1: h.x + 1.6, y1: h.y + 1.6 });
+  // Vias that would sit under a label (the copper is drawn in lib/routing,
+  // after the labels are placed). JLCPCB clips the ink there; keep it readable.
+  for (const v of VIAS_UNDER_LABELS)
+    out.push({ x0: v.x - 0.3, y0: v.y - 0.3, x1: v.x + 0.3, y1: v.y + 0.3 });
   // The rear step and the key notch of J3 (lib/geometry.ts).
   out.push({ x0: 0, y0: 0, x1: 1.5, y1: 11.5 });
   out.push({ x0: 57.1, y0: 0, x1: 59, y1: 6 });
   return out;
 };
+
+/** Ground via of U5 between its two rows (lib/routing/pdPc.tsx). */
+const VIAS_UNDER_LABELS: Point[] = [{ x: 15.4, y: 20.35 }];
 
 const INSIDE: Rect = { x0: 0.5, y0: 0.5, x1: 99.5, y1: 41.5 };
 

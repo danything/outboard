@@ -17,7 +17,7 @@ outboard はその電源を USB-C (PD 9V) から作り、内部 USB を USB-C �
 
 ## 状態
 
-**rev D・試作前。実機では未検証。** KiCad + Python のスクリプトから [tscircuit](https://tscircuit.com) (TypeScript) へ作り直している途中。
+**rev D・試作前。実機では未検証。** KiCad + Python のスクリプトから [tscircuit](https://tscircuit.com) (TypeScript) へ作り直した (段階 5 の製造用の出力と文書の仕上げが残り)。
 
 | 段階 | 中身                                                        | 状態                                            |
 | ---- | ----------------------------------------------------------- | ----------------------------------------------- |
@@ -31,7 +31,7 @@ outboard はその電源を USB-C (PD 9V) から作り、内部 USB を USB-C �
 **回路は入った**: 部品 111 個・ネット 56 本・未接続のパッド 42 個が、rev D (KiCad) のネットリストと完全に同じつながり方になっている (CI が毎回比べる)。
 **配線は完了。発注前の最終レビュー待ち。** 部品は `lib/placement.ts` に置き (ブロックごとの配置と、ブロックをまたぐネットの受け渡しの点。配置だけの絵は [`placement.circuit-pcb.snap.svg`](__snapshots__/placement.circuit-pcb.snap.svg))、銅は `lib/routing/` にブロックごとの別ファイルで書いてある ([docs/routing.md](docs/routing.md))。基板は 100 × 42mm ([docs/mechanical.md](docs/mechanical.md#寸法))・2 層。部品番号はうらのシルク (`lib/refdes.tsx`)。
 **検査は全部 0** (CI とリリースが毎回): 自前の検査は `bun checks/run.ts --strict` で指摘 0・飛ばし 0、回路の値 0、rev D とのネットリストの食い違い 0、KiCad の DRC は `lib_footprint_issues` (書き出しの名前の都合) のほか 0。ブロックをつなぐ所は検査 `handoffs`、うらの GND は `groundPlane` が見る。
-D1・D2 の放熱は、このまま試作して温度を測る (持ち主の判断)。結果しだいで rev E で理想ダイオード (TPS2121 など) に替える案がある。製造で確かめることと、余裕の小さい所は [docs/manufacturing.md](docs/manufacturing.md#見積もりの画面で見る所)。
+D1・D2 の放熱は、このまま試作して温度を測る (持ち主の判断)。5V の入力のときは、ファームウェアが最初から 3.3V の負荷を制限する。rev E の候補: 理想ダイオード (TPS2121 など) への置き換え、J4 の VBUS を U6 とは別の 5V から取る (どちらも試作の結果しだい)。製造で確かめることと、余裕の小さい所は [docs/manufacturing.md](docs/manufacturing.md#見積もりの画面で見る所)。
 
 KiCad の版は main から消した。タグ [`kicad-rev-c`](../../tree/kicad-rev-c) (rev C。検査 0) と
 ブランチ [`rev-d`](../../tree/rev-d) (rev D の途中。回路図とライブラリまで) に残っている。
