@@ -156,7 +156,7 @@ const SilkLine = ({ line }: { line: Box }) => (
 export const footprintOf = (def: FootprintDef) => {
   const c = def.courtyard;
   return (
-    <footprint>
+    <footprint insertionDirection={def.insertionDirection}>
       {def.pads.map((pad, i) => (
         <SmtPad key={`pad${i}`} pad={pad} noPaste={def.noPaste} />
       ))}

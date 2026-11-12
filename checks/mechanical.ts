@@ -15,6 +15,7 @@ import {
 import { layoutCheck } from "./power";
 import {
   BOTTOM_DEPTH_LIMIT,
+  CONNECTOR_FACING,
   CONNECTOR_POSITION,
   DEPTH_BELOW,
   EPSILON,
@@ -145,9 +146,65 @@ export const connectorPosition = withParts("connectorPosition", (b) => {
   return out;
 });
 
+const SIDE: Record<string, [number, number]> = {
+  from_top: [0, 1],
+  from_bottom: [0, -1],
+  from_left: [-1, 0],
+  from_right: [1, 0],
+};
+
+/**
+ * Connectors face where their cable or card goes (CONNECTOR_FACING). The
+ * side comes from the land pattern (lib/footprints.ts), turned with the part.
+ */
+export const connectorFacing = withParts("connectorFacing", (b) => {
+  const out: string[] = [];
+  for (const p of b.parts.values()) {
+    const sides = landPatternsOf(p).flatMap((name) => {
+      const side = (footprints as unknown as Record<string, FootprintDef>)[name]
+        ?.insertionDirection;
+      return side && SIDE[side] ? [SIDE[side]] : [];
+    });
+    const [side] = sides;
+    if (!side) continue;
+    const a = (p.rotation * Math.PI) / 180;
+    const x = side[0] * Math.cos(a) - side[1] * Math.sin(a);
+    const y = side[0] * Math.sin(a) + side[1] * Math.cos(a);
+    const facing =
+      Math.abs(x) > Math.abs(y) ? (x > 0 ? "x+" : "x-") : y > 0 ? "y+" : "y-";
+    if (!CONNECTOR_FACING[facing])
+      out.push(
+        `${p.ref} faces ${facing}; a connector faces ${Object.entries(
+          CONNECTOR_FACING,
+        )
+          .map(([d, what]) => `${d} (${what})`)
+          .join(" or ")}`,
+      );
+  }
+  return out;
+});
+
+/**
+ * tscircuit's own warning that a connector faces away from the board edge
+ * stays away: it is shown over the board on the site, and its idea of the
+ * edges is wrong on this board (lib/Footprint.tsx). connectorFacing checks
+ * the directions instead.
+ */
+export const noConnectorWarnings: Check = (circuit) =>
+  circuit
+    .filter(
+      (e) => e.type === "pcb_connector_not_in_accessible_orientation_warning",
+    )
+    .map((e) => ({
+      check: "noConnectorWarnings",
+      message: `tscircuit: ${(e as { message?: string }).message ?? ""}`,
+    }));
+
 export const MECHANICAL_CHECKS: Check[] = [
   partsOnTop,
   partHeight,
   keepOut,
   connectorPosition,
+  connectorFacing,
+  noConnectorWarnings,
 ];

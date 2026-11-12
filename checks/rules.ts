@@ -403,6 +403,17 @@ export const KEEP_OUT: {
   { name: "J3 ear (front)", x: [67.0, 73.7], y: [0, 9], except: ["J3"] },
 ];
 
+/**
+ * Which way a connector (a land pattern with a side in lib/footprints.ts) may
+ * face on the board, in board coordinates. Cables leave the case through the
+ * bracket at the rear edge (x-: J1, J2), and the card and its internal USB
+ * cable are on the card side (y+: J3, J4).
+ */
+export const CONNECTOR_FACING: Record<string, string> = {
+  "x-": "the bracket",
+  "y+": "the card",
+};
+
 /** Where the connectors must sit so that the USB-C mouths line up with the bracket. */
 export const CONNECTOR_POSITION = {
   usbC: ["J1", "J2"],

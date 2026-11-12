@@ -6,6 +6,7 @@ import { FAB_CHECKS } from "./fab";
 import { GROUND_CHECKS } from "./ground";
 import { HANDOFF_CHECKS } from "./handoffs";
 import { MECHANICAL_CHECKS } from "./mechanical";
+import { PLACEMENT_CHECKS } from "./placement";
 import { POWER_CHECKS } from "./power";
 import { SIGNAL_CHECKS } from "./signal";
 
@@ -76,6 +77,7 @@ export const CHECKS: Check[] = [
   ...MECHANICAL_CHECKS,
   ...HANDOFF_CHECKS,
   ...GROUND_CHECKS,
+  ...PLACEMENT_CHECKS,
 ];
 
 const runAll = (circuit: Circuit): Finding[] =>

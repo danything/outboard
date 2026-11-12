@@ -42,6 +42,13 @@ export default () => (
     thickness={BOARD_THICKNESS}
     layers={2}
     routingDisabled
+    // tscircuit's placement checks run in checks/placement.ts instead. Here
+    // they would also judge which way the connectors face against the board
+    // edges, which tscircuit 0.0.3161 takes from pcb_board.center, left at
+    // (0, 0) for a board drawn as an outline (this one spans (0, 0) to
+    // (100, -42)): J1 to J4 face their edges and still got warnings, drawn
+    // over the board on the site. checks/mechanical.ts checks the facing.
+    placementDrcChecksDisabled
   >
     {mountingHoles.map((p, i) => (
       <MountingHole key={`H${i + 1}`} index={i} x={p.x} y={p.y} />
