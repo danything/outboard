@@ -3,11 +3,11 @@
 #   docker compose run --rm check         CI の build と同じ検査一式
 #   docker compose run --rm snapshots     __snapshots__ の絵を描き直す
 #   docker compose run --rm kicad-drc     check → KiCad の DRC → 判定 (CI の全部)
+# kicad-drc が先に動かした check と kicad-cli のコンテナは残る。消すのは docker compose --profile tools down
 # イメージの版は CI (.github/workflows/build.yml) と同じにしておく。上げるのは Renovate (両方を 1 つの PR で上げる)。
 name: outboard
 
 x-bun: &bun
-  image: oven/bun:1.4.4
   working_dir: /work
   volumes:
     - .:/work
@@ -17,6 +17,8 @@ x-bun: &bun
 services:
   dev:
     <<: *bun
+    # 版はここ 1 か所 (ほかのサービスはこれを指す)
+    image: &bun-image oven/bun:1.4.4
     command: sh -c "bun install --frozen-lockfile && exec bunx tsci dev"
     ports:
       - 127.0.0.1:3020:3020
@@ -30,6 +32,7 @@ services:
   # build.yml の build ジョブと同じ手順。外の部品検索は package.json の script で切ってある
   check:
     <<: *bun
+    image: *bun-image
     profiles: [tools]
     command: >-
       sh -c "bun install --frozen-lockfile && bun run lint && bun run build && bun run check
@@ -37,6 +40,7 @@ services:
 
   snapshots:
     <<: *bun
+    image: *bun-image
     profiles: [tools]
     command: sh -c "bun install --frozen-lockfile && bun run snapshot --update"
 
@@ -54,6 +58,7 @@ services:
 
   kicad-drc:
     <<: *bun
+    image: *bun-image
     profiles: [tools]
     command: bun tools/kicad-drc.ts dist/index/kicad/drc.json
     depends_on:
