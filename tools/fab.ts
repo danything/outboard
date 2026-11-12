@@ -4,6 +4,7 @@
 // Run after `bun run build`: everything is exported from the built circuit.json,
 // so the files describe exactly the board that was checked.
 import { mkdir, readdir, rm } from "node:fs/promises";
+import { resolve } from "node:path";
 import { REVISION } from "../lib/revision";
 import { CIRCUIT_JSON, type Circuit, elementsOf, loadCircuit } from "./circuit";
 
@@ -35,7 +36,8 @@ const exportAs = (
     "-f",
     format,
     "-o",
-    `${OUT}/${file}`,
+    // tsci resolves a relative output path against the folder of the input file.
+    resolve(OUT, file),
     "--disable-parts-engine",
     ...extra,
   ]);
