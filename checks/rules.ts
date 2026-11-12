@@ -1,5 +1,6 @@
 // Every number the layout checks compare against, in one place.
 // docs/checks.md says which check guards what.
+import { REAR_STEP_DEPTH } from "../lib/geometry";
 
 /**
  * JLCPCB's limits come from https://jlcpcb.com/capabilities/pcb-capabilities
@@ -261,7 +262,7 @@ export const VIA_RULES: ViaRule[] = [
   },
 ];
 
-/** Copper on the top layer of a net, in mm2 (pours plus tracks), for heat. */
+/** Copper of a net joined to the part on either side (pours plus tracks, through vias), in mm2, for heat. */
 export const COPPER_AREA: { net: string; part: string; min: number }[] = [
   { net: "VBUS1", part: "D1", min: 150 },
   { net: "VBUS2", part: "D2", min: 150 },
@@ -359,7 +360,7 @@ export const KEEP_OUT: {
   {
     name: "bracket plate (the stepped rear edge)",
     x: [-10, 1.5],
-    y: [-10, 10],
+    y: [-10, REAR_STEP_DEPTH],
   },
   // The tongue of the bracket ends at y = 14.95; the USB-C shells start 0.5 further.
   { name: "bracket tongue", x: [-10, 0], y: [-10, 15.45] },
