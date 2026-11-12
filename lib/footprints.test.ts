@@ -48,9 +48,20 @@ const copper = (
 const gap = (a: Box, b: Box): number =>
   Math.max(a.x0 - b.x1, b.x0 - a.x1, a.y0 - b.y1, b.y0 - a.y1);
 
+test("a bridged land pattern joins its pins", () => {
+  const items = copper(all.SOLDER_JUMPER_CLOSED);
+  const bridge = items.find((i) => i.box.x0 < 0 && i.box.x1 > 0);
+  if (!bridge) throw new Error("no bridge");
+  // 1.0 mm wide across the gap, as in rev D: JP5 carries 3 A.
+  expect(bridge.box.y1 - bridge.box.y0).toBeGreaterThanOrEqual(1.0);
+  for (const i of items) expect(gap(bridge.box, i.box)).toBeLessThan(0);
+});
+
 test.each(defs)(
   "%s: pads of different pins are at least 0.15 mm apart",
   (_name, def) => {
+    // A closed jumper joins its pins with copper on purpose.
+    if (def.tiedPins) return;
     const items = copper(def);
     for (const a of items)
       for (const b of items) {
@@ -181,7 +192,7 @@ test("USB-C: A and B contacts mirror each other about the centre", () => {
 });
 
 test("the list of land patterns is not empty by accident", () => {
-  expect(defs.length).toBe(25);
+  expect(defs.length).toBe(26);
 });
 
 const plated = (def: FootprintDef, pin: string) => {

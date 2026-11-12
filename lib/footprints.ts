@@ -57,6 +57,13 @@ export interface FootprintDef {
   pin1Mark?: { x: number; y: number };
   /** Maximum height above the board surface, from the datasheet. */
   height?: number;
+  /** Pins joined by copper in the land pattern itself (a closed solder jumper). */
+  tiedPins?: string[][];
+  /**
+   * No solder paste on the pads: bare copper that is not assembled (test
+   * points, solder jumpers). Paste on an open jumper could bridge it in reflow.
+   */
+  noPaste?: boolean;
 }
 
 const box = (x0: number, y0: number, x1: number, y1: number): Box => ({
@@ -435,11 +442,26 @@ export const HEADER_1X2: FootprintDef = {
 /** TP1..TP5: 1.5 mm round pad. */
 export const TESTPOINT_1V5: FootprintDef = {
   pads: [{ pin: "1", x: 0, y: 0, w: 1.5, h: 1.5, shape: "circle" }],
+  noPaste: true,
   courtyard: centredBox(2.0, 2.0),
 };
 
 /** JP3..JP7: two 1.0 x 1.5 pads 0.3 apart. A closed jumper gets a copper bridge on the board. */
 export const SOLDER_JUMPER: FootprintDef = {
   pads: twoPads(1.3, 1.0, 1.5),
+  noPaste: true,
+  courtyard: centredBox(2.8, 2.0),
+};
+
+/**
+ * JP3..JP6: the same two pads, joined by a 0.5 x 1.0 bridge of copper that
+ * overlaps both. The bridge is a third pad of pin 1 so that it is drawn,
+ * exported and checked like any pad; the part ties pin 1 and pin 2 together
+ * (lib/parts.tsx), so it is not a short. Cut the bridge to open the jumper.
+ */
+export const SOLDER_JUMPER_CLOSED: FootprintDef = {
+  pads: [...twoPads(1.3, 1.0, 1.5), { pin: "1", x: 0, y: 0, w: 0.5, h: 1.0 }],
+  tiedPins: [["1", "2"]],
+  noPaste: true,
   courtyard: centredBox(2.8, 2.0),
 };

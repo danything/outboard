@@ -285,7 +285,10 @@ const diodes = (side: number): Circuit => [
   net("VBUS1"),
   net("VBUS2"),
   net("VIN"),
-  ...part("D1", 0, 0, [{ pin: "A", net: "VBUS1", x: 0, y: 0 }]),
+  ...part("D1", 0, 0, [
+    { pin: "A", net: "VBUS1", x: 0, y: 0 },
+    { pin: "K", net: "VIN", x: 2, y: 0 },
+  ]),
   ...part("D2", 0, 20, [{ pin: "A", net: "VBUS2", x: 0, y: 20 }]),
   pour("VBUS1", "top", [-side, -side / 2, 0, side / 2]),
   pour("VBUS2", "top", [-13, 14, 0, 26]),
@@ -295,6 +298,13 @@ const diodes = (side: number): Circuit => [
 test("diodeCopper fails when the anode copper is under 150 mm2", () => {
   expect(diodeCopper(diodes(13))).toEqual([]);
   expect(diodeCopper(diodes(12))).toHaveLength(1);
+});
+
+test("diodeCopper counts copper on the bottom only when a via joins it", () => {
+  // 12 x 12 on top is 144 mm2; a 4 x 4 pour on the bottom brings it to 160.
+  const bottom = pour("VBUS1", "bottom", [-10, -2, -6, 2]);
+  expect(diodeCopper([...diodes(12), bottom])).toHaveLength(1);
+  expect(diodeCopper([...diodes(12), bottom, via("VBUS1", -8, 0)])).toEqual([]);
 });
 
 const fuse = (x: number): Circuit => [
