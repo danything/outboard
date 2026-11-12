@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsci build --disable-parts-engine --all-images --svgs --pcb-png --3d-png --kicad-project --site && bun tools/kicad-nettie.ts && bun tools/paste.ts",
+    "build": "tsci build --disable-parts-engine --all-images --svgs --pcb-png --kicad-project --site && bun tools/kicad-nettie.ts && bun tools/paste.ts && bun tools/render3d.ts",
     "check": "bun check --no-script && bun test && bun checks/run.ts --strict",
     "snapshot": "bun tools/snapshot.ts",
     "fab": "bun tools/fab.ts",
