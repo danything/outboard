@@ -21,7 +21,7 @@ import { board, net, part, track, via } from "./testboard";
 const about = (findings: { message: string }[], text: string) =>
   findings.filter((f) => f.message.includes(text));
 
-// J1 at the left, J4 at the right; D+ on y = 0, D- on y = 1.
+// J1 at the left, the hub U8 at the right; D+ on y = 0, D- on y = 1.
 const usb = (dnDetour: number, extra: Circuit = []): Circuit => [
   board(),
   net("USB_DP"),
@@ -31,9 +31,9 @@ const usb = (dnDetour: number, extra: Circuit = []): Circuit => [
     { pin: "A6", net: "USB_DP", x: -10, y: 0, w: 0.3, h: 0.3 },
     { pin: "A7", net: "USB_DN", x: -10, y: 1, w: 0.3, h: 0.3 },
   ]),
-  ...part("J4", 10, 0.5, [
-    { pin: "DP", net: "USB_DP", x: 10, y: 0, w: 0.3, h: 0.3 },
-    { pin: "DN", net: "USB_DN", x: 10, y: 1, w: 0.3, h: 0.3 },
+  ...part("U8", 10, 0.5, [
+    { pin: "DPU", net: "USB_DP", x: 10, y: 0, w: 0.3, h: 0.3 },
+    { pin: "DMU", net: "USB_DN", x: 10, y: 1, w: 0.3, h: 0.3 },
   ]),
   ...track("USB_DP", 0.2, [
     [-10, 0],
@@ -60,7 +60,7 @@ test("usbPair fails when the pair runs on the bottom for long", () => {
     "USB_DP",
     0.2,
     [
-      [-5, 3],
+      [-15, 3],
       [0, 3],
     ],
     "bottom",
@@ -73,7 +73,7 @@ test("usbPair fails when a line is not routed", () => {
     (e) => !(e.type === "pcb_trace" && JSON.stringify(e).includes('"y":1,')),
   );
   expect(
-    about(usbPair(open), "USB_DN: no copper joins J1 and J4"),
+    about(usbPair(open), "USB_DN: no copper joins upstream (J1 to U8)"),
   ).toHaveLength(1);
 });
 
@@ -292,7 +292,7 @@ test("partHeight passes on known parts and fails on an unknown one", () => {
     partHeight([
       board(),
       ...real("C1", "C0603"),
-      ...real("J4", "HEADER_2X5_RIGHT_ANGLE"),
+      ...real("J4", "PH4_SIDE_ENTRY"),
     ]),
   ).toEqual([]);
   const unknown = [
@@ -395,13 +395,10 @@ const turned = (circuit: Circuit, rotation: number): Circuit =>
   );
 
 test("connectorFacing passes a connector facing the bracket or the card", () => {
-  // J4's plug comes from -y; turned half round, it comes from the card (+y).
-  expect(
-    connectorFacing([
-      board(),
-      ...turned(real("J4", "HEADER_2X5_RIGHT_ANGLE"), 180),
-    ]),
-  ).toEqual([]);
+  // The PH socket takes its plug from +y, the card side.
+  expect(connectorFacing([board(), ...real("J4", "PH4_SIDE_ENTRY")])).toEqual(
+    [],
+  );
   // The USB-C mouth faces -y; a quarter turn clockwise points it at the bracket (x-).
   expect(
     connectorFacing([
@@ -416,7 +413,7 @@ test("connectorFacing passes a connector facing the bracket or the card", () => 
 
 test("connectorFacing fails a connector facing elsewhere", () => {
   expect(
-    connectorFacing([board(), ...real("J4", "HEADER_2X5_RIGHT_ANGLE")]),
+    connectorFacing([board(), ...turned(real("J4", "PH4_SIDE_ENTRY"), 180)]),
   ).toHaveLength(1);
   expect(
     connectorFacing([

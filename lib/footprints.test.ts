@@ -192,7 +192,7 @@ test("USB-C: A and B contacts mirror each other about the centre", () => {
 });
 
 test("the list of land patterns is not empty by accident", () => {
-  expect(defs.length).toBe(26);
+  expect(defs.length).toBe(28);
 });
 
 const plated = (def: FootprintDef, pin: string) => {
@@ -279,17 +279,31 @@ test("J3: ear holes, board edge and key notch", () => {
   expect(KEY_NOTCH_WIDTH).toBeCloseTo(1.9);
 });
 
-test("headers: numbering, rows and pin 1", () => {
-  const j4 = all.HEADER_2X5_RIGHT_ANGLE;
-  for (let n = 1; n <= 10; n++) {
-    const h = plated(j4, String(n));
-    // Odd pins are the row next to the plastic body (towards -y).
-    expect(h.y).toBeCloseTo(n % 2 === 1 ? -1.27 : 1.27);
-    expect(h.x).toBeCloseTo(-5.08 + 2.54 * Math.floor((n - 1) / 2));
-    expect(h.square === true).toBe(n === 1);
-    expect(h.holeW).toBeCloseTo(1.1);
+test("headers and the PH sockets: numbering, rows and pin 1", () => {
+  const ph = all.PH4_SIDE_ENTRY;
+  // JST S4B-PH-SM4-TB: pins at 2.0 pitch, pin 1 at +x with the face up.
+  for (let n = 1; n <= 4; n++)
+    expect(pad(ph, String(n))).toMatchObject({
+      x: 5 - 2 * n,
+      y: -2.85,
+      w: 1.0,
+      h: 3.5,
+    });
+  // Signal pads 5.5 to 9.0 behind the mating face, nails from 0.2 in front of it.
+  const face = ph.body?.y1 ?? Number.NaN;
+  expect(face - (-2.85 + 1.75)).toBeCloseTo(5.5);
+  expect(face - (-2.85 - 1.75)).toBeCloseTo(9.0);
+  for (const [pin, x] of [
+    ["5", -5.35],
+    ["6", 5.35],
+  ] as const) {
+    const nail = pad(ph, pin);
+    expect(nail).toMatchObject({ x, y: 2.9, w: 1.5, h: 3.4 });
+    expect(nail.y + nail.h / 2 - face).toBeCloseTo(0.2);
+    // Inner edge 1.6 beyond the end pin.
+    expect(Math.abs(nail.x) - nail.w / 2 - 3).toBeCloseTo(1.6);
   }
-  expect(j4.body?.y1).toBeLessThan(-1.27 - 0.9);
+  expect(ph.insertionDirection).toBe("from_top");
   const jp = all.HEADER_1X2;
   expect(plated(jp, "1")).toMatchObject({ x: -1.27, y: 0, square: true });
   expect(plated(jp, "2")).toMatchObject({ x: 1.27, y: 0 });
@@ -337,4 +351,32 @@ test("diodes and LEDs: pad 1 and the silkscreen dot", () => {
     expect(pad(def, "1").x).toBeGreaterThan(0);
     expect(def.pin1Mark?.x).toBeLessThan(pad(def, "2").x);
   }
+});
+
+test("CH334P (QFN-16 3 x 3): pin 1 bottom-left, counter-clockwise, exposed pad 17", () => {
+  const q = all.QFN16_3X3;
+  // EasyEDA land: 0.28 x 0.665 at 0.5 pitch, centred 1.45 out; exposed pad 1.70.
+  expect(pad(q, "1")).toMatchObject({ x: -0.75, y: -1.45, w: 0.28, h: 0.665 });
+  expect(pad(q, "4")).toMatchObject({ x: 0.75, y: -1.45 });
+  expect(pad(q, "5")).toMatchObject({ x: 1.45, y: -0.75, w: 0.665, h: 0.28 });
+  expect(pad(q, "9")).toMatchObject({ x: 0.75, y: 1.45 });
+  expect(pad(q, "13")).toMatchObject({ x: -1.45, y: 0.75 });
+  expect(pad(q, "16")).toMatchObject({ x: -1.45, y: -0.75 });
+  expect(pad(q, "17")).toMatchObject({ x: 0, y: 0, w: 1.7, h: 1.7 });
+  // The holes that take the exposed pad to the bottom stay inside it.
+  for (const h of q.platedHoles ?? []) {
+    expect(h.pin).toBe("17");
+    expect(Math.abs(h.x) + h.padW / 2).toBeLessThanOrEqual(0.85);
+    expect(Math.abs(h.y) + h.padH / 2).toBeLessThanOrEqual(0.85);
+  }
+  // Leads stay clear of the exposed pad by more than the 0.15 clearance.
+  expect(1.45 - 0.665 / 2 - 0.85).toBeGreaterThan(0.15);
+});
+
+test("12 MHz crystal (3225): 1 and 3 diagonal, 2 and 4 ground", () => {
+  const x = all.XTAL3225;
+  expect(pad(x, "1")).toMatchObject({ x: -1.1, y: -0.85, w: 1.4, h: 1.2 });
+  expect(pad(x, "3")).toMatchObject({ x: 1.1, y: 0.85 });
+  expect(pad(x, "2")).toMatchObject({ x: 1.1, y: -0.85 });
+  expect(pad(x, "4")).toMatchObject({ x: -1.1, y: 0.85 });
 });

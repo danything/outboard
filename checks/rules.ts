@@ -292,18 +292,48 @@ export const BOOST_LOOP = { diodeToCap: 4.0, capToGround: 3.5 };
 
 // --- Signals -----------------------------------------------------------------
 
-/** USB D+ and D-: track length from J1 to J4 may differ by this much. */
-export const USB_PAIR = {
-  nets: ["USB_DP", "USB_DN"] as const,
-  from: [
-    ["J1.A6", "J1.B6"],
-    ["J1.A7", "J1.B7"],
-  ] as const,
-  to: ["J4.DP", "J4.DN"] as const,
-  maxDifference: 0.5,
-  /** The flipped contact (A6 / B7) may cross on the bottom for this long in all. */
-  maxBottom: 2.6,
-};
+/**
+ * USB D+ and D-: the three pairs (J1 to the hub, the hub to J4 and to J6).
+ * Within a pair, the track lengths between the pads may differ by
+ * `maxDifference`; `maxBottom` is how much of the pair may run on the bottom.
+ */
+export const USB_PAIRS: {
+  name: string;
+  nets: readonly [string, string];
+  from: readonly [readonly string[], readonly string[]];
+  to: readonly [readonly string[], readonly string[]];
+  maxBottom: number;
+}[] = [
+  {
+    name: "upstream (J1 to U8)",
+    nets: ["USB_DP", "USB_DN"],
+    from: [
+      ["J1.A6", "J1.B6"],
+      ["J1.A7", "J1.B7"],
+    ],
+    to: [["U8.DPU"], ["U8.DMU"]],
+    // The flipped contact (A6 / B7) crosses at J1 (2.6), and both lines
+    // pass under the VBUS1 band (4.2 each).
+    maxBottom: 11.0,
+  },
+  {
+    name: "port 1 (U8 to J4)",
+    nets: ["USB1_DP", "USB1_DN"],
+    from: [["U8.DP1"], ["U8.DM1"]],
+    to: [["J4.DP"], ["J4.DN"]],
+    maxBottom: 0,
+  },
+  {
+    name: "port 2 (U8 to J6)",
+    nets: ["USB2_DP", "USB2_DN"],
+    from: [["U8.DP2"], ["U8.DM2"]],
+    to: [["J6.DP"], ["J6.DN"]],
+    maxBottom: 0,
+  },
+];
+export const USB_PAIR_MAX_DIFFERENCE = 0.5;
+/** Every USB data net. */
+export const USB_DATA_NETS = USB_PAIRS.flatMap((p) => p.nets);
 
 /** USB-C receptacles and their CC nets; nothing of these runs under the shell. */
 export const USB_C_SHELLS: { part: string; nets: string[] }[] = [
@@ -377,7 +407,8 @@ export const HEIGHT_FALLBACK: Record<string, number> = {
 /** How far each through-hole land pattern reaches below the board (estimates from rev D). */
 export const DEPTH_BELOW: Record<string, number> = {
   PCIE_X1_STRADDLE: 2.98,
-  HEADER_2X5_RIGHT_ANGLE: 1.4,
+  // Plated holes in the exposed pad (ground), no lead goes through.
+  QFN16_3X3: 0,
   HEADER_1X2: 1.4,
   USBC_TYPE_C_31_M_12: 0.8,
 };
@@ -405,10 +436,9 @@ export const KEEP_OUT: {
 
 /**
  * Which way a connector (a land pattern with a side in lib/footprints.ts) may
- * face on the board, in board coordinates, after the part's rotation (J4's
- * land pattern takes its plug from -y and is placed turned half round). Cables leave the case through the
- * bracket at the rear edge (x-: J1, J2), and the card and its internal USB
- * cable are on the card side (y+: J3, J4).
+ * face on the board, in board coordinates, after the part's rotation. Cables leave
+ * the case through the bracket at the rear edge (x-: J1, J2), and the card
+ * and its internal USB cables are on the card side (y+: J3, J4, J6).
  */
 export const CONNECTOR_FACING: Record<string, string> = {
   "x-": "the bracket",
@@ -429,7 +459,4 @@ export const CONNECTOR_POSITION = {
 };
 
 /** Heights by reference, where the part in use is taller than its land pattern says. */
-export const HEIGHT_OVERRIDE: Record<string, number> = {
-  // With the cable's plug pushed onto the right-angle header (estimate from rev D).
-  J4: 6.5,
-};
+export const HEIGHT_OVERRIDE: Record<string, number> = {};

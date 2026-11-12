@@ -332,9 +332,12 @@ export const FAB_CHECKS: Check[] = [
 /** Parts soldered by hand on both sides: no stencil opening on them (docs/manufacturing.md). */
 export const HAND_SOLDERED = ["J3"];
 
+/** Connectors that are surface mount and go through reflow: paste on every pad. */
+export const REFLOWED_CONNECTORS = ["J4", "J6"];
+
 /**
- * Paste only on top (one-sided assembly, no bottom stencil) and none on the
- * parts soldered by hand.
+ * Paste only on top (one-sided assembly, no bottom stencil), none on the
+ * parts soldered by hand, and on every pad of the reflowed connectors.
  */
 export function solderPaste(circuit: Circuit): Finding[] {
   const raw = circuit as unknown as Record<string, unknown>[];
@@ -360,6 +363,22 @@ export function solderPaste(circuit: Circuit): Finding[] {
       out.push({
         check: "solderPaste",
         message: `paste on ${ref}, which is soldered by hand`,
+      });
+  }
+  // The sockets for the card are surface mount and reflowed with the rest:
+  // every pad of theirs needs its stencil opening.
+  for (const ref of REFLOWED_CONNECTORS) {
+    const ids = [...refs].filter(([, r]) => r === ref).map(([id]) => id);
+    if (ids.length === 0) continue;
+    const count = (type: string) =>
+      raw.filter((e) => e.type === type && ids.includes(e.pcb_component_id))
+        .length;
+    const pads = count("pcb_smtpad");
+    const paste = count("pcb_solder_paste");
+    if (paste < pads)
+      out.push({
+        check: "solderPaste",
+        message: `${ref} has paste on ${paste} of its ${pads} pads; it is reflowed`,
       });
   }
   return out;

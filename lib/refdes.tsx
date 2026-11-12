@@ -101,7 +101,22 @@ export const refdesPlaces = (): { ref: string; at: Point }[] => {
       const t = (a / 16) * 2 * Math.PI;
       steps.push({ x: r * Math.cos(t), y: r * Math.sin(t) });
     }
-  return PLACEMENT.map((part) => {
+  // Test points and solder jumpers first: their labels belong right under
+  // them (refdes.test.ts), the others may move a little.
+  const pinned = (ref: string) => /^(JP[4-7]|TP)/.test(ref);
+  const order = [
+    ...PLACEMENT.filter((q) => pinned(q.ref)),
+    ...PLACEMENT.filter((q) => !pinned(q.ref)),
+  ];
+  const found = new Map(
+    order.map((part) => [part.ref, placeLabel(part)] as const),
+  );
+  return PLACEMENT.map((part) => ({
+    ref: part.ref,
+    at: found.get(part.ref) as Point,
+  }));
+
+  function placeLabel(part: (typeof PLACEMENT)[number]): Point {
     for (const s of steps) {
       const c = { x: part.x + s.x, y: part.y + s.y };
       const b = box(c, part.ref);
@@ -115,10 +130,10 @@ export const refdesPlaces = (): { ref: string; at: Point }[] => {
       if (blocked.some((o) => overlaps(b, o))) continue;
       if (placed.some((o) => overlaps(b, o, 0.15))) continue;
       placed.push(b);
-      return { ref: part.ref, at: c };
+      return c;
     }
     throw new Error(`no room for the label of ${part.ref} on the bottom`);
-  });
+  }
 };
 
 const Label = ({ text, at: p }: { text: string; at: Point }) => {

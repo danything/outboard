@@ -314,6 +314,75 @@ export const SOT89: FootprintDef = {
   pin1Mark: { x: 2.3, y: -2.2 },
 };
 
+/**
+ * Four rows of leads around a square body, pin 1 at the left of the bottom
+ * row, counting counter-clockwise (the EasyEDA "BL" orientation of QFNs).
+ */
+const quadBottomLeft = (
+  perSide: number,
+  pitch: number,
+  rowY: number,
+  along: number,
+  across: number,
+): Pad[] => {
+  const pads: Pad[] = [];
+  const first = (-(perSide - 1) * pitch) / 2;
+  for (let i = 0; i < perSide; i++) {
+    const t = first + i * pitch;
+    const n = (side: number) => String(side * perSide + i + 1);
+    pads.push({ pin: n(0), x: t, y: -rowY, w: along, h: across });
+    pads.push({ pin: n(1), x: rowY, y: t, w: across, h: along });
+    pads.push({ pin: n(2), x: -t, y: rowY, w: along, h: across });
+    pads.push({ pin: n(3), x: -rowY, y: -t, w: across, h: along });
+  }
+  return pads.sort((a, b) => Number(a.pin) - Number(b.pin));
+};
+
+/**
+ * U8: CH334P, QFN-16 3 x 3, 0.5 pitch, exposed pad (pin 17, GND). WCH gives
+ * the package (leads 0.25 x 0.35, pad 1.75) but no land pattern; the land is
+ * the EasyEDA one: 0.28 x 0.665 centred 1.45 out, exposed pad 1.70.
+ */
+export const QFN16_3X3: FootprintDef = {
+  pads: [
+    ...quadBottomLeft(4, 0.5, 1.45, 0.28, 0.665),
+    { pin: "17", x: 0, y: 0, w: 1.7, h: 1.7 },
+  ],
+  // The exposed pad is the hub's only ground and is closed in on four sides
+  // by the leads: four plated holes in it take it to the ground on the bottom
+  // (a via cannot be placed in a pad).
+  platedHoles: [-0.45, 0.45].flatMap((x) =>
+    [-0.45, 0.45].map((y) => ({
+      pin: "17",
+      x,
+      y,
+      holeW: 0.3,
+      holeH: 0.3,
+      padW: 0.7,
+      padH: 0.7,
+    })),
+  ),
+  courtyard: centredBox(4.1, 4.1),
+  pin1Mark: { x: -1.6, y: -1.6 },
+  height: 0.8,
+};
+
+/**
+ * Y1: 12 MHz crystal, 3.2 x 2.5, four pads. 1 and 3 are the crystal, 2 and 4
+ * ground (the EasyEDA land and pin names: 1.4 x 1.2 at +-1.1, +-0.85).
+ */
+export const XTAL3225: FootprintDef = {
+  pads: [
+    { pin: "1", x: -1.1, y: -0.85, w: 1.4, h: 1.2 },
+    { pin: "2", x: 1.1, y: -0.85, w: 1.4, h: 1.2 },
+    { pin: "3", x: 1.1, y: 0.85, w: 1.4, h: 1.2 },
+    { pin: "4", x: -1.1, y: 0.85, w: 1.4, h: 1.2 },
+  ],
+  courtyard: centredBox(4.1, 3.4),
+  pin1Mark: { x: -2.0, y: -1.5 },
+  height: 0.8,
+};
+
 /** U7: CH32V003F4P6, TSSOP-20. */
 export const TSSOP20: FootprintDef = {
   pads: bottomRightTopLeft(10, 0.65, 2.87, 0.364, 1.742, "pill"),
@@ -428,20 +497,32 @@ const header = (
 });
 
 /**
- * J4: PZ254R-12-10P, right-angle 2x5 header. Odd pins are the row nearer the
- * plastic (y = -1.27) and the lower level; the pins point to -y.
+ * J4, J6: JST S4B-PH-SM4-TB, 4-pin PH (2.0 mm) socket for surface mount,
+ * side entry, for the card's internal USB cables (lib/card-usb.ts). The
+ * land is JST's recommended one (ePH catalogue): signal pads 1.0 x 3.5 at
+ * 2.0 pitch, 5.5 to 9.0 behind the mating face; fitting nails 1.5 x 3.4,
+ * their inner edges 1.6 beyond the end pins, from 0.2 in front of the face.
+ * The plug goes in at +y; pin 1 is at +x with the face up (the KiCad
+ * footprint JST_PH_S4B-PH-SM4-TB turned half round, same origin). The
+ * nails are pads 5 and 6 and carry nothing.
  */
-export const HEADER_2X5_RIGHT_ANGLE: FootprintDef = {
-  pads: [],
-  platedHoles: Array.from({ length: 5 }, (_, i) => i).flatMap((i) => [
-    header(String(2 * i + 1), -5.08 + 2.54 * i, -1.27, 1.8, 1.1),
-    header(String(2 * i + 2), -5.08 + 2.54 * i, 1.27, 1.8, 1.1),
-  ]),
-  courtyard: box(-6.75, -11.8, 6.75, 2.32),
-  body: box(-6.35, -5.31, 6.35, -2.81),
-  height: 5.15,
-  // The plug slides onto the pins from their tips (-y).
-  insertionDirection: "from_bottom",
+export const PH4_SIDE_ENTRY: FootprintDef = {
+  pads: [
+    ...[1, 2, 3, 4].map((n): Pad => ({
+      pin: String(n),
+      x: 5 - 2 * n,
+      y: -2.85,
+      w: 1.0,
+      h: 3.5,
+    })),
+    { pin: "5", x: -5.35, y: 2.9, w: 1.5, h: 3.4 },
+    { pin: "6", x: 5.35, y: 2.9, w: 1.5, h: 3.4 },
+  ],
+  courtyard: box(-6.35, -4.85, 6.35, 4.85),
+  // Wafer: 11.9 wide, 6.0 deep from the mating face (y = 4.4).
+  body: box(-5.95, -1.6, 5.95, 4.4),
+  height: 5.5,
+  insertionDirection: "from_top",
 };
 
 /** JP1, JP2, J5: 1x2 header, not assembled. */

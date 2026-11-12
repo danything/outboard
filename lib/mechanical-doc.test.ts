@@ -6,7 +6,8 @@ import {
   BOARD_WIDTH,
   J1_Y,
   J2_Y,
-  J4_ORIGIN,
+  J4_POS,
+  J6_POS,
   MOUNTING_HOLE_POSITIONS,
   REAR_STEP,
   REAR_STEP_DEPTH,
@@ -41,7 +42,8 @@ test("outline, step and connector positions", () => {
     `y < ${REAR_STEP_DEPTH} では辺を x = ${REAR_STEP} に引っ込める`,
   );
   expect(doc).toContain(`J1 (PC) は y = ${J1_Y}、J2 (充電器) は y = ${J2_Y}`);
-  expect(doc).toContain(`原点 (${J4_ORIGIN.x}, ${J4_ORIGIN.y})`);
+  expect(doc).toContain(`J4 は中心 (${J4_POS.x}, ${J4_POS.y})`);
+  expect(doc).toContain(`J6 は中心 (${J6_POS.x}, ${J6_POS.y})`);
 });
 
 test("the depth budget adds up", () => {

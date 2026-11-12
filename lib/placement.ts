@@ -20,7 +20,8 @@ import {
   J1_Y,
   J2_Y,
   J3_ORIGIN,
-  J4_ORIGIN,
+  J4_POS,
+  J6_POS,
   LED_EDGE_DISTANCE,
   type Point,
   type Rect,
@@ -116,7 +117,8 @@ export const BLOCKS = {
     origin: J1,
     rotation: 0,
     region: [
-      rect(1.5, 0, 17.6, 11.5),
+      rect(1.5, 0, 8.5, 9.8),
+      rect(1.5, 9.8, 17.6, 11.5),
       rect(0, 11.5, 17.6, 31.1),
       rect(8, 31.1, 17.6, 32.6),
     ],
@@ -129,11 +131,11 @@ export const BLOCKS = {
       C1: p("C0603", 16, 31.4, "E"),
       R3: p("R0603", 3.8, 12.9, "W"),
       C2: p("C0603", 3.8, 11, "W"),
-      // Bleeder, clear of the J4 plug.
-      R28: p("R0805", 11.2, 9.6, "W"),
-      R29: p("R0805", 15.5, 9.6, "W"),
-      R39: p("R0805", 11.2, 11.9, "W"),
-      R40: p("R0805", 15.5, 11.9, "W"),
+      // Bleeder, south of the socket J4.
+      R28: p("R0805", 11.2, 10.9, "W"),
+      R29: p("R0805", 15.5, 10.9, "W"),
+      R39: p("R0805", 11.2, 13.05, "W"),
+      R40: p("R0805", 15.5, 13.05, "W"),
     }),
   },
   /** J2 (charger): PD controller and bleeder. VBUS2 runs east above the bleeder. */
@@ -157,15 +159,40 @@ export const BLOCKS = {
       R42: p("R0805", 35.5, 39.9, "W"),
     }),
   },
-  /** J4: its plug lies towards the card over the VBUS1 copper, which has no parts. */
+  /**
+   * The USB hub and the sockets for the card's two internal USB cables. J4
+   * and J6 stand side by side on the card-side edge, mating faces to the
+   * card. The hub U8 sits south of them, its crystal Y1 and capacitors east
+   * of it, all north of the VBUS1 band; the upstream pair hops under the
+   * band from J1's side. The card's 5 V regulator U9 sits south of the band
+   * with its tab (VBUS1) on it.
+   */
   usb: {
-    title: "Internal USB header",
-    origin: J4_ORIGIN,
+    title: "USB hub, sockets for the card",
+    origin: J4_POS,
     rotation: 0,
-    region: [rect(17.6, 0, 34.2, 24.7)],
-    parts: absolute(J4_ORIGIN, {
-      J4: p("HEADER_2X5_RIGHT_ANGLE", J4_ORIGIN.x, J4_ORIGIN.y, 180),
-      JP3: p("SOLDER_JUMPER", 33, 22.6, "S"),
+    region: [
+      rect(8.5, 0, 38, 9.8),
+      rect(17.6, 9.8, 38, 20.6),
+      rect(17.6, 20.6, 34.2, 24.7),
+    ],
+    parts: absolute(J4_POS, {
+      J4: p("PH4_SIDE_ENTRY", J4_POS.x, J4_POS.y, 0),
+      J6: p("PH4_SIDE_ENTRY", J6_POS.x, J6_POS.y, 0),
+      // Port 1 and the upstream pair face west, port 3 north, the crystal
+      // pins east, the supply pins south.
+      U8: p("QFN16_3X3", 23.8, 13.0, 90),
+      Y1: p("XTAL3225", 28.3, 12.9, 180),
+      // Supply capacitors along the band: C35 right under the supply pins.
+      C35: p("C0603", 23.8, 15.95, "E"),
+      C34: p("C0603", 32.0, 15.45, "E"),
+      C36: p("C0805", 35.7, 15.2, "E"),
+      // Closed jumper from the regulator to the sockets' VBUS.
+      JP3: p("SOLDER_JUMPER", 36.7, 11.3, "S"),
+      // The card's 5 V regulator: tab north on the VBUS1 band.
+      U9: p("SOT89", 29.5, 22.0, 270),
+      C37: p("C0603", 25.4, 21.2, "W"),
+      C38: p("C0805", 33.1, 22.55, "S"),
     }),
   },
   /** D1 and D2 join VBUS1 and VBUS2 into VIN: a band across the board and a strip along the far edge. */
@@ -508,11 +535,11 @@ export const HANDOFFS: Handoff[] = [
     "VBUS1",
     "usb",
     "input",
-    34.2,
+    38,
     18.4,
     3,
     "top",
-    "west of x 24.6 the copper stays north of y 19.15 (USB_DP runs at y 19.4)",
+    "the band y 16.9..19.9 (west of x 20: y 15.9..19.1, USB_DN runs at y 19.4); the hub is north of it, U9 south",
   ),
   h(
     "VBUS2",
@@ -578,6 +605,16 @@ export const HANDOFFS: Handoff[] = [
   h("V3V3", "buck", "slot", 83, 10.4, 2.4, "top", "row y 9.2..11.6 to B8"),
   h(
     "V3V3",
+    "slot",
+    "usb",
+    38,
+    7.9,
+    0.3,
+    "bottom",
+    "the hub's supply: from the north-west 3.3 V via west, south of the 12 V bar, then south at x 37.7 to a via at (37.7, 16.3) (lib/routing/trunks.tsx)",
+  ),
+  h(
+    "V3V3",
     "buck",
     "switch12",
     79,
@@ -597,7 +634,7 @@ export const HANDOFFS: Handoff[] = [
     19.4,
     0.2,
     "top",
-    "north of the odd row of J4 to pin 3; VBUS1 stays north of y 19.15",
+    "east to a via south of the VBUS1 band, under it on the bottom to the hub (lib/routing/usb.tsx)",
   ),
   h(
     "USB_DP",
@@ -607,7 +644,7 @@ export const HANDOFFS: Handoff[] = [
     21.3,
     0.2,
     "top",
-    "down to y 22.3 before x 18.6, between the two rows of J4 to pin 5; about 3 mm shorter than D-, matched on the way",
+    "east, then north to a via east of the one of D-, under the band on the bottom to the hub",
   ),
   h(
     "J1_CC2",
@@ -661,16 +698,6 @@ export const HANDOFFS: Handoff[] = [
     "VBUS2 reaches its strip south of U2, so nothing is crossed here",
   ),
   h("I2C2_SCL", "pdCharger", "mcu", 19.4, 34.3),
-  h(
-    "V5",
-    "mcu",
-    "usb",
-    34.2,
-    24.0,
-    0.5,
-    "top",
-    "straight to pad 1 of JP3; the mcu side comes up from the bottom north of the lines to the ports",
-  ),
   // --- Through the gap between the pads of a diode ---------------------------
   h("V12_SENSE", "switch12", "input", 51.3, 17.2, 0.2, "top", "under D1"),
   h("V12_SENSE", "input", "mcu", 51.3, 20.6, 0.2, "top", "to R33 and C33"),
