@@ -317,6 +317,7 @@ const MODELS = new Map<FootprintDef, (def: FootprintDef) => Solid[]>([
   [fp.R0805, (d) => chip(2.0, 1.25, d.height ?? 0.5, 0.4, RESISTOR)],
   [fp.C0805, (d) => chip(2.0, 1.25, d.height ?? 1.25, 0.4, CERAMIC)],
   [fp.F1206, (d) => chip(3.2, 1.6, d.height ?? 1.0, 0.5, PTC)],
+  [fp.F0603, (d) => chip(1.6, 0.8, d.height ?? 1.0, 0.3, PTC)],
   [
     fp.LED0603,
     (d) => [

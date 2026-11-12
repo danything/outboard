@@ -20,6 +20,7 @@ export const NETS = [
   "V12_F",
   "V12",
   "USBH_VBUS",
+  "CARD_VBUS",
   "V5_USB",
   // USB-C ports
   "J1_CC1",

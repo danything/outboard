@@ -51,6 +51,7 @@ const REFS = [
   ...range("C", upTo(38)),
   ...range("D", [1, 2, 4, 5, 6, 7]),
   "F1",
+  "F2",
   ...range("J", upTo(6)),
   ...range("JP", upTo(7)),
   ...range("L", [1, 2]),
@@ -64,7 +65,7 @@ const REFS = [
 
 test("every part is placed exactly once", () => {
   // 111 of rev D, J4 replaced, 9 added for the hub.
-  expect(REFS).toHaveLength(120);
+  expect(REFS).toHaveLength(121);
   expect(PLACEMENT.map((q) => q.ref).sort()).toEqual([...REFS].sort());
 });
 

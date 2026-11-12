@@ -3,6 +3,9 @@ import type { Circuit } from "./circuit";
 import { assembledParts, bomCsv, cplCsv } from "./fab";
 import { EDGE_EXCEPTIONS, FAB } from "../checks/rules";
 import { SOT89 } from "../lib/footprints";
+import * as fp from "../lib/footprints";
+import { PASTE_TO_HOLE } from "../checks/fab";
+import { PASTE, padPaste } from "./paste";
 import { remaining } from "./kicad-drc";
 import { filterZip, zipEntries } from "./zip";
 import { addNetTies } from "./kicad-nettie";
@@ -288,4 +291,42 @@ test("filterZip drops entries and keeps the rest readable", async () => {
     "a.gbr",
     "pick_and_place.csv",
   ]);
+});
+
+test("the windows of an exposed pad stay on the pad, apart, clear of its holes, 50 to 65 %", () => {
+  for (const [name, land] of Object.entries(PASTE)) {
+    for (const [pin, rule] of Object.entries(land?.pads ?? {})) {
+      if (!rule.windows) continue;
+      const def = fp[name as keyof typeof fp] as fp.FootprintDef;
+      const pad = def.pads.find((p) => p.pin === pin);
+      if (!pad) throw new Error(`${name} has no pad ${pin}`);
+      const area = rule.windows.reduce(
+        (s, w) => s + (w.x1 - w.x0) * (w.y1 - w.y0),
+        0,
+      );
+      const share = area / (pad.w * pad.h);
+      expect(share).toBeGreaterThanOrEqual(0.5);
+      expect(share).toBeLessThanOrEqual(0.65);
+      for (const w of rule.windows) {
+        expect(w.x0).toBeGreaterThanOrEqual(-pad.w / 2);
+        expect(w.x1).toBeLessThanOrEqual(pad.w / 2);
+        expect(w.y0).toBeGreaterThanOrEqual(-pad.h / 2);
+        expect(w.y1).toBeLessThanOrEqual(pad.h / 2);
+        for (const h of def.platedHoles ?? []) {
+          const dx = Math.max(w.x0 - (h.x - pad.x), h.x - pad.x - w.x1, 0);
+          const dy = Math.max(w.y0 - (h.y - pad.y), h.y - pad.y - w.y1, 0);
+          expect(Math.hypot(dx, dy)).toBeGreaterThanOrEqual(
+            h.holeW / 2 + PASTE_TO_HOLE,
+          );
+        }
+      }
+    }
+  }
+  // The pads that the review asked to keep at 90 % or more.
+  expect(padPaste("QFN16_3X3", "1").ratio).toBeGreaterThanOrEqual(0.9);
+  expect(padPaste("SOT583", "1").ratio).toBeGreaterThanOrEqual(0.9);
+  expect(padPaste("PH4_SIDE_ENTRY", "1").ratio).toBe(1);
+  expect(padPaste("PH4_SIDE_ENTRY", "5").ratio).toBe(1);
+  expect(padPaste("SOT89", "2", true).ratio).toBeLessThan(1);
+  expect(padPaste("SOT89", "2").ratio).toBe(1);
 });

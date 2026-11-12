@@ -128,6 +128,14 @@ export const OFF_BOARD_PARTS: string[] = [];
 /** Clear copper around an M3 mounting hole: the screw head (6 mm) minus the hole. */
 export const MOUNTING_HOLE_KEEPOUT = 1.4;
 
+/**
+ * The stencil (tools/paste.ts). JLCPCB's steel stencil is 0.12 mm thick
+ * unless asked otherwise. Paste leaves an opening cleanly when its area
+ * ratio (opening area / area of its walls) is 0.66 or more (IPC-7525).
+ */
+export const STENCIL_THICKNESS = 0.12;
+export const MIN_AREA_RATIO = 0.66;
+
 /** Geometry is compared with this much slack, in mm. */
 export const EPSILON = 1e-6;
 

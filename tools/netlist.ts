@@ -205,14 +205,16 @@ export const REV_D_ADDED_PARTS: Record<string, Part> = {
   J4: cardSocket(),
   J6: cardSocket(),
   U8: part("CH334P", "QFN16_3X3", "C5373042", "CH334P"),
-  Y1: part("12MHz", "XTAL3225", "C9002", "X322512MSB4SI"),
-  C34: part("1uF 50V", "C0603", "C15849", "CL10A105KB8NNNC"),
-  C35: part("100nF 50V", "C0603", "C14663", "CC0603KRX7R9BB104"),
+  Y1: part("12MHz", "XTAL3225", "C70565", "X322512MOB4SI"),
+  C34: part("100nF 50V", "C0603", "C14663", "CC0603KRX7R9BB104"),
+  C35: part("1uF 50V", "C0603", "C15849", "CL10A105KB8NNNC"),
   C36: cap10u(),
   U9: part("HT7550-1", "SOT89", "C16106", "HT7550-1"),
   // On VBUS1 with C1: the port may carry 10 uF at most.
   C37: part("1uF 50V", "C0603", "C15849", "CL10A105KB8NNNC"),
   C38: cap10u(),
+  // The card VBUS fuse, against a short on a card cable.
+  F2: part("0.1A PTC", "F0603", "C70048", "SMD0603-010-24V"),
 };
 
 /** Nets that rev D does not have. */
@@ -224,6 +226,7 @@ export const REV_D_NEW_NETS: string[] = [
   "HUB_XI",
   "HUB_XO",
   "V5_USB",
+  "CARD_VBUS",
 ];
 
 const pins = (ref: string, nets: Record<number, string | null>): Change[] =>
@@ -236,7 +239,7 @@ const pins = (ref: string, nets: Record<number, string | null>): Change[] =>
 /** A socket for one of the card's ports, wired by lib/card-usb.ts. */
 const socket = (ref: string, dp: string, dn: string): Change[] =>
   pins(ref, {
-    [CARD_USB_PINOUT.VBUS]: "USBH_VBUS",
+    [CARD_USB_PINOUT.VBUS]: "CARD_VBUS",
     [CARD_USB_PINOUT.DN]: dn,
     [CARD_USB_PINOUT.DP]: dp,
     [CARD_USB_PINOUT.GND]: "GND",
@@ -252,7 +255,8 @@ const socket = (ref: string, dp: string, dn: string): Change[] =>
  * VDD33 of the hub are both on +3V3 (CH334 datasheet: a hub on a 3.3 V
  * supply). The card's VBUS comes from its own 5 V regulator U9, fed from
  * VBUS1 (the PC's port), through JP3, which used to come from the
- * microcontroller's +5V.
+ * microcontroller's +5V, and on through the fuse F2 (CARD_VBUS) to the
+ * sockets.
  */
 const HUB_CHANGES: Change[] = [
   { pad: "JP3.1", from: "+5V", to: "V5_USB" },
@@ -284,6 +288,7 @@ const HUB_CHANGES: Change[] = [
   ...pins("U9", { 1: "GND", 2: "VBUS1", 3: "V5_USB" }),
   ...pins("C37", { 1: "VBUS1", 2: "GND" }),
   ...pins("C38", { 1: "V5_USB", 2: "GND" }),
+  ...pins("F2", { 1: "CARD_VBUS", 2: "USBH_VBUS" }),
 ];
 
 /**
