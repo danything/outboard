@@ -77,7 +77,7 @@ bun run lint       # oxlint と bun fmt --check。直すときは bun run format
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `index.circuit.tsx`           | 基板の全体                                                                                                                                                                                         |
 | `lib/`                        | `blocks.tsx` (ブロックごとの回路)・`parts.tsx` (部品。ピンとネットを型で縛る)・`nets.ts` (ネットの一覧)・`footprints.ts` (ランド)・`placement.ts` (位置)・`geometry.ts` (外形)・`revision.ts` (版) |
-| `footprints.circuit.tsx`      | 全部のランドを並べた見本 (作る基板ではない)                                                                                                                                                        |
+| `land-patterns.circuit.tsx`   | 全部のランドを並べた見本 (作る基板ではない)                                                                                                                                                        |
 | `checks/`                     | circuit.json を読む自前の検査と、検査のテスト。`board.ts` (基板)・`design.ts` (分圧の値・定格など、回路の意図)                                                                                     |
 | `tools/`                      | 製造用の出力・スナップショット・KiCad の DRC の判定・`netlist.ts` (rev D とのネットリストの比べ)                                                                                                   |
 | `fixtures/rev-d-netlist.json` | rev D の KiCad のネットリスト (部品と、パッドごとのつながり)。比べる相手                                                                                                                           |
