@@ -173,23 +173,28 @@ export const boardOutline = (): Point[] => {
 
 // [LAY] M3, not plated. Three sit in corners, 4 in from the edges (H1 from
 // the stepped rear edge). The rear far corner is taken by J2, so H3 sits
-// between the two USB-C shells.
+// between the two USB-C shells. H5 and H6 flank J3, so that pushing the card
+// in and pulling it out does not bend the board around the slot.
 export const MOUNTING_HOLE_DIAMETER = 3.2;
 const HOLE_INSET = 4;
-/** H1..H4 in design coordinates. */
-export const MOUNTING_HOLE_POSITIONS: [Point, Point, Point, Point] = [
+/** H1..H6 in design coordinates. */
+export const MOUNTING_HOLE_POSITIONS: Point[] = [
   { x: REAR_STEP + HOLE_INSET, y: HOLE_INSET },
   { x: BOARD_WIDTH - HOLE_INSET, y: HOLE_INSET },
   { x: 3.5, y: (J1_Y + J2_Y) / 2 },
   { x: BOARD_WIDTH - HOLE_INSET, y: BOARD_DEPTH - HOLE_INSET },
+  // Between the J4 plug (x <= 31.2) and the rear ear of J3 (x >= 38.4).
+  { x: 35.3, y: 5 },
+  // Past the front ear of J3; the 3.3 V row (y >= 8.9) stays clear of the screw.
+  { x: 78.5, y: 5.5 },
 ];
 /** Nothing but copper within this radius of a hole centre (M3 pan head). */
 export const MOUNTING_HOLE_KEEPOUT_RADIUS = 3;
 
-/** H1..H4 in tscircuit coordinates. */
-export const mountingHoles = MOUNTING_HOLE_POSITIONS.map((p) =>
+/** H1..H6 in tscircuit coordinates. */
+export const mountingHoles: Point[] = MOUNTING_HOLE_POSITIONS.map((p) =>
   at(p.x, p.y),
-) as [Point, Point, Point, Point];
+);
 
 // --- Reference drawings (never manufactured) ---------------------------------------
 
