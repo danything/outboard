@@ -67,7 +67,7 @@ const COMMON = {
   },
 } satisfies Partial<FabRules>;
 
-/** By number of copper layers. The board is 4 layers (docs/routing.md). */
+/** By number of copper layers. The board is 2 layers; 4 is kept ready. */
 export const FAB: Record<2 | 4, FabRules> = {
   2: {
     ...COMMON,
