@@ -326,4 +326,41 @@ export const FAB_CHECKS: Check[] = [
   holeToCopper,
   mountingHoleKeepout,
   edgeClearance,
+  solderPaste,
 ];
+
+/** Parts soldered by hand on both sides: no stencil opening on them (docs/manufacturing.md). */
+export const HAND_SOLDERED = ["J3"];
+
+/**
+ * Paste only on top (one-sided assembly, no bottom stencil) and none on the
+ * parts soldered by hand.
+ */
+export function solderPaste(circuit: Circuit): Finding[] {
+  const raw = circuit as unknown as Record<string, unknown>[];
+  const names = new Map(
+    raw
+      .filter((e) => e.type === "source_component")
+      .map((e) => [e.source_component_id, e.name]),
+  );
+  const refs = new Map(
+    raw
+      .filter((e) => e.type === "pcb_component")
+      .map((e) => [e.pcb_component_id, names.get(e.source_component_id)]),
+  );
+  const out: Finding[] = [];
+  for (const e of raw.filter((x) => x.type === "pcb_solder_paste")) {
+    const ref = String(refs.get(e.pcb_component_id) ?? "?");
+    if (e.layer === "bottom")
+      out.push({
+        check: "solderPaste",
+        message: `paste on the bottom at ${ref}: the board has no bottom stencil`,
+      });
+    else if (HAND_SOLDERED.includes(ref))
+      out.push({
+        check: "solderPaste",
+        message: `paste on ${ref}, which is soldered by hand`,
+      });
+  }
+  return out;
+}

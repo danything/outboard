@@ -10,6 +10,7 @@ import {
   holeToCopper,
   mountingHoleKeepout,
   padRing,
+  solderPaste,
   trackWidth,
   viaSize,
 } from "./fab";
@@ -267,4 +268,39 @@ test("a closed jumper's bridge is not a short: the part ties its pins into one n
       : e,
   );
   expect(clearance([...nets, ...tied])).toEqual([]);
+});
+
+test("solderPaste fails on paste on the bottom or on J3", () => {
+  const paste = (layer: string, ref: string) => [
+    {
+      type: "source_component",
+      source_component_id: `s_${ref}`,
+      name: ref,
+    },
+    {
+      type: "pcb_component",
+      pcb_component_id: `p_${ref}`,
+      source_component_id: `s_${ref}`,
+    },
+    {
+      type: "pcb_solder_paste",
+      pcb_solder_paste_id: `paste_${ref}_${layer}`,
+      pcb_component_id: `p_${ref}`,
+      layer,
+      shape: "rect",
+      x: 0,
+      y: 0,
+      width: 1,
+      height: 1,
+    },
+  ];
+  const check = (...parts: Record<string, unknown>[][]) =>
+    solderPaste(parts.flat() as unknown as Circuit).map((f) => f.message);
+  expect(check(paste("top", "R1"))).toEqual([]);
+  expect(check(paste("bottom", "J1"))).toEqual([
+    "paste on the bottom at J1: the board has no bottom stencil",
+  ]);
+  expect(check(paste("top", "J3"))).toEqual([
+    "paste on J3, which is soldered by hand",
+  ]);
 });
