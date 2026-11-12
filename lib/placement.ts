@@ -123,8 +123,8 @@ export const BLOCKS = {
     parts: absolute(J1, {
       J1: p("USBC_TYPE_C_31_M_12", J1.x, J1.y, 270),
       // Straight behind the data pads, on the way to J4.
-      U5: p("SOT23_6_SRV05", 15.4, 21, 180),
-      U1: p("ESSOP10", 13.5, 27.6, 90),
+      U5: p("SOT23_6_SRV05", 15.4, 20.35, 0),
+      U1: p("ESSOP10", 13.5, 27.8, 90),
       R1: p("R0603", 12.9, 31.4, "W"),
       C1: p("C0603", 16, 31.4, "E"),
       R3: p("R0603", 3.8, 12.9, "W"),
@@ -148,9 +148,9 @@ export const BLOCKS = {
     ],
     parts: absolute(J2, {
       J2: p("USBC_TYPE_C_31_M_12", J2.x, J2.y, 270),
-      U2: p("ESSOP10", 13.5, 36.95, 90),
-      R4: p("R0603", 12.9, 40.7, "W"),
-      C3: p("C0603", 19, 39.9, "S"),
+      U2: p("ESSOP10", 13.7, 35.6, 90),
+      R4: p("R0603", 12.3, 39.15, "W"),
+      C3: p("C0603", 15.6, 39.15, "E"),
       R30: p("R0805", 23.5, 39.9, "W"),
       R41: p("R0805", 27.5, 39.9, "W"),
       R31: p("R0805", 31.5, 39.9, "W"),
