@@ -250,7 +250,8 @@ export const BLOCKS = {
     title: "PCIe slot",
     origin: J3_ORIGIN,
     rotation: 0,
-    region: [rect(38, 0, 74.5, 9.1), rect(45.2, 9.1, 74.5, 14.1)],
+    // The 3.3 V row runs on east of the front ear to the buck (x 83).
+    region: [rect(38, 0, 74.5, 9.1), rect(45.2, 9.1, 83, 14.1)],
     parts: absolute(J3_ORIGIN, {
       J3: p("PCIE_X1_STRADDLE", J3_ORIGIN.x, J3_ORIGIN.y, 0),
       // 12 V, below contacts 1 to 3.
@@ -532,7 +533,16 @@ export const HANDOFFS: Handoff[] = [
     "top",
     "y 25.1..27.5, clear of the ground pads of C16 and C17",
   ),
-  h("VIN", "input", "buck", 86.9, 40, 3, "top", "end of the strip, up to C9"),
+  h(
+    "VIN",
+    "input",
+    "buck",
+    84.8,
+    38.6,
+    1.8,
+    "top",
+    "the stitch at x 84.8 from the strip into the buck's VIN area (the buck's 3.3 V line runs at x 87.2)",
+  ),
   h("VIN", "input", "switch12", 67.84, 38.6, 0.3, "top", "cathode of D7"),
   h(
     "VIN",
