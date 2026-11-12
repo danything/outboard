@@ -2,7 +2,7 @@
 // tscircuit's own checks let most of these through, so they are held here.
 // The numbers are in rules.ts.
 import type { Circuit } from "../tools/circuit";
-import type { Check, Finding } from "./finding";
+import { type Check, type Finding, skip } from "./finding";
 import {
   type Box,
   type Copper,
@@ -337,9 +337,13 @@ export const REFLOWED_CONNECTORS = ["J4", "J6"];
 
 /**
  * Paste only on top (one-sided assembly, no bottom stencil), none on the
- * parts soldered by hand, and on every pad of the reflowed connectors.
+ * parts soldered by hand, and on every pad of the reflowed connectors, which
+ * have to be on the board.
  */
-export function solderPaste(circuit: Circuit): Finding[] {
+export function solderPaste(
+  circuit: Circuit,
+  reflowed: readonly string[] = REFLOWED_CONNECTORS,
+): Finding[] {
   const raw = circuit as unknown as Record<string, unknown>[];
   const names = new Map(
     raw
@@ -367,9 +371,18 @@ export function solderPaste(circuit: Circuit): Finding[] {
   }
   // The sockets for the card are surface mount and reflowed with the rest:
   // every pad of theirs needs its stencil opening.
-  for (const ref of REFLOWED_CONNECTORS) {
+  if (refs.size === 0)
+    return [...out, ...skip("solderPaste", "there are no parts on the board")];
+  for (const ref of reflowed) {
     const ids = [...refs].filter(([, r]) => r === ref).map(([id]) => id);
-    if (ids.length === 0) continue;
+    if (ids.length === 0) {
+      // A renamed or dropped socket would otherwise pass unchecked.
+      out.push({
+        check: "solderPaste",
+        message: `${ref} is not on the board; REFLOWED_CONNECTORS names it`,
+      });
+      continue;
+    }
     const count = (type: string) =>
       raw.filter((e) => e.type === type && ids.includes(e.pcb_component_id))
         .length;

@@ -303,5 +303,7 @@ TVS は載せていない (JLCPCB の Basic に 20V 級が無い。Preferred の
 | `Slot`                      | J3、JP4                                                                                                  | `V12`、`V3V3`、`PERST_N`                                           |                                                                    | `V3V3AUX`                                                                                    |
 
 - 部品の種類 (品番・ランド・ピンの名前) は `lib/parts.tsx`。ブロックは「どのピンをどのネットへ」だけを書く。
+- **回路図のコネクタ (J1・J2・J3・J4・J6。書き込みのヘッダ J5 は除く) は `<connector>` で描く** (IC と同じ 2 辺の箱にしない)。J3・J4・J6 はピンが 1 列 (ブロックが書いた順、J4・J6 は 1 番が上)。J1・J2 は `standard="usb_c"` で USB-C の絵を入れる (ランドは明示するので、変わるのは回路図だけ)。
+  PH の J4・J6 に `standard="jst_ph"` は使わない: tscircuit 0.0.3161 では 1 番が下に描かれる。名前つきのパッド (A5 など) は `schPinArrangement` で引けないので、`pinLabels` で pinN にパッドの名前を付けている。KiCad の書き出しでは `<connector>` の Value が部品番号になる (BOM と配置表は circuit.json から作るので影響しない)。
 - つながりは、基板のパッドから起こして rev D の KiCad のネットリスト (`fixtures/rev-d-netlist.json`) と比べている (`tools/netlist.ts`)。 rev D から意図して変えた所 (マイコンのピン 7 本と、ハブ: 2×5 の J4 を外し、PH の J4・J6、U8・Y1・U9 とコンデンサを足した) は同じファイルの `REV_D_REMOVED_PARTS`・`REV_D_ADDED_PARTS`・`REV_D_CHANGES` に表で持ち、「rev D + その表 = いまの回路」を確かめる。ブロックの分け方を変えても、この比べが 0 のままなら回路は変わっていない。
 - 部品の位置は、部品の名前で `lib/placement.ts` の表を引く (`positionOf("U3")`)。座標は基板の全体の座標。
