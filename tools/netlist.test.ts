@@ -91,11 +91,15 @@ test("a different part number is reported", () => {
 
 test("the reference (rev D and the changes) has the expected size", async () => {
   const fixture = await loadFixture();
-  // 115 parts in KiCad, 4 of them mounting holes; none added yet.
-  expect(Object.keys(fixture.components)).toHaveLength(111);
-  // 56 nets and 42 pads left open in rev D; no new nets yet.
-  expect(fixture.nets.filter((n) => n.length > 1)).toHaveLength(56);
-  expect(fixture.nets.filter((n) => n.length === 1)).toHaveLength(42);
+  // 115 parts in KiCad, 4 of them mounting holes; the 2x5 header J4 gone,
+  // the hub and its parts and two sockets (J4 again, J6) added.
+  expect(Object.keys(fixture.components)).toHaveLength(111 - 1 + 10);
+  // 56 nets of rev D and 7 new ones; 42 open pads, less the 4 of the
+  // header, plus 6 of the hub and the 4 fitting nails of the sockets.
+  expect(fixture.nets.filter((n) => n.length > 1)).toHaveLength(56 + 7);
+  expect(fixture.nets.filter((n) => n.length === 1)).toHaveLength(
+    42 - 4 + 6 + 4,
+  );
 });
 
 const small = {
@@ -161,4 +165,18 @@ test("an added part and a new net extend the reference", () => {
   expect(() =>
     applyChanges(small, [{ pad: "U1.1", from: "A", to: "N" }]),
   ).toThrow();
+});
+
+test("a removed part takes its pads, and the nets that were only its own", () => {
+  const fixture = {
+    components: {
+      J9: { value: "", footprint: "", lcsc: "C1", mpn: "X" },
+      R1: { value: "", footprint: "", lcsc: "C2", mpn: "Y" },
+    },
+    nets: { A: ["J9.1", "R1.1"], B: ["J9.2"], C: ["R1.2"] },
+  };
+  const changed = applyChanges(fixture, [], {}, [], ["J9"]);
+  expect(Object.keys(changed.components)).toEqual(["R1"]);
+  expect(changed.nets).toEqual({ A: ["R1.1"], C: ["R1.2"] });
+  expect(() => applyChanges(fixture, [], {}, [], ["J8"])).toThrow();
 });

@@ -111,19 +111,35 @@ export const CARD_LENGTH_DRAWN = 125;
 /** The drawings of the card and the bracket are cut off this far above the card edge. */
 const REFERENCE_DRAWN_HEIGHT = 12;
 
-// --- Internal USB header J4 -------------------------------------------------
+// --- Sockets for the card's internal USB cables (J4, J6) ----------------------
 
-// [LAY] Below the VBUS1 copper, pins pointing at the card: the plug lies over
-// copper only, and the data pair reaches it without crossing VBUS1.
-export const J4_ORIGIN: Point = { x: 24.6, y: 22.3 };
-// [DS] Plastic 3.09 to 5.63 from the origin. [EST] Plug 14 long, 13.2 wide,
-// 0.2 above the board: no parts under it.
-export const J4_PLUG: Rect = {
-  x0: J4_ORIGIN.x - 6.6,
-  y0: J4_ORIGIN.y - 5.63 - 14,
-  x1: J4_ORIGIN.x + 6.6,
-  y1: J4_ORIGIN.y - 5.63,
+// [LAY] Side by side on the card-side edge, mating faces towards the card:
+// the plugs stand out over the gap to the card and the cables run along it
+// to the card's two ports. J6 ends 0.45 short of the rear ear of J3 (x 38.4), J4
+// one courtyard further west; the bleeder of pdPc sits south of J4. Centres of the land patterns (lib/footprints.ts PH4_SIDE_ENTRY).
+/** Mating face from the card-side edge: the nails are 0.2 in front of it, 0.35 from the edge. */
+export const CARD_USB_FACE_Y = 0.55;
+const PH_FACE_TO_ORIGIN = 4.4;
+export const J4_POS: Point = {
+  x: 18.9,
+  y: CARD_USB_FACE_Y + PH_FACE_TO_ORIGIN,
 };
+export const J6_POS: Point = {
+  x: 31.6,
+  y: CARD_USB_FACE_Y + PH_FACE_TO_ORIGIN,
+};
+// [DS] PHR-4 housing: 9.8 wide (2.0 x 3 + 3.8), 4.5 high. [EST] It stands
+// out about 6 from the mating face when pushed home; the cable bends
+// within 4 more.
+const PH_PLUG = { width: 9.8, out: 6, bend: 4 };
+const phPlug = (c: Point): Rect => ({
+  x0: c.x - PH_PLUG.width / 2,
+  y0: CARD_USB_FACE_Y - PH_PLUG.out - PH_PLUG.bend,
+  x1: c.x + PH_PLUG.width / 2,
+  y1: CARD_USB_FACE_Y,
+});
+/** The plugs and the start of their cables, off the board towards the card. */
+export const CARD_USB_PLUGS: Rect[] = [phPlug(J4_POS), phPlug(J6_POS)];
 
 // --- LEDs ---------------------------------------------------------------------
 
@@ -183,8 +199,9 @@ export const MOUNTING_HOLE_POSITIONS: Point[] = [
   { x: BOARD_WIDTH - HOLE_INSET, y: HOLE_INSET },
   { x: 3.5, y: (J1_Y + J2_Y) / 2 },
   { x: BOARD_WIDTH - HOLE_INSET, y: BOARD_DEPTH - HOLE_INSET },
-  // Between the J4 plug (x <= 31.2) and the rear ear of J3 (x >= 38.4).
-  { x: 35.3, y: 5 },
+  // Behind the rear ear of J3, between the J6 socket and the 12 V area; the
+  // card edge east of J1 is taken by the sockets J4 and J6.
+  { x: 41.75, y: 12.4 },
   // Past the front ear of J3; the 3.3 V row (y >= 8.9) stays clear of the screw.
   { x: 78.5, y: 5.5 },
 ];
@@ -251,7 +268,10 @@ export const referenceShapes = (): ReferenceShape[] => [
       y1: 0,
     }),
   },
-  { label: "J4 plug", points: rectPoints(J4_PLUG) },
+  ...CARD_USB_PLUGS.map((r, i) => ({
+    label: `${i === 0 ? "J4" : "J6"} plug`,
+    points: rectPoints(r),
+  })),
   usbcPlug("USB-C plug (PC)", J1_Y),
   usbcPlug("USB-C plug (charger)", J2_Y),
   ...J3_EAR_KEEPOUTS.map((r) => ({ label: "J3 ear", points: rectPoints(r) })),

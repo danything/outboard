@@ -304,3 +304,32 @@ test("solderPaste fails on paste on the bottom or on J3", () => {
     "paste on J3, which is soldered by hand",
   ]);
 });
+
+test("solderPaste fails on a reflowed socket with a pad left bare", () => {
+  const socket = (pads: number, pasted: number) => [
+    { type: "source_component", source_component_id: "s_J4", name: "J4" },
+    {
+      type: "pcb_component",
+      pcb_component_id: "p_J4",
+      source_component_id: "s_J4",
+    },
+    ...Array.from({ length: pads }, (_, i) => ({
+      type: "pcb_smtpad",
+      pcb_smtpad_id: `pad${i}`,
+      pcb_component_id: "p_J4",
+      layer: "top",
+    })),
+    ...Array.from({ length: pasted }, (_, i) => ({
+      type: "pcb_solder_paste",
+      pcb_solder_paste_id: `paste${i}`,
+      pcb_component_id: "p_J4",
+      layer: "top",
+    })),
+  ];
+  const check = (parts: Record<string, unknown>[]) =>
+    solderPaste(parts as unknown as Circuit).map((f) => f.message);
+  expect(check(socket(6, 6))).toEqual([]);
+  expect(check(socket(6, 4))).toEqual([
+    "J4 has paste on 4 of its 6 pads; it is reflowed",
+  ]);
+});

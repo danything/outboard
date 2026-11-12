@@ -6,9 +6,10 @@
 import type { JSX } from "react";
 import { footprintOf } from "./Footprint";
 import { cadModelOf } from "./cad";
+import { CARD_USB_PART, CARD_USB_PIN_NAMES } from "./card-usb";
 import * as fp from "./footprints";
 import type { FootprintDef } from "./footprints";
-import type { Conn, Net } from "./nets";
+import { type Conn, NC, type Net } from "./nets";
 import { positionOf } from "./placement";
 
 interface PartInfo {
@@ -302,7 +303,12 @@ export const SRV05 = numbered(
 
 /** USB 2.0 hub, four ports (two used). Pin 17 is the exposed pad. */
 export const CH334P = numbered(
-  { footprint: fp.QFN16_3X3, lcsc: "C5373042", mpn: "CH334P" },
+  {
+    footprint: fp.QFN16_3X3,
+    lcsc: "C5373042",
+    mpn: "CH334P",
+    supply: { power: ["V5", "VDD33"], ground: ["EP"] },
+  },
   [
     "XO",
     "XI",
@@ -478,14 +484,40 @@ export const PcieSlot = ({
   );
 };
 
-/** Right-angle 2x5 header for the card's internal USB cable. */
-export const UsbHeader = numbered(
+/**
+ * Socket for one of the card's internal USB cables (JST PH, 4 pins). Which
+ * pad carries what comes from lib/card-usb.ts; the two fitting nails (pads 5
+ * and 6) are left open.
+ */
+const PhSocket = numbered(
   {
-    footprint: fp.HEADER_2X5_RIGHT_ANGLE,
-    lcsc: "C492433",
-    mpn: "PZ254R-12-10P",
+    footprint: fp[CARD_USB_PART.footprint],
+    lcsc: CARD_USB_PART.lcsc,
+    mpn: CARD_USB_PART.mpn,
   },
-  ["VBUS", "VBUS2", "DN", "D2N", "DP", "D2P", "GND", "GND2", "KEY", "NC"],
+  [...CARD_USB_PIN_NAMES, "MP1", "MP2"] as const,
+);
+
+export const CardUsbSocket = ({
+  name,
+  dp,
+  dn,
+}: {
+  name: string;
+  dp: Net;
+  dn: Net;
+}) => (
+  <PhSocket
+    name={name}
+    nets={{
+      VBUS: "USBH_VBUS",
+      DN: dn,
+      DP: dp,
+      GND: "GND",
+      MP1: NC,
+      MP2: NC,
+    }}
+  />
 );
 
 /** 1x2 header, holes only (not assembled). */

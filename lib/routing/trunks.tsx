@@ -18,27 +18,27 @@ const INPUT_WEST = 47.5;
 
 // --- VBUS1 and VBUS2 -------------------------------------------------------------
 //
-// Both anode areas have to reach 150 mm2 (checks/rules.ts COPPER_AREA) with
-// what pdPc / pdCharger and input draw. The VBUS1 area also covers the usb
-// block, which draws only the data pair and J4's own 5 V (lib/routing/usb.tsx),
-// and the free ground north of the band (x 34.2 to 38.3, y 9.1 to 16.9).
+// VBUS1 is a band from pdPc across the usb block to the anode area of D1,
+// y 16.9 to 19.9 (west of x 20: 15.9 to 19.1, where pdPc joins it and
+// USB_DN leaves pdPc south of it). The hub and the sockets are north of the
+// band, U9 south of it with its tab on it. The copper that counts for the
+// heat of D1 is within 10 mm of it (checks/rules.ts COPPER_AREA), east of
+// x 41.3; this band only carries the current there.
 
 const VBUS1_FROM_PC = handoff("VBUS1", "pdPc", "usb");
 const VBUS2_IN = handoff("VBUS2", "pdCharger", "input");
 
-/** USB_DN runs west to east at y 19.4 up to x 25.87, then south to J4.3 (usb.tsx). */
-const DN_CLEAR = { y: 19.1, x: 26.2 };
-/** The VBUS1 band from the usb block to D1 (the handoff: y 16.9 to 19.9). */
+/** The band (the handoff into input: y 16.9 to 19.9). */
 const BAND1 = { y0: 16.9, y1: 19.9 };
-/** North edge of the area: the slot's region starts at y 9.1 east of x 38. */
-const NORTH1 = 9.1;
-/** East edge of the north part: west of the PERST# via at (38.9, 16.4). */
-const NORTH1_EAST = 38.3;
+/** West part: the joint with pdPc (y 15.9 to 18.9), up to x 20. */
+const WEST1 = { x1: 20.0, y0: 15.9 };
+/** USB_DN runs west to east at y 19.4 up to its via at x 20.5 (usb.tsx). */
+const DN_CLEAR = { y: 19.1, x: 22.2 };
 
 const VBUS1_OUTLINE: Point[] = [
-  { x: VBUS1_FROM_PC.x + POUR_GAP, y: NORTH1 },
-  { x: NORTH1_EAST, y: NORTH1 },
-  { x: NORTH1_EAST, y: BAND1.y0 },
+  { x: VBUS1_FROM_PC.x + POUR_GAP, y: WEST1.y0 },
+  { x: WEST1.x1, y: WEST1.y0 },
+  { x: WEST1.x1, y: BAND1.y0 },
   { x: INPUT_WEST - POUR_GAP, y: BAND1.y0 },
   { x: INPUT_WEST - POUR_GAP, y: BAND1.y1 },
   { x: DN_CLEAR.x, y: BAND1.y1 },
@@ -152,11 +152,43 @@ const Perst = () => (
   </>
 );
 
+// --- 3.3 V to the hub ----------------------------------------------------------
+//
+// The hub U8 runs on +3V3, which is only on the far side of J3's 12 V area.
+// It leaves the slot's 3.3 V vias (lib/routing/slot.tsx) on the bottom,
+// runs west south of row A and the 12 V bar, turns south behind the rear
+// ear of J3 (west of H5) and comes up north of the VBUS1 band, where the
+// usb block takes it on (HANDOFFS: V3V3 to usb).
+
+/** The north-west one of the slot's four 3.3 V vias. */
+const V33_FROM_SLOT: Point = { x: 53.35, y: 7.9 };
+const V33_OUT = handoff("V3V3", "slot", "usb");
+/** Where it comes up, west of the PERST# via and north of the band. */
+export const V33_HUB_VIA: Point = { x: 37.7, y: 16.3 };
+
+const V33Hub = () => (
+  <>
+    <Track
+      net="V3V3"
+      width={V33_OUT.width}
+      layer="bottom"
+      points={[
+        V33_FROM_SLOT,
+        V33_OUT,
+        { x: V33_HUB_VIA.x, y: V33_OUT.y },
+        V33_HUB_VIA,
+      ]}
+    />
+    <Via net="V3V3" at={V33_HUB_VIA} {...VIA.signal} />
+  </>
+);
+
 export const TrunkRouting = () => (
   <>
     {/* Bottom: ground, cut only by the few tracks that have to run there. */}
     <Pour net="GND" layer="bottom" />
     <Vbus />
     <Perst />
+    <V33Hub />
   </>
 );

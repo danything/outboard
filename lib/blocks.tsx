@@ -8,6 +8,9 @@ import {
   BZT52B12,
   C,
   CH224A,
+  CH334P,
+  CardUsbSocket,
+  Crystal12M,
   CH32V003,
   D1N4148W,
   HT7550,
@@ -29,7 +32,6 @@ import {
   TPS62933,
   TestPoint,
   UsbC,
-  UsbHeader,
 } from "./parts";
 
 /**
@@ -345,24 +347,53 @@ export const Mcu = () => (
   </>
 );
 
-/** The card's internal USB cable plugs into J4; its data lines go straight to J1. */
+/**
+ * The card has two internal USB ports (two devices). J1 goes through the ESD
+ * array U5 to the hub U8 (CH334P); its ports 1 and 2 go to the sockets J4
+ * and J6, which take stock JST PH 4-pin cables to the card. The hub runs on
+ * +3V3 (V5 and VDD33 both), which is only up while the PC's port has VBUS.
+ * The card's VBUS has its own 5 V regulator U9, fed from VBUS1.
+ */
 export const UsbData = () => (
   <>
-    <UsbHeader
-      name="J4"
+    <CardUsbSocket name="J4" dp="USB1_DP" dn="USB1_DN" />
+    <CardUsbSocket name="J6" dp="USB2_DP" dn="USB2_DN" />
+    <CH334P
+      name="U8"
       nets={{
-        VBUS: "USBH_VBUS",
-        VBUS2: "USBH_VBUS",
-        DN: "USB_DN",
-        D2N: NC,
-        DP: "USB_DP",
-        D2P: NC,
-        GND: "GND",
-        GND2: "GND",
-        KEY: NC,
-        NC: NC,
+        XO: "HUB_XO",
+        XI: "HUB_XI",
+        DM4: NC,
+        DP4: NC,
+        DM3: NC,
+        DP3: NC,
+        DM2: "USB2_DN",
+        DP2: "USB2_DP",
+        DM1: "USB1_DN",
+        DP1: "USB1_DP",
+        DMU: "USB_DN",
+        DPU: "USB_DP",
+        // Internal pull-ups; the datasheet leaves RESET# open.
+        RESET: NC,
+        PGANG: NC,
+        V5: "V3V3",
+        VDD33: "V3V3",
+        EP: "GND",
       }}
     />
+    {/* The hub has the load capacitors of its crystal inside. */}
+    <Crystal12M
+      name="Y1"
+      nets={{ X1: "HUB_XI", GND: "GND", X2: "HUB_XO", GND2: "GND" }}
+    />
+    <C name="C34" value="1uF" nets={["V3V3", "GND"]} />
+    <C name="C35" value="100nF" nets={["V3V3", "GND"]} />
+    {/* Holds the hub's supply up when a device is plugged in. */}
+    <C name="C36" value="10uF" nets={["V3V3", "GND"]} />
+    <HT7550 name="U9" nets={{ GND: "GND", VIN: "VBUS1", VOUT: "V5_USB" }} />
+    {/* 1 uF: with C1 the PC's port carries 2 uF (10 uF at most). */}
+    <C name="C37" value="1uF" nets={["VBUS1", "GND"]} />
+    <C name="C38" value="10uF" nets={["V5_USB", "GND"]} />
     {/* REF stays open: its TVS is a 6 V part and VBUS can be 9 V. */}
     <SRV05
       name="U5"
@@ -375,7 +406,7 @@ export const UsbData = () => (
         IO4: NC,
       }}
     />
-    <ClosedJumper name="JP3" nets={{ pin1: "V5", pin2: "USBH_VBUS" }} />
+    <ClosedJumper name="JP3" nets={{ pin1: "V5_USB", pin2: "USBH_VBUS" }} />
   </>
 );
 

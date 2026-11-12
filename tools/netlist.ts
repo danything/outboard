@@ -6,6 +6,7 @@
 // and every net as a list of REF.PAD). This compares it with what tscircuit
 // built: the same parts, and exactly the same pads connected to each other.
 // Net names are ignored; only connectivity counts.
+import { CARD_USB_PART, CARD_USB_PINOUT } from "../lib/card-usb";
 import { type Circuit, elementsOf } from "./circuit";
 
 export interface Netlist {
@@ -171,11 +172,119 @@ export interface Change {
 
 type Part = Fixture["components"][string];
 
-/** Parts added since rev D. Empty until the USB hub is on the board. */
-export const REV_D_ADDED_PARTS: Record<string, Part> = {};
+const part = (
+  value: string,
+  footprint: string,
+  lcsc: string,
+  mpn: string,
+): Part => ({ value, footprint, lcsc, mpn });
+
+/**
+ * Parts of rev D that are gone, every pad with them: the 2x5 header J4.
+ * A net that only had pads of these parts goes too. The name J4 is used
+ * again for one of the two JST PH sockets (REV_D_ADDED_PARTS).
+ */
+export const REV_D_REMOVED_PARTS = ["J4"];
+
+const cardSocket = (): Part =>
+  part(
+    "Card USB (JST PH 4)",
+    CARD_USB_PART.footprint,
+    CARD_USB_PART.lcsc,
+    CARD_USB_PART.mpn,
+  );
+const cap10u = (): Part =>
+  part("10uF 25V", "C0805", "C15850", "CL21A106KAYNNNE");
+
+/**
+ * Parts added since rev D: the USB hub U8 with its crystal and capacitors,
+ * the regulator U9 for the card's VBUS, and the two sockets J4 and J6 for the
+ * card's two internal USB ports.
+ */
+export const REV_D_ADDED_PARTS: Record<string, Part> = {
+  J4: cardSocket(),
+  J6: cardSocket(),
+  U8: part("CH334P", "QFN16_3X3", "C5373042", "CH334P"),
+  Y1: part("12MHz", "XTAL3225", "C9002", "X322512MSB4SI"),
+  C34: part("1uF 50V", "C0603", "C15849", "CL10A105KB8NNNC"),
+  C35: part("100nF 50V", "C0603", "C14663", "CC0603KRX7R9BB104"),
+  C36: cap10u(),
+  U9: part("HT7550-1", "SOT89", "C16106", "HT7550-1"),
+  // On VBUS1 with C1: the port may carry 10 uF at most.
+  C37: part("1uF 50V", "C0603", "C15849", "CL10A105KB8NNNC"),
+  C38: cap10u(),
+};
 
 /** Nets that rev D does not have. */
-export const REV_D_NEW_NETS: string[] = [];
+export const REV_D_NEW_NETS: string[] = [
+  "USB1_DP",
+  "USB1_DN",
+  "USB2_DP",
+  "USB2_DN",
+  "HUB_XI",
+  "HUB_XO",
+  "V5_USB",
+];
+
+const pins = (ref: string, nets: Record<number, string | null>): Change[] =>
+  Object.entries(nets).map(([pin, to]) => ({
+    pad: `${ref}.${pin}`,
+    from: null,
+    to,
+  }));
+
+/** A socket for one of the card's ports, wired by lib/card-usb.ts. */
+const socket = (ref: string, dp: string, dn: string): Change[] =>
+  pins(ref, {
+    [CARD_USB_PINOUT.VBUS]: "USBH_VBUS",
+    [CARD_USB_PINOUT.DN]: dn,
+    [CARD_USB_PINOUT.DP]: dp,
+    [CARD_USB_PINOUT.GND]: "GND",
+    // The two fitting nails of the socket hold it down and carry nothing.
+    5: null,
+    6: null,
+  });
+
+/**
+ * The USB hub. The card has two internal USB ports (two devices), so J1 no
+ * longer goes straight to the card: J1 -> U5 -> U8 (CH334P) upstream, port 1
+ * -> J4, port 2 -> J6; ports 3 and 4, RESET# and PGANG stay open. V5 and
+ * VDD33 of the hub are both on +3V3 (CH334 datasheet: a hub on a 3.3 V
+ * supply). The card's VBUS comes from its own 5 V regulator U9, fed from
+ * VBUS1 (the PC's port), through JP3, which used to come from the
+ * microcontroller's +5V.
+ */
+const HUB_CHANGES: Change[] = [
+  { pad: "JP3.1", from: "+5V", to: "V5_USB" },
+  ...socket("J4", "USB1_DP", "USB1_DN"),
+  ...socket("J6", "USB2_DP", "USB2_DN"),
+  ...pins("U8", {
+    1: "HUB_XO",
+    2: "HUB_XI",
+    3: null,
+    4: null,
+    5: null,
+    6: null,
+    7: "USB2_DN",
+    8: "USB2_DP",
+    9: "USB1_DN",
+    10: "USB1_DP",
+    11: "USB_DN",
+    12: "USB_DP",
+    13: null,
+    14: null,
+    15: "+3V3",
+    16: "+3V3",
+    17: "GND",
+  }),
+  ...pins("Y1", { 1: "HUB_XI", 2: "GND", 3: "HUB_XO", 4: "GND" }),
+  ...pins("C34", { 1: "+3V3", 2: "GND" }),
+  ...pins("C35", { 1: "+3V3", 2: "GND" }),
+  ...pins("C36", { 1: "+3V3", 2: "GND" }),
+  ...pins("U9", { 1: "GND", 2: "VBUS1", 3: "V5_USB" }),
+  ...pins("C37", { 1: "VBUS1", 2: "GND" }),
+  ...pins("C38", { 1: "V5_USB", 2: "GND" }),
+];
 
 /**
  * Every intended difference from the rev D schematic. The fixture stays what
@@ -195,6 +304,7 @@ export const REV_D_CHANGES: Change[] = [
   { pad: "U7.14", from: "PERST_MCU", to: "CC2_SENSE" },
   { pad: "U7.19", from: "EN_12V", to: "CC1_SENSE" },
   { pad: "U7.20", from: "SW12_ON", to: "VBUS1_SENSE" },
+  ...HUB_CHANGES,
 ];
 
 /**
@@ -208,16 +318,30 @@ export const applyChanges = (
   changes: Change[],
   added: Record<string, Part> = {},
   newNets: string[] = [],
+  removed: string[] = [],
 ): Fixture => {
+  const gone = (pad: string) => removed.includes(pad.split(".")[0] ?? "");
+  for (const ref of removed)
+    if (!fixture.components[ref])
+      throw new Error(`${ref} is not a part of the reference`);
   const nets = Object.fromEntries(
-    Object.entries(fixture.nets).map(([name, pads]) => [name, [...pads]]),
+    Object.entries(fixture.nets)
+      .map(([name, pads]) => [name, pads.filter((q) => !gone(q))] as const)
+      // A net of removed pads only goes with them.
+      .filter(([name, pads]) => pads.length > 0 || !fixture.nets[name]?.length)
+      .map(([name, pads]) => [name, [...pads]]),
+  );
+  const kept = Object.fromEntries(
+    Object.entries(fixture.components).filter(
+      ([ref]) => !removed.includes(ref),
+    ),
   );
   for (const name of newNets) {
     if (nets[name])
       throw new Error(`${name} is already a net of the reference`);
     nets[name] = [];
   }
-  const components = { ...fixture.components, ...added };
+  const components = { ...kept, ...added };
   for (const { pad, from, to } of changes) {
     const ref = pad.split(".")[0] ?? "";
     if (from === null) {
@@ -251,5 +375,6 @@ export const loadFixture = async (
       REV_D_CHANGES,
       REV_D_ADDED_PARTS,
       REV_D_NEW_NETS,
+      REV_D_REMOVED_PARTS,
     ),
   );

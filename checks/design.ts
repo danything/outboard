@@ -191,6 +191,7 @@ export const DESIGN_CHECKS: Record<string, DesignCheck> = {
       "C29",
       "C30",
       "C32",
+      "C37",
     ];
     const weak = exposed.filter((ref) => need(v.cVolts, ref) < 25);
     return weak.length === 0
@@ -207,11 +208,15 @@ export const DESIGN_CHECKS: Record<string, DesignCheck> = {
       ? undefined
       : `only ${(total * 1e6).toFixed(0)} uF on the 3.3 V output`;
   },
-  // CH224A: 1 to 10 uF from each VBUS to GND (USB allows 10 uF at the port).
+  // CH224A: 1 to 10 uF from each VBUS to GND, and USB allows 10 uF at the
+  // port in all: on VBUS1 the input capacitor of U9 (C37) counts too.
   vbusCapacitance: (v) => {
     for (const ref of ["C1", "C3"])
       if (!within(need(v.c, ref), 1e-6, 10e-6))
         return `${ref} puts ${(need(v.c, ref) * 1e6).toFixed(1)} uF on VBUS`;
+    const vbus1 = need(v.c, "C1") + need(v.c, "C37");
+    if (vbus1 > 10e-6 + 1e-12)
+      return `VBUS1 carries ${(vbus1 * 1e6).toFixed(1)} uF (C1 and C37), maximum 10`;
     return undefined;
   },
   // The buck wants 10 uF on its input. Its own capacitors must give 20 uF

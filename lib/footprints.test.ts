@@ -279,17 +279,31 @@ test("J3: ear holes, board edge and key notch", () => {
   expect(KEY_NOTCH_WIDTH).toBeCloseTo(1.9);
 });
 
-test("headers: numbering, rows and pin 1", () => {
-  const j4 = all.HEADER_2X5_RIGHT_ANGLE;
-  for (let n = 1; n <= 10; n++) {
-    const h = plated(j4, String(n));
-    // Odd pins are the row next to the plastic body (towards -y).
-    expect(h.y).toBeCloseTo(n % 2 === 1 ? -1.27 : 1.27);
-    expect(h.x).toBeCloseTo(-5.08 + 2.54 * Math.floor((n - 1) / 2));
-    expect(h.square === true).toBe(n === 1);
-    expect(h.holeW).toBeCloseTo(1.1);
+test("headers and the PH sockets: numbering, rows and pin 1", () => {
+  const ph = all.PH4_SIDE_ENTRY;
+  // JST S4B-PH-SM4-TB: pins at 2.0 pitch, pin 1 at +x with the face up.
+  for (let n = 1; n <= 4; n++)
+    expect(pad(ph, String(n))).toMatchObject({
+      x: 5 - 2 * n,
+      y: -2.85,
+      w: 1.0,
+      h: 3.5,
+    });
+  // Signal pads 5.5 to 9.0 behind the mating face, nails from 0.2 in front of it.
+  const face = ph.body?.y1 ?? Number.NaN;
+  expect(face - (-2.85 + 1.75)).toBeCloseTo(5.5);
+  expect(face - (-2.85 - 1.75)).toBeCloseTo(9.0);
+  for (const [pin, x] of [
+    ["5", -5.35],
+    ["6", 5.35],
+  ] as const) {
+    const nail = pad(ph, pin);
+    expect(nail).toMatchObject({ x, y: 2.9, w: 1.5, h: 3.4 });
+    expect(nail.y + nail.h / 2 - face).toBeCloseTo(0.2);
+    // Inner edge 1.6 beyond the end pin.
+    expect(Math.abs(nail.x) - nail.w / 2 - 3).toBeCloseTo(1.6);
   }
-  expect(j4.body?.y1).toBeLessThan(-1.27 - 0.9);
+  expect(ph.insertionDirection).toBe("from_top");
   const jp = all.HEADER_1X2;
   expect(plated(jp, "1")).toMatchObject({ x: -1.27, y: 0, square: true });
   expect(plated(jp, "2")).toMatchObject({ x: 1.27, y: 0 });

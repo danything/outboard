@@ -278,32 +278,34 @@ const pcieSlot = (def: FootprintDef): Solid[] => {
 };
 
 /**
- * Right-angle 2x5 header PZ254R-12-10P: plastic block in front of the holes,
- * pins rising from the holes and bending towards -y (odd pins low, even pins
- * high).
+ * JST PH side-entry socket (S4B-PH-SM4-K-TB, black): the wafer with its
+ * opening towards +y, the tails of the contacts on the signal pads behind it
+ * and the fitting nails at its sides.
  */
-const header2x5 = (def: FootprintDef): Solid[] => {
-  const body = def.body ?? { x0: -6.35, y0: -5.31, x1: 6.35, y1: -2.81 };
-  const tip = body.y0 - 6;
-  const pin = 0.32;
-  const below = -1.6 - 1.4;
+const phSideEntry = (def: FootprintDef): Solid[] => {
+  const body = def.body ?? { x0: -5.95, y0: -1.6, x1: 5.95, y1: 4.4 };
+  const h = def.height ?? 5.5;
+  const wall = 0.6;
   return [
-    block(BLACK, [body.x0, body.y0, 0], [body.x1, body.y1, 5.08]),
-    ...(def.platedHoles ?? []).flatMap((h) => {
-      const level = Number(h.pin) % 2 === 1 ? 1.27 : 3.81;
-      return [
-        block(
-          GOLD,
-          [h.x - pin, h.y - pin, below],
-          [h.x + pin, h.y + pin, level + pin],
-        ),
-        block(
-          GOLD,
-          [h.x - pin, tip, level - pin],
-          [h.x + pin, h.y + pin, level + pin],
-        ),
-      ];
-    }),
+    // Back wall and roof, floor; the plug fills the space between.
+    block(BLACK, [body.x0, body.y0, 0], [body.x1, body.y0 + 1.6, h]),
+    block(BLACK, [body.x0, body.y0, h - wall], [body.x1, body.y1, h]),
+    block(BLACK, [body.x0, body.y0, 0], [body.x1, body.y1, wall]),
+    block(BLACK, [body.x0, body.y0, 0], [body.x0 + wall, body.y1, h]),
+    block(BLACK, [body.x1 - wall, body.y0, 0], [body.x1, body.y1, h]),
+    ...def.pads.map((p) =>
+      Number(p.pin) <= 4
+        ? block(
+            TIN,
+            [p.x - 0.32, p.y - p.h / 2 + 0.3, 0],
+            [p.x + 0.32, body.y0, 0.4],
+          )
+        : block(
+            TIN,
+            [p.x - p.w / 2 + 0.2, p.y - p.h / 2 + 0.3, 0],
+            [p.x + p.w / 2 - 0.2, p.y + p.h / 2 - 0.3, 1.8],
+          ),
+    ),
   ];
 };
 
@@ -396,7 +398,9 @@ const MODELS = new Map<FootprintDef, (def: FootprintDef) => Solid[]>([
   ],
   [fp.USBC_TYPE_C_31_M_12, usbC],
   [fp.PCIE_X1_STRADDLE, pcieSlot],
-  [fp.HEADER_2X5_RIGHT_ANGLE, header2x5],
+  [fp.PH4_SIDE_ENTRY, phSideEntry],
+  [fp.QFN16_3X3, (d) => noLead(d, 3, 3, d.height ?? 0.75)],
+  [fp.XTAL3225, (d) => crystal(d, 3.2, 2.5, d.height ?? 0.8)],
 ]);
 
 /** Bounding box of the copper of a land pattern on the top side. */

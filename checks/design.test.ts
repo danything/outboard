@@ -43,6 +43,7 @@ const design = (): Values => ({
     R42: 1 * k,
   },
   c: {
+    C37: 1 * uF,
     C1: 1 * uF,
     C3: 1 * uF,
     C4: 22 * uF,
@@ -80,6 +81,7 @@ const design = (): Values => ({
     C29: 25,
     C30: 50,
     C32: 50,
+    C37: 50,
   },
 });
 
@@ -111,6 +113,8 @@ const broken: [
   ["capacitorRatings", "cVolts", "C29", 16],
   ["buckOutputCapacitance", "c", "C27", 10 * uF],
   ["vbusCapacitance", "c", "C3", 22 * uF],
+  ["vbusCapacitance", "c", "C37", 10 * uF],
+  ["capacitorRatings", "cVolts", "C37", 16],
   ["buckInputCapacitance", "c", "C8", 4.7 * uF],
   ["overVoltageWindow", "r", "R34", 100],
   ["overVoltageWindow", "r", "R35", 33 * k],

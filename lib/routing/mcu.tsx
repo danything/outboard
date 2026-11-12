@@ -332,7 +332,8 @@ t("I2C2_SCL", 0.15, [
 
 // --- U6: 5 V regulator ---------------------------------------------------------------
 // VOUT (pin 3) east past C7, down to the row that feeds the body; from that
-// row a hop on the bottom under the lines to the ports takes 5 V to J4 (block usb).
+// row a hop on the bottom under the lines to the ports takes 5 V to TP4.
+// (J4 took 5 V from here too until the card got its own regulator, U9.)
 const V5_DOWN_X = 29.54;
 t("V5", 0.5, [pad("U6", 3), P(pad("C7", 1).x, pad("U6", 3).y), pad("C7", 1)]);
 t("V5", 0.4, [
@@ -344,12 +345,10 @@ t("V5", 0.4, [
 t("GND", 0.3, [pad("C7", 2), P(27.5, pad("C7", 2).y)]);
 v("GND", 27.5, pad("C7", 2).y);
 const V5_HOP_LOW = P(34.0, V5_ROW);
-const V5_OUT = at(handoff("V5", "mcu", "usb"));
-const V5_HOP_HIGH = P(34.6, V5_OUT.y);
+const V5_HOP_HIGH = P(34.6, 24.0);
 v("V5", V5_HOP_LOW.x, V5_HOP_LOW.y);
 t("V5", 0.5, [V5_HOP_LOW, V5_HOP_HIGH], "bottom");
 v("V5", V5_HOP_HIGH.x, V5_HOP_HIGH.y);
-t("V5", 0.5, [V5_HOP_HIGH, V5_OUT]);
 t("V5", 0.3, [V5_HOP_HIGH, pad("TP4", 1)]);
 // VIN under U6 to the tab; ground of pin 1 under the body.
 t("VIN", 0.3, [P(36.0, VIN_ROW), P(23.0, VIN_ROW), P(23.0, 32.6)]);

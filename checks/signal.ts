@@ -24,7 +24,9 @@ import {
   USB_BOTTOM_CROSSINGS,
   USB_BOTTOM_MARGIN,
   USB_C_SHELLS,
-  USB_PAIR,
+  USB_DATA_NETS,
+  USB_PAIRS,
+  USB_PAIR_MAX_DIFFERENCE,
 } from "./rules";
 
 const at = (p: { x: number; y: number }) =>
@@ -48,37 +50,38 @@ const union = (boxes: Box[]): Box => ({
 });
 
 export const usbPair = layoutCheck("usbPair", (b) => {
-  const ends = [0, 1].map((i) => ({
-    net: USB_PAIR.nets[i as 0 | 1],
-    from: USB_PAIR.from[i as 0 | 1].flatMap((n) => padsOf(b, n)),
-    to: padsOf(b, USB_PAIR.to[i as 0 | 1]),
-  }));
-  if (ends.every((e) => e.from.length === 0 && e.to.length === 0))
-    return { skip: "J1 and J4 are not on the board" };
   const out: string[] = [];
-  const lengths = ends.map((e) => {
-    const l = routeLength(b, e.net, e.from, e.to);
-    if (l === undefined) out.push(`${e.net}: no copper joins J1 and J4`);
-    return l;
-  });
-  const [dp, dn] = lengths;
-  if (dp !== undefined && dn !== undefined) {
-    const d = Math.abs(dp - dn);
-    if (d > USB_PAIR.maxDifference + EPSILON)
+  let present = 0;
+  for (const pair of USB_PAIRS) {
+    const ends = [0, 1].map((i) => ({
+      net: pair.nets[i as 0 | 1],
+      from: pair.from[i as 0 | 1].flatMap((n) => padsOf(b, n)),
+      to: pair.to[i as 0 | 1].flatMap((n) => padsOf(b, n)),
+    }));
+    if (ends.every((e) => e.from.length === 0 && e.to.length === 0)) continue;
+    present++;
+    const lengths = ends.map((e) => {
+      const l = routeLength(b, e.net, e.from, e.to);
+      if (l === undefined) out.push(`${e.net}: no copper joins ${pair.name}`);
+      return l;
+    });
+    const [dp, dn] = lengths;
+    if (dp !== undefined && dn !== undefined) {
+      const d = Math.abs(dp - dn);
+      if (d > USB_PAIR_MAX_DIFFERENCE + EPSILON)
+        out.push(
+          `${pair.name}: D+ is ${dp.toFixed(2)} mm and D- is ${dn.toFixed(2)} mm: ${d.toFixed(2)} mm apart, maximum ${USB_PAIR_MAX_DIFFERENCE}`,
+        );
+    }
+    const bottom = b.segments
+      .filter((s) => s.layer === "bottom" && pair.nets.some((n) => n === s.net))
+      .reduce((sum, s) => sum + segmentLength(s), 0);
+    if (bottom > pair.maxBottom + EPSILON)
       out.push(
-        `D+ is ${dp.toFixed(2)} mm and D- is ${dn.toFixed(2)} mm: ${d.toFixed(2)} mm apart, maximum ${USB_PAIR.maxDifference}`,
+        `${pair.name} runs ${bottom.toFixed(1)} mm on the bottom, maximum ${pair.maxBottom}`,
       );
   }
-  const bottom = b.segments
-    .filter(
-      (s) => s.layer === "bottom" && USB_PAIR.nets.some((n) => n === s.net),
-    )
-    .reduce((sum, s) => sum + segmentLength(s), 0);
-  if (bottom > USB_PAIR.maxBottom + EPSILON)
-    out.push(
-      `the USB pair runs ${bottom.toFixed(1)} mm on the bottom, maximum ${USB_PAIR.maxBottom}`,
-    );
-  return out;
+  return present === 0 ? { skip: "no USB pair is on the board" } : out;
 });
 
 /** The metal shell of a USB-C receptacle: between its legs. */
@@ -152,10 +155,10 @@ export const bottomUnder = layoutCheck("bottomUnder", (b) => {
         );
   }
   const usb = b.segments.filter(
-    (s) => s.layer !== "bottom" && USB_PAIR.nets.some((n) => n === s.net),
+    (s) => s.layer !== "bottom" && USB_DATA_NETS.includes(s.net),
   );
   for (const s of bottom) {
-    if (USB_PAIR.nets.some((n) => n === s.net)) continue;
+    if (USB_DATA_NETS.includes(s.net)) continue;
     if (allowedCrossing(s)) continue;
     if (
       usb.some(

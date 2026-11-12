@@ -6,7 +6,6 @@ import {
   J1_Y,
   J2_Y,
   J3_EAR_KEEPOUTS,
-  J4_PLUG,
   MAX_PART_HEIGHT,
   MOUNTING_HOLE_KEEPOUT_RADIUS,
   MOUNTING_HOLE_POSITIONS,
@@ -47,23 +46,25 @@ const range = (prefix: string, numbers: number[]): string[] =>
 const upTo = (n: number): number[] =>
   Array.from({ length: n }, (_, i) => i + 1);
 
-// The parts of rev D (fixtures of the circuit will check this list again).
+// The parts of rev D and the hub (tools/netlist.ts checks this list again).
 const REFS = [
-  ...range("C", upTo(33)),
+  ...range("C", upTo(38)),
   ...range("D", [1, 2, 4, 5, 6, 7]),
   "F1",
-  ...range("J", upTo(5)),
+  ...range("J", upTo(6)),
   ...range("JP", upTo(7)),
   ...range("L", [1, 2]),
   ...range("LED", [3, 5]),
   ...range("Q", upTo(4)),
   ...range("R", [1, 3, 4, ...upTo(42).filter((n) => n >= 6 && n !== 17)]),
   ...range("TP", upTo(5)),
-  ...range("U", upTo(7)),
+  ...range("U", upTo(9)),
+  "Y1",
 ];
 
-test("every part of rev D is placed exactly once", () => {
-  expect(REFS).toHaveLength(111);
+test("every part is placed exactly once", () => {
+  // 111 of rev D, J4 replaced, 9 added for the hub.
+  expect(REFS).toHaveLength(120);
   expect(PLACEMENT.map((q) => q.ref).sort()).toEqual([...REFS].sort());
 });
 
@@ -127,7 +128,6 @@ test("block regions do not overlap", () => {
 test("keep-out areas are free of parts", () => {
   const keepouts: { name: string; r: Rect; allow: string[] }[] = [
     ...J3_EAR_KEEPOUTS.map((r) => ({ name: "J3 ear", r, allow: ["J3"] })),
-    { name: "J4 plug", r: J4_PLUG, allow: ["J4"] },
     ...MOUNTING_HOLE_POSITIONS.map((c, i) => ({
       name: `H${i + 1}`,
       r: {

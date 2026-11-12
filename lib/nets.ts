@@ -20,6 +20,7 @@ export const NETS = [
   "V12_F",
   "V12",
   "USBH_VBUS",
+  "V5_USB",
   // USB-C ports
   "J1_CC1",
   "J1_CC2",
@@ -32,6 +33,13 @@ export const NETS = [
   "SHIELD1",
   "USB_DP",
   "USB_DN",
+  // USB hub: port 1 to J4, port 2 to J6, the crystal
+  "USB1_DP",
+  "USB1_DN",
+  "USB2_DP",
+  "USB2_DN",
+  "HUB_XI",
+  "HUB_XO",
   // Buck
   "SW_3V3",
   "BST_3V3",
