@@ -89,7 +89,8 @@ export const InputRouting = () => (
       )}
       {...VIA.power}
     />
-    <Pour net="VIN" layer="bottom" outline={rect(52.5, 37.3, 62, SOUTH)} />
+    {/* West of x 58.9 only: the ground via of Q4 at (59.45, 37.9) must stay in the bottom ground. */}
+    <Pour net="VIN" layer="bottom" outline={rect(52.5, 37.3, 58.9, SOUTH)} />
     {/* Ground of C4 and C5: two vias each, in line with the pads so the band stays wide on both sides. */}
     {GROUND_PADS.map((g) => (
       <Track

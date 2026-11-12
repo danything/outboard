@@ -262,11 +262,26 @@ export const VIA_RULES: ViaRule[] = [
   },
 ];
 
-/** Copper of a net joined to the part on either side (pours plus tracks, through vias), in mm2, for heat. */
-export const COPPER_AREA: { net: string; part: string; min: number }[] = [
-  { net: "VBUS1", part: "D1", min: 150 },
-  { net: "VBUS2", part: "D2", min: 150 },
-  { net: "VIN", part: "D1", min: 300 },
+/**
+ * Copper of a net joined to the part on either side (pours plus tracks,
+ * through vias) within `radius` of it, in mm2, for heat. Copper further away
+ * does little for the diode. rev C asked 150 / 300 mm2 counted over the whole
+ * net; within 10 mm the board has about 27 / 30 (anodes) and 82 / 120 (VIN),
+ * and there is no free room near the anodes on two layers (docs/design.md).
+ * The minimum keeps what there is; the temperature is measured on the
+ * prototype (docs/bringup.md).
+ */
+export const COPPER_AREA: {
+  net: string;
+  part: string;
+  min: number;
+  /** Only copper this close to the part's centre counts, mm. */
+  radius: number;
+}[] = [
+  { net: "VBUS1", part: "D1", min: 25, radius: 10 },
+  { net: "VBUS2", part: "D2", min: 25, radius: 10 },
+  { net: "VIN", part: "D1", min: 75, radius: 10 },
+  { net: "VIN", part: "D2", min: 75, radius: 10 },
 ];
 
 /** F1 (PTC) loses hold current when warm: centre to centre from the hot parts. */

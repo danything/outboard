@@ -33,6 +33,10 @@ import {
   POWER_VIA_DIAMETER,
   VIA_RULES,
 } from "./rules";
+import { NECK_STEP, gridNarrowest } from "./neck";
+
+/** The grid measures widths within about two steps. */
+const NECK_SLACK = 2 * NECK_STEP;
 
 /** Copper closer than this is joined. */
 const TOUCH = 0.01;
@@ -278,12 +282,20 @@ export const powerPaths = layoutCheck("powerPaths", (b) => {
       absent.push(`${p.from}-${p.to}`);
       continue;
     }
-    const w = narrowest(b, p.net, from, to, p.min);
-    if (w === undefined)
+    const tracks = narrowest(b, p.net, from, to, p.min);
+    if (tracks === undefined) {
       out.push(`${p.net}: no copper joins ${p.from} and ${p.to}`);
-    else if (w < p.min - EPSILON)
+      continue;
+    }
+    if (tracks < p.min - EPSILON)
       out.push(
-        `${p.net}: ${p.from} to ${p.to} narrows to ${w} mm, minimum ${p.min} (${p.why})`,
+        `${p.net}: ${p.from} to ${p.to} narrows to ${tracks} mm, minimum ${p.min} (${p.why})`,
+      );
+    // The copper as made: pours are as narrow as their necks.
+    const made = gridNarrowest(b, p.net, from, to, p.min, NECK_LENGTH);
+    if (made !== undefined && made < p.min - NECK_SLACK)
+      out.push(
+        `${p.net}: ${p.from} to ${p.to} narrows to ${made.toFixed(2)} mm in the copper as made, minimum ${p.min} (${p.why})`,
       );
   }
   return skipIfAllMissing(absent, POWER_PATHS.length, out);
@@ -333,8 +345,14 @@ export const copperArea = (b: Copper, net: string, layer: string): number =>
  * layers, the heat of a diode spreads into the copper on both sides. The walk
  * stops at the pads of other parts: copper beyond another part (the buck's
  * input past its capacitors, say) is too far to carry the diode's heat.
+ * Of that copper, only what lies within `radius` of the part is counted.
  */
-export const connectedArea = (b: Copper, net: string, part: string): number => {
+export const connectedArea = (
+  b: Copper,
+  net: string,
+  part: string,
+  radius: number,
+): number => {
   const g = netGraph(b, net);
   const seen = new Set<number>();
   const queue = g.nodes.flatMap((n, i) => (n.pad?.ref === part ? [i] : []));
@@ -349,16 +367,31 @@ export const connectedArea = (b: Copper, net: string, part: string): number => {
         queue.push(j);
       }
   }
-  let area = 0;
-  for (const i of seen) {
-    const n = g.nodes[i] as Node;
-    if (n.pour)
-      area +=
-        polygonArea(n.pour.outer) -
-        n.pour.holes.reduce((s, h) => s + polygonArea(h), 0);
-    if (n.seg && !inPour(b, n.seg)) area += segmentLength(n.seg) * n.seg.width;
+  // Only copper near the part spreads its heat: count, layer by layer, the
+  // cells of a grid within `radius` of its centre that this copper covers.
+  const centre = b.parts.get(part)?.center;
+  if (!centre) return 0;
+  const nodes = [...seen].map((i) => g.nodes[i] as Node);
+  const step = 0.1;
+  let cells = 0;
+  for (const layer of ["top", "bottom"]) {
+    const here = nodes.filter(
+      (n) => n.layers.includes("*") || n.layers.includes(layer),
+    );
+    for (let dy = -radius; dy <= radius; dy += step)
+      for (let dx = -radius; dx <= radius; dx += step) {
+        if (dx * dx + dy * dy > radius * radius) continue;
+        const p = { x: centre.x + dx, y: centre.y + dy };
+        const dot = circle(p.x, p.y, 0);
+        if (
+          here.some((n) =>
+            n.pour ? insidePour(p, n.pour) : n.shape && gap(dot, n.shape) <= 0,
+          )
+        )
+          cells++;
+      }
   }
-  return area;
+  return cells * step * step;
 };
 
 export const diodeCopper = layoutCheck("diodeCopper", (b) => {
@@ -371,7 +404,7 @@ export const diodeCopper = layoutCheck("diodeCopper", (b) => {
       [],
     );
   for (const r of COPPER_AREA) {
-    const area = connectedArea(b, r.net, r.part);
+    const area = connectedArea(b, r.net, r.part, r.radius);
     if (area < r.min)
       out.push(
         `${r.net}: ${area.toFixed(0)} mm2 of copper joined to ${r.part}, need ${r.min} (heat of the input diodes)`,
