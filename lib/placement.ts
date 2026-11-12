@@ -312,9 +312,11 @@ export const BLOCKS = {
       F1: p("F1206", 69, 15.7, "E"),
       JP6: p("SOLDER_JUMPER", 64.4, 15.7, "E"),
       JP2: p("HEADER_1X2", 60, 15.7, "E"),
-      R32: p("R0603", 55, 15.7, "E"),
+      // South of the 12 V line, which passes north of it at y 14.7.
+      R32: p("R0603", 55, 16.2, "E"),
       Q4: p("SOT23", 61.5, 36.6, 180),
-      R35: p("R0603", 66.2, 35.42, "E"),
+      // OVP_Z to the west, next to its hop to D7; OVP_B to the east, next to R36.
+      R35: p("R0603", 66.2, 35.42, "W"),
       // Cathode on the VIN strip.
       D7: p("SOD123", 66.2, 37.4, "E"),
       R36: p("R0603", 70.2, 35.42, "W"),
