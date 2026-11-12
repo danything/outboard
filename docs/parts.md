@@ -113,4 +113,4 @@ SSL54 には JLCPCB (EasyEDA) のフットプリントも無い。熱は、銅�
 
 ## 部品データの出どころ
 
-段階 1 で書く。
+[footprints.md](footprints.md#データの出どころと利用条件) に書いた。
