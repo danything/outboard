@@ -193,3 +193,8 @@ test("handoff points lie on the edge of the block they leave", () => {
   ).map((hand) => `${hand.net} ${hand.from}->${hand.to}`);
   expect(off).toEqual([]);
 });
+
+test("each handoff is found by its net and its two blocks alone", () => {
+  const keys = HANDOFFS.map((hand) => `${hand.net} ${hand.from}->${hand.to}`);
+  expect(keys.filter((k, i) => keys.indexOf(k) !== i)).toEqual([]);
+});
