@@ -33,7 +33,7 @@ outboard はその電源を USB-C (PD 9V) から作り、内部 USB を USB-C �
 銅は `lib/routing/` にブロックごとの別ファイルで書く ([docs/routing.md](docs/routing.md))。**mcu (マイコン) のほかは全部入った** (pdPc・pdCharger・usb・input・boost・switch12・buck・slot と幹線 `trunks`)。mcu は置き直しから担当が進めている。
 残り: mcu の配線と、mcu が片側の受け渡しの点 (PERST# は幹線のビア (38.9, 16.4) から先を mcu に合わせて動かしてよい)。いまの (open) は mcu 待ちだけ (17 件)。ブロックをつなぐ所は検査 `handoffs`、うらの GND は `groundPlane` が見る。
 
-全部のブロックの配線が入るまでのあいだ、KiCad の DRC の「未接続」は除外してある (`tools/kicad-drc.ts` の `temporary` の項目)。**mcu が入ったら、統合役がこの除外を消し、`package.json` の check を `bun checks/run.ts --strict` にする** (release も build.yml の同じ check を通る)。KiCad の DRC・自前の検査・ネットリストの同値が全部 0 で通ることを確かめる。
+KiCad の DRC の「未接続」と「ぶら下がり」は、**mcu が関わるものだけ**一時的に除外してある (`tools/kicad-drc.ts` の `waitsForMcu`。ほかの未接続は落ちる)。**mcu が入ったら、統合役がこの除外を消し、`package.json` の check を `bun checks/run.ts --strict` にする** (release も build.yml の同じ check を通る)。KiCad の DRC・自前の検査・ネットリストの同値が全部 0 で通ることを確かめる。
 自前の検査のうち配線に頼るものの指摘は、いまは `(open)` と出して通している。**段階 4 が済んだら 0 にする** (check を `bun checks/run.ts --strict` に替える。`(open)` か飛ばしが残ると落ちる)。
 
 KiCad の版は main から消した。タグ [`kicad-rev-c`](../../tree/kicad-rev-c) (rev C。検査 0) と

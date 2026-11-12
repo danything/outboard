@@ -32,8 +32,11 @@ export interface GroundPiece {
 const onBottom = (layers: string[]) =>
   layers.includes("*") || layers.includes("bottom");
 
-/** Pieces of the bottom ground, largest first. */
-export const groundPieces = (b: Copper, net = "GND"): GroundPiece[] => {
+/** Pieces of the bottom ground, largest first, and a test for the main one. */
+export const groundPieces = (
+  b: Copper,
+  net = "GND",
+): { pieces: GroundPiece[]; onMain: (p: Point) => boolean } => {
   const box = boundsOf({ kind: "poly", points: b.outline });
   const nx = Math.ceil((box.x1 - box.x0) / STEP);
   const ny = Math.ceil((box.y1 - box.y0) / STEP);
@@ -106,13 +109,15 @@ export const groundPieces = (b: Copper, net = "GND"): GroundPiece[] => {
         }
     }
 
-  const seen = new Uint8Array(nx * ny);
-  const pieces: GroundPiece[] = [];
+  const label = new Int32Array(nx * ny).fill(-1);
+  const sizes: number[] = [];
+  const starts: number[] = [];
   for (let start = 0; start < free.length; start++) {
-    if (!free[start] || seen[start]) continue;
+    if (!free[start] || (label[start] as number) >= 0) continue;
+    const id = sizes.length;
     let count = 0;
     const stack = [start];
-    seen[start] = 1;
+    label[start] = id;
     while (stack.length > 0) {
       const k = stack.pop() as number;
       count++;
@@ -128,29 +133,68 @@ export const groundPieces = (b: Copper, net = "GND"): GroundPiece[] => {
         const c = j + dj;
         if (a < 0 || c < 0 || a >= nx || c >= ny) continue;
         const n = c * nx + a;
-        if (free[n] && !seen[n]) {
-          seen[n] = 1;
+        if (free[n] && (label[n] as number) < 0) {
+          label[n] = id;
           stack.push(n);
         }
       }
     }
-    pieces.push({
-      area: count * STEP * STEP,
-      at: cell(start % nx, Math.floor(start / nx)),
-    });
+    sizes.push(count);
+    starts.push(start);
   }
-  return pieces.sort((x, y) => y.area - x.area);
+  const pieces = sizes
+    .map((count, id) => ({
+      id,
+      area: count * STEP * STEP,
+      at: cell(
+        (starts[id] as number) % nx,
+        Math.floor((starts[id] as number) / nx),
+      ),
+    }))
+    .sort((x, y) => y.area - x.area);
+  const main = pieces[0]?.id ?? -1;
+  /** Whether the bottom ground at this point (circuit.json coordinates) is the main piece. */
+  const onMain = (p: Point): boolean => {
+    const i = Math.floor((p.x - box.x0) / STEP);
+    const j = Math.floor((p.y - box.y0) / STEP);
+    // The cell under the centre, or one next to it (the grid is coarse).
+    for (let dj = -1; dj <= 1; dj++)
+      for (let di = -1; di <= 1; di++) {
+        const a = i + di;
+        const c = j + dj;
+        if (a < 0 || c < 0 || a >= nx || c >= ny) continue;
+        if (label[c * nx + a] === main) return true;
+      }
+    return false;
+  };
+  return { pieces, onMain };
 };
 
+/**
+ * One piece, and every ground via and every ground pad that reaches the
+ * bottom sits on it: a via in a hole of another net's area is cut off however
+ * small the hole is.
+ */
 export const groundPlane = layoutCheck("groundPlane", (b) => {
-  const pieces = groundPieces(b);
-  return pieces
+  const { pieces, onMain } = groundPieces(b);
+  const out = pieces
     .slice(1)
     .filter((p) => p.area >= MIN_PIECE)
     .map(
       (p) =>
         `the bottom ground has a separate piece of ${p.area.toFixed(1)} mm2 at (${p.at.x.toFixed(1)}, ${(-p.at.y).toFixed(1)})`,
     );
+  for (const v of b.vias)
+    if (v.net === "GND" && !onMain(v))
+      out.push(
+        `GND via at (${v.x.toFixed(2)}, ${(-v.y).toFixed(2)}) is not on the main piece of the bottom ground`,
+      );
+  for (const p of b.pads)
+    if (p.net === "GND" && onBottom(p.layers) && !onMain(p.center))
+      out.push(
+        `GND pad ${p.ref}.${p.pins[0] ?? ""} is not on the main piece of the bottom ground`,
+      );
+  return out;
 });
 
 export const GROUND_CHECKS = [groundPlane];

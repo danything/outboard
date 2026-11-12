@@ -289,23 +289,15 @@ const diodes = (side: number): Circuit => [
     { pin: "A", net: "VBUS1", x: 0, y: 0 },
     { pin: "K", net: "VIN", x: 2, y: 0 },
   ]),
-  ...part("D2", 0, 20, [{ pin: "A", net: "VBUS2", x: 0, y: 20 }]),
+  ...part("D2", 0, 20, [
+    { pin: "A", net: "VBUS2", x: 0, y: 20 },
+    { pin: "K", net: "VIN", x: 2, y: 20 },
+  ]),
   pour("VBUS1", "top", [-side, -side / 2, 0, side / 2]),
-  pour("VBUS2", "top", [-13, 14, 0, 26]),
+  pour("VBUS2", "top", [-6, 17, 0, 23]),
   pour("VIN", "top", [1, -10, 21, 10], [[5, -5, 10, 0]]),
+  pour("VIN", "top", [1, 12, 21, 28]),
 ];
-
-test("diodeCopper fails when the anode copper is under 150 mm2", () => {
-  expect(diodeCopper(diodes(13))).toEqual([]);
-  expect(diodeCopper(diodes(12))).toHaveLength(1);
-});
-
-test("diodeCopper counts copper on the bottom only when a via joins it", () => {
-  // 12 x 12 on top is 144 mm2; a 4 x 4 pour on the bottom brings it to 160.
-  const bottom = pour("VBUS1", "bottom", [-10, -2, -6, 2]);
-  expect(diodeCopper([...diodes(12), bottom])).toHaveLength(1);
-  expect(diodeCopper([...diodes(12), bottom, via("VBUS1", -8, 0)])).toEqual([]);
-});
 
 const fuse = (x: number): Circuit => [
   board(),
@@ -399,17 +391,42 @@ test("a part missing from a group that is otherwise there is a failure, not a sk
   expect(about(findings, "C18.1 is not on the board")).toHaveLength(1);
 });
 
-test("diodeCopper stops at the pads of other parts", () => {
-  // 12 x 12 next to D1 (144 mm2), and a 10 x 10 area that only a resistor's pad touches.
-  const beyond = [
-    ...part("R1", -15, 0, [
-      { pin: "1", net: "VBUS1", x: -15, y: 0, w: 0.6, h: 0.6 },
-    ]),
-    pour("VBUS1", "top", [-30, -5, -15.2, 5]),
+// D1's anode area is side x side next to it; 25 mm2 within 10 mm is the minimum.
+test("diodeCopper fails when the anode copper near the diode is under the minimum", () => {
+  expect(diodeCopper(diodes(5.2))).toEqual([]);
+  expect(diodeCopper(diodes(4.5))).toHaveLength(1);
+});
+
+test("diodeCopper counts copper on the bottom only when a via joins it", () => {
+  const bottom = pour("VBUS1", "bottom", [-8, -1.5, -4.1, 1.5]);
+  expect(diodeCopper([...diodes(4.5), bottom])).toHaveLength(1);
+  expect(diodeCopper([...diodes(4.5), bottom, via("VBUS1", -4.4, 0)])).toEqual(
+    [],
+  );
+});
+
+test("diodeCopper does not count copper far from the diode", () => {
+  const far = [
+    pour("VBUS1", "top", [-30, -5, -15, 5]),
     ...track("VBUS1", 0.4, [
-      [-14.6, 0],
-      [-11, 0],
+      [-4.4, 0],
+      [-15.2, 0],
     ]),
   ];
-  expect(diodeCopper([...diodes(12), ...beyond])).toHaveLength(1);
+  expect(diodeCopper([...diodes(4.5), ...far])).toHaveLength(1);
+});
+
+test("diodeCopper stops at the pads of other parts", () => {
+  // An area next to D1 that only a resistor's pad joins.
+  const beyond = [
+    ...part("R1", -6, 0, [
+      { pin: "1", net: "VBUS1", x: -6, y: 0, w: 0.6, h: 0.6 },
+    ]),
+    pour("VBUS1", "top", [-9.5, -3, -6.2, 3]),
+    ...track("VBUS1", 0.2, [
+      [-4.4, 0],
+      [-5.75, 0],
+    ]),
+  ];
+  expect(diodeCopper([...diodes(4.5), ...beyond])).toHaveLength(1);
 });

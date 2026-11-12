@@ -115,8 +115,8 @@ const V12 = () => (
 const V33_IN = handoff("V3V3", "buck", "slot");
 /** The 3.3 V row that comes from the buck (y 9.2 to 11.6). */
 const ROW = {
-  top: V33_IN.y - V33_IN.width / 2 + 0.3,
-  bottom: V33_IN.y + 1.2,
+  top: V33_IN.y - V33_IN.width / 2,
+  bottom: V33_IN.y + V33_IN.width / 2,
 };
 
 /**
@@ -155,11 +155,12 @@ const V33 = () => (
         // South round JP4.2 (3.3 Vaux), 1.6 mm wide, and up to JP4.1.
         { x: 54.75, y: 11 },
         { x: 56.25, y: 11 },
-        { x: 56.25, y: ROW.top },
-        // East of the key notch the row widens north to y 6.6, so the
-        // ground pads of C27 and C28 and their vias leave it wide enough.
-        { x: 59.4, y: ROW.top },
-        { x: 59.4, y: 6.6 },
+        // North of JP4.2 the column widens west to 0.25 from the 3.3 Vaux
+        // line, and the area runs east at y 6.6 over the key notch: the
+        // path from the row to B8 and the vias never narrows past C27.
+        { x: 56.25, y: 9.0 },
+        { x: 56.05, y: 9.0 },
+        { x: 56.05, y: 6.6 },
         { x: 66.6, y: 6.6 },
         { x: 66.6, y: ROW.top },
         // The row east to the handoff, clear of the rear ear of J3 (y < 9).
