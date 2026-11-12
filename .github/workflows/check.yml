@@ -36,8 +36,13 @@ jobs:
           path: site
       # KiCad の書き出しはページには要らない
       - run: rm -rf site/index/kicad
+      # やり直し (re-run) のたびに名前を変える。同じ名前の成果物が同じ run に 2 つあると
+      # deploy-pages が "Multiple artifacts named github-pages" で落ちる (2026-11-12 に踏んだ)
       - uses: actions/upload-pages-artifact@v5
         with:
+          name: github-pages-${{ github.run_attempt }}
           path: site
       - id: deploy
         uses: actions/deploy-pages@v5
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
