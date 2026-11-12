@@ -11,6 +11,7 @@ import {
   narrowest,
   netWidth,
   powerPaths,
+  ruleTargets,
   viaCount,
 } from "./power";
 import { board, net, part, pour, track, via } from "./testboard";
@@ -354,4 +355,22 @@ test("a check whose parts are all absent is skipped; one absent pad among presen
   ];
   expect(viaCount(routed).every((f) => f.skipped)).toBe(true);
   expect(about(viaCount(u3(4)), "U4.GND is not on the board")).toHaveLength(1);
+});
+
+test("ruleTargets fails when a pad the rules name is missing or on another net", () => {
+  const moved: Circuit = [
+    board(),
+    net("VIN"),
+    net("GND"),
+    ...part("C9", 0, 0, [
+      { pin: "pin1", net: "GND", x: 0, y: 0 },
+      { pin: "pin2", net: "GND", x: 0, y: 2 },
+    ]),
+  ];
+  const findings = ruleTargets(moved);
+  expect(about(findings, "C9.1 is on GND, the rules expect VIN")).toHaveLength(
+    1,
+  );
+  expect(about(findings, "C9.2")).toEqual([]);
+  expect(about(findings, "U3.GND is not on the board")).toHaveLength(1);
 });

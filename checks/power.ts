@@ -382,6 +382,7 @@ export const boostLoop = check("boostLoop", (b) => {
 });
 
 export const POWER_CHECKS: Check[] = [
+  ruleTargets,
   netWidth,
   powerPaths,
   viaCount,
@@ -389,3 +390,34 @@ export const POWER_CHECKS: Check[] = [
   fuseDistance,
   boostLoop,
 ];
+
+/**
+ * Every pad the rules name must exist and be on the net the rule says, so a
+ * renamed pin or net cannot quietly turn a rule off. Needs no routing.
+ */
+export const ruleTargets: Check = (circuit) => {
+  const b = copperOf(circuit);
+  if (b.parts.size === 0)
+    return skip("ruleTargets", "there are no parts on the board");
+  const targets: [string, string][] = [
+    ...POWER_PATHS.flatMap((p): [string, string][] => [
+      [p.from, p.net],
+      [p.to, p.net],
+    ]),
+    ...VIA_RULES.map((r): [string, string] => [r.pad, r.net]),
+    ["D4.K", "V12_BOOST"],
+    ["C18.1", "V12_BOOST"],
+    ["C18.2", "GND"],
+    ["U4.GND", "GND"],
+  ];
+  const out = new Set<string>();
+  for (const [name, net] of targets) {
+    const pads = padsOf(b, name);
+    if (pads.length === 0) out.add(`${name} is not on the board`);
+    else if (pads.some((p) => p.net !== net))
+      out.add(`${name} is on ${pads[0]?.net}, the rules expect ${net}`);
+  }
+  for (const ref of [FUSE_DISTANCE.part, ...FUSE_DISTANCE.from])
+    if (!b.parts.has(ref)) out.add(`${ref} is not on the board`);
+  return [...out].map((message) => ({ check: "ruleTargets", message }));
+};
