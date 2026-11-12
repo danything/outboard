@@ -8,6 +8,7 @@ import { resolve } from "node:path";
 import { REVISION } from "../lib/revision";
 import { CIRCUIT_JSON, type Circuit, elementsOf, loadCircuit } from "./circuit";
 import { builtPads, originOf } from "./origin";
+import { filterZip } from "./zip";
 
 const OUT = "dist/fab";
 
@@ -140,6 +141,16 @@ if (import.meta.main) {
   await Bun.write(`${OUT}/${name}-circuit.json`, Bun.file(CIRCUIT_JSON));
   await Bun.write(`${OUT}/${name}-3d.png`, Bun.file("dist/index/3d.png"));
   await exportAs("gerbers", `${name}-gerbers.zip`);
+  // tsci puts its own placement and BOM into the Gerber zip; the ones to
+  // upload are the -cpl.csv and -bom.csv above (docs/manufacturing.md).
+  const gerbers = `${OUT}/${name}-gerbers.zip`;
+  await Bun.write(
+    gerbers,
+    filterZip(
+      new Uint8Array(await Bun.file(gerbers).arrayBuffer()),
+      (entry) => !/\.csv$/i.test(entry),
+    ),
+  );
   await exportAs("schematic-pdf", `${name}-schematic.pdf`);
   await exportAs("pcb-png", `${name}-top.png`, ["--layer", "top"]);
   await exportAs("pcb-png", `${name}-bottom.png`, ["--layer", "bottom"]);

@@ -4,6 +4,7 @@ import { assembledParts, bomCsv, cplCsv } from "./fab";
 import { EDGE_EXCEPTIONS, FAB } from "../checks/rules";
 import { SOT89 } from "../lib/footprints";
 import { remaining } from "./kicad-drc";
+import { filterZip, zipEntries } from "./zip";
 import { addNetTies } from "./kicad-nettie";
 import { originOf } from "./origin";
 
@@ -226,4 +227,62 @@ test("KiCad DRC lets through only the unconnected items that wait for the microc
     "PTH pad 8 [GND] of J4",
   );
   expect(remaining({ unconnected_items: [ground, mcu] })).toEqual([ground]);
+});
+
+test("filterZip drops entries and keeps the rest readable", async () => {
+  // A zip written by Bun's own deflate is not available; build one with two stored entries by hand.
+  const enc = new TextEncoder();
+  const files = [
+    ["a.gbr", "G04 top*"],
+    ["pick_and_place.csv", "x,y"],
+  ] as const;
+  const parts: Uint8Array[] = [];
+  const central: Uint8Array[] = [];
+  let offset = 0;
+  for (const [name, text] of files) {
+    const n = enc.encode(name);
+    const data = enc.encode(text);
+    const crc = Bun.hash.crc32(data);
+    const local = new Uint8Array(30 + n.length + data.length);
+    const lv = new DataView(local.buffer);
+    lv.setUint32(0, 0x04034b50, true);
+    lv.setUint32(14, crc, true);
+    lv.setUint32(18, data.length, true);
+    lv.setUint32(22, data.length, true);
+    lv.setUint16(26, n.length, true);
+    local.set(n, 30);
+    local.set(data, 30 + n.length);
+    const c = new Uint8Array(46 + n.length);
+    const cv = new DataView(c.buffer);
+    cv.setUint32(0, 0x02014b50, true);
+    cv.setUint32(16, crc, true);
+    cv.setUint32(20, data.length, true);
+    cv.setUint32(24, data.length, true);
+    cv.setUint16(28, n.length, true);
+    cv.setUint32(42, offset, true);
+    c.set(n, 46);
+    parts.push(local);
+    central.push(c);
+    offset += local.length;
+  }
+  const size = central.reduce((s, c) => s + c.length, 0);
+  const end = new Uint8Array(22);
+  const ev = new DataView(end.buffer);
+  ev.setUint32(0, 0x06054b50, true);
+  ev.setUint16(8, 2, true);
+  ev.setUint16(10, 2, true);
+  ev.setUint32(12, size, true);
+  ev.setUint32(16, offset, true);
+  const zip = new Uint8Array(offset + size + 22);
+  let at = 0;
+  for (const p of [...parts, ...central, end]) {
+    zip.set(p, at);
+    at += p.length;
+  }
+  const out = filterZip(zip, (name) => !name.endsWith(".csv"));
+  expect(zipEntries(out).map((e) => e.name)).toEqual(["a.gbr"]);
+  expect(zipEntries(zip).map((e) => e.name)).toEqual([
+    "a.gbr",
+    "pick_and_place.csv",
+  ]);
 });
