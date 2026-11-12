@@ -176,9 +176,9 @@ export interface Change {
  * the converters take their places, and PERST# moves from PC4 to PC3.
  */
 export const REV_D_CHANGES: Change[] = [
-  { pad: "U7.2", from: "VBUS1_SENSE", to: "EN_12V" },
-  { pad: "U7.3", from: "CC1_SENSE", to: "SW12_ON" },
-  { pad: "U7.5", from: "CC2_SENSE", to: "EN_MCU" },
+  { pad: "U7.2", from: "VBUS1_SENSE", to: "SW12_ON" },
+  { pad: "U7.3", from: "CC1_SENSE", to: "EN_MCU" },
+  { pad: "U7.5", from: "CC2_SENSE", to: "EN_12V" },
   { pad: "U7.13", from: "EN_MCU", to: "PERST_MCU" },
   { pad: "U7.14", from: "PERST_MCU", to: "CC2_SENSE" },
   { pad: "U7.19", from: "EN_12V", to: "VBUS1_SENSE" },

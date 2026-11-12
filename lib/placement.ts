@@ -209,7 +209,7 @@ export const BLOCKS = {
       C21: p("C0603", 50.6, 25.6, "W"),
       C22: p("C0603", 50.6, 27.35, "W"),
       // Series parts of the lines that cross the VIN band, in the order of
-      // the pins they come from (5, 3, 1), and the VIN divider at pin 1.
+      // the pins they come from (3, 2, 1), and the VIN divider at pin 1.
       R38: p("R0603", 50.6, 29.1, "W"),
       R34: p("R0603", 50.6, 30.9, "W"),
       R23: p("R0603", 50.6, 32.7, "E"),
@@ -527,7 +527,7 @@ export const HANDOFFS: Handoff[] = [
   h("V12_SENSE", "input", "mcu", 51.3, 20.6, 0.2, "top", "under D1"),
   h("LED_STAT", "mcu", "input", 51.3, 34.3, 0.2, "top", "under D2"),
   // --- Under the VIN band, on the bottom side ---------------------------------
-  h("EN_12V", "mcu", "input", 53, 31.8, 0.2, "bottom"),
+  h("EN_12V", "mcu", "input", 53, 27.6, 0.2, "bottom"),
   h("EN_12V", "input", "boost", 59, 22, 0.2, "bottom"),
   h("Q2_G", "mcu", "input", 53, 30.9, 0.2, "bottom"),
   h("Q2_G", "input", "switch12", 59, 36.6, 0.2, "bottom"),

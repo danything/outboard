@@ -300,10 +300,10 @@ export const Mcu = () => (
       name="U7"
       nets={{
         PD4: "VIN_SENSE",
-        PD5: "EN_12V",
-        PD6: "SW12_ON",
+        PD5: "SW12_ON",
+        PD6: "EN_MCU",
         PD7: NC,
-        PA1: "EN_MCU",
+        PA1: "EN_12V",
         PA2: "V12_SENSE",
         VSS: "GND",
         PD0: "LED_STAT",
