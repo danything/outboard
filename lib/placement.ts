@@ -274,7 +274,13 @@ export const BLOCKS = {
     title: "Boost to 12 V",
     origin: { x: 67.5, y: 24.3 },
     rotation: 180,
-    region: [rect(59, 17.2, 72.5, 21.9), rect(59, 21.9, 79, 34.6)],
+    // The strip x 59.6..64.15, y 17.2..17.7 is switch12's: 12 V passes south of JP2.
+    region: [
+      rect(59, 17.2, 59.6, 17.7),
+      rect(64.15, 17.2, 72.5, 17.7),
+      rect(59, 17.7, 72.5, 21.9),
+      rect(59, 21.9, 79, 34.6),
+    ],
     parts: {
       U4: p("SOT23_6_MT3608B", 0, 0, 180),
       L2: p("IND_FXL0630", -3.4, -6.7, "E"),
@@ -299,6 +305,8 @@ export const BLOCKS = {
     rotation: 0,
     region: [
       rect(45.2, 14.1, 83, 17.2),
+      // 12 V (0.8 wide) passes south of JP2, whose holes block the row.
+      rect(59.6, 17.2, 64.15, 17.7),
       rect(72.5, 17.2, 83, 21.9),
       rect(59, 34.6, 79, 38.6),
     ],
