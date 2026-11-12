@@ -32,6 +32,7 @@ outboard はその電源を USB-C (PD 9V) から作り、内部 USB を USB-C �
 **配線は途中**: 部品は全部置いてある (`lib/placement.ts`。ブロックごとの配置と、ブロックをまたぐネットの受け渡しの点。配置だけの絵は [`placement.circuit-pcb.snap.svg`](__snapshots__/placement.circuit-pcb.snap.svg))。基板は 100 × 42mm ([docs/mechanical.md](docs/mechanical.md#寸法))・2 層。
 銅は `lib/routing/` にブロックごとの別ファイルで書く ([docs/routing.md](docs/routing.md))。**mcu (マイコン) のほかは全部入った** (pdPc・pdCharger・usb・input・boost・switch12・buck・slot と幹線 `trunks`)。mcu は置き直しから担当が進めている。
 残り: mcu の配線と、mcu が片側の受け渡しの点 (PERST# は幹線のビア (38.9, 16.4) から先を mcu に合わせて動かしてよい)。いまの (open) は mcu 待ちだけ (17 件)。ブロックをつなぐ所は検査 `handoffs`、うらの GND は `groundPlane` が見る。
+**発注はまだできない** (2026-11-12 のレビュー): 致命的・重大のうち、Q4 の GND・3.3V の首・検査の見逃しは #35 で直した。**残りはシルクの部品番号** (いまは外形とピン 1 の点だけ。docs/history.md の「部品番号を全部刷る」。`lib/Footprint.tsx` に部品番号の文字が無い。おもては部品が密なので、うらのシルクに刷る案がある) と、mcu。製造の注意は [docs/manufacturing.md](docs/manufacturing.md#見積もりの画面で見る所)。
 
 KiCad の DRC の「未接続」と「ぶら下がり」は、**mcu が関わるものだけ**一時的に除外してある (`tools/kicad-drc.ts` の `waitsForMcu`。ほかの未接続は落ちる)。**mcu が入ったら、統合役がこの除外を消し、`package.json` の check を `bun checks/run.ts --strict` にする** (release も build.yml の同じ check を通る)。KiCad の DRC・自前の検査・ネットリストの同値が全部 0 で通ることを確かめる。
 自前の検査のうち配線に頼るものの指摘は、いまは `(open)` と出して通している。**段階 4 が済んだら 0 にする** (check を `bun checks/run.ts --strict` に替える。`(open)` か飛ばしが残ると落ちる)。
