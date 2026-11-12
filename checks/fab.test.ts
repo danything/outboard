@@ -243,3 +243,28 @@ test("a wire that ends at a via inside a route is still a track", () => {
   expect(viaSize([board(), ...trace, via("A", 9, 9, 0.6, 0.3)])).toEqual([]);
   expect(holeSpacing([board(), ...trace, via("A", 3.6, -8)])).toHaveLength(1);
 });
+
+test("a closed jumper's bridge is not a short: the part ties its pins into one net", () => {
+  const jumper = part("JP5", 0, 5, [
+    { pin: "pin1", net: "V3V3_BUCK", x: -0.65, y: 5, w: 1, h: 1.5 },
+    { pin: "pin2", net: "V3V3", x: 0.65, y: 5, w: 1, h: 1.5 },
+    // The bridge, a pad of pin 1 over both.
+    { pin: "pin1", net: "V3V3_BUCK", x: 0, y: 5, w: 0.5, h: 1 },
+  ]);
+  // A V3V3 track that lands on the V3V3_BUCK side of the jumper.
+  const onPin1 = track("V3V3", 0.3, [
+    [-0.65, 5],
+    [-0.65, 9],
+  ]);
+  const nets = [board(), net("V3V3_BUCK"), net("V3V3"), ...onPin1];
+  expect(clearance([...nets, ...jumper]).length).toBeGreaterThan(0);
+  const ports = jumper.flatMap((e) =>
+    e.type === "source_port" ? [e.source_port_id] : [],
+  );
+  const tied = jumper.map((e) =>
+    e.type === "source_component"
+      ? { ...e, internally_connected_source_port_ids: [ports] }
+      : e,
+  );
+  expect(clearance([...nets, ...tied])).toEqual([]);
+});

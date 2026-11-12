@@ -24,6 +24,7 @@ import {
   SRV05,
   SS34,
   SS54,
+  ClosedJumper,
   SolderJumper,
   TPS62933,
   TestPoint,
@@ -193,7 +194,7 @@ export const Buck3V3 = () => (
     <R name="R38" value="1k" nets={["EN_MCU", "EN_3V3"]} />
     {/* JP1 (header, for measuring current) and JP5 (closed solder jumper) are in parallel. */}
     <Header2 name="JP1" nets={{ pin1: "V3V3_BUCK", pin2: "V3V3" }} />
-    <SolderJumper name="JP5" nets={{ pin1: "V3V3_BUCK", pin2: "V3V3" }} />
+    <ClosedJumper name="JP5" nets={{ pin1: "V3V3_BUCK", pin2: "V3V3" }} />
     <C name="C27" value="22uF" nets={["V3V3", "GND"]} />
     <C name="C28" value="100nF" nets={["V3V3", "GND"]} />
     <TestPoint name="TP2" nets={{ pin1: "V3V3" }} />
@@ -253,7 +254,7 @@ export const Switch12V = () => (
     <MMBT3904 name="Q4" nets={{ B: "OVP_B", E: "GND", C: "Q2_G" }} />
     <Ptc name="F1" nets={{ pin1: "V12_SW", pin2: "V12_F" }} />
     <Header2 name="JP2" nets={{ pin1: "V12_F", pin2: "V12" }} />
-    <SolderJumper name="JP6" nets={{ pin1: "V12_F", pin2: "V12" }} />
+    <ClosedJumper name="JP6" nets={{ pin1: "V12_F", pin2: "V12" }} />
     <C name="C29" value="10uF" nets={["V12", "GND"]} />
     <C name="C30" value="100nF" nets={["V12", "GND"]} />
     {/* Pulls the output to 0 V after the switch opens. */}
@@ -374,7 +375,7 @@ export const UsbData = () => (
         IO4: NC,
       }}
     />
-    <SolderJumper name="JP3" nets={{ pin1: "V5", pin2: "USBH_VBUS" }} />
+    <ClosedJumper name="JP3" nets={{ pin1: "V5", pin2: "USBH_VBUS" }} />
   </>
 );
 
@@ -405,6 +406,6 @@ export const Slot = () => (
         A18: "GND",
       }}
     />
-    <SolderJumper name="JP4" nets={{ pin1: "V3V3", pin2: "V3V3AUX" }} />
+    <ClosedJumper name="JP4" nets={{ pin1: "V3V3", pin2: "V3V3AUX" }} />
   </>
 );
