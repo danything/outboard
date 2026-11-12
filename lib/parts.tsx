@@ -397,9 +397,11 @@ export const CH334P = numbered(
 
 /** 12 MHz crystal of the hub. Pins 2 and 4 are the lid (ground). */
 export const Crystal12M = numbered(
-  // 12 pF load: the hub has about 16 pF on each pin inside (in series
-  // about 8 pF, plus the board's stray capacitance).
-  { footprint: fp.XTAL3225, lcsc: "C70565", mpn: "X322512MOB4SI" },
+  // 20 pF load (Basic). The hub has about 16 pF on each pin inside (in
+  // series about 8 pF, about 10 pF with the board's stray capacitance), so
+  // it runs some tens of ppm fast: well inside USB's +-500 ppm. A matched
+  // 12 pF part is Extended and costs one more feeder fee.
+  { footprint: fp.XTAL3225, lcsc: "C9002", mpn: "X322512MSB4SI" },
   ["X1", "GND", "X2", "GND2"],
 );
 
