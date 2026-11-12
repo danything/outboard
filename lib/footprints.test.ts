@@ -4,6 +4,7 @@
 import { expect, test } from "bun:test";
 import * as all from "./footprints";
 import type { Box, FootprintDef, Pad } from "./footprints";
+import { KEY_NOTCH_WIDTH, KEY_NOTCH_X } from "./geometry";
 
 const defs = Object.entries(all).filter(
   (entry): entry is [string, FootprintDef] =>
@@ -181,4 +182,148 @@ test("USB-C: A and B contacts mirror each other about the centre", () => {
 
 test("the list of land patterns is not empty by accident", () => {
   expect(defs.length).toBe(25);
+});
+
+const plated = (def: FootprintDef, pin: string) => {
+  const found = (def.platedHoles ?? []).find((h) => h.pin === pin);
+  if (!found) throw new Error(`no plated hole ${pin}`);
+  return found;
+};
+
+test("USB-C: every pad by name, the locating holes and the shell legs", () => {
+  const def = all.USBC_TYPE_C_31_M_12;
+  // Left to right, seen from above with the mouth towards -y.
+  const expected: [pin: string, x: number, w: number][] = [
+    ["A1B12", -3.2, 0.6],
+    ["A4B9", -2.4, 0.6],
+    ["B8", -1.75, 0.3],
+    ["A5", -1.25, 0.3],
+    ["B7", -0.75, 0.3],
+    ["A6", -0.25, 0.3],
+    ["A7", 0.25, 0.3],
+    ["B6", 0.75, 0.3],
+    ["A8", 1.25, 0.3],
+    ["B5", 1.75, 0.3],
+    ["B4A9", 2.4, 0.6],
+    ["B1A12", 3.2, 0.6],
+  ];
+  expect(def.pads.map((p) => p.pin)).toEqual(expected.map(([pin]) => pin));
+  for (const [pin, x, w] of expected)
+    expect(pad(def, pin)).toMatchObject({ x, y: 2.47, w, h: 1.3 });
+  expect(def.holes).toEqual([
+    { x: -2.9, y: 1.21, diameter: 0.6 },
+    { x: 2.9, y: 1.21, diameter: 0.6 },
+  ]);
+  // Rear legs (next to the contacts) have the longer slot.
+  expect(plated(def, "SH1")).toMatchObject({
+    x: 4.33,
+    y: 1.71,
+    holeW: 0.8,
+    holeH: 1.5,
+  });
+  expect(plated(def, "SH4")).toMatchObject({
+    x: -4.33,
+    y: 1.71,
+    holeW: 0.8,
+    holeH: 1.5,
+  });
+  expect(plated(def, "SH2")).toMatchObject({
+    x: 4.33,
+    y: -2.47,
+    holeW: 0.8,
+    holeH: 1.2,
+  });
+  expect(plated(def, "SH3")).toMatchObject({
+    x: -4.33,
+    y: -2.47,
+    holeW: 0.8,
+    holeH: 1.2,
+  });
+  // No pad is named by a bare number: tscircuit would merge it with a named pad.
+  for (const name of [
+    ...def.pads.map((p) => p.pin),
+    ...(def.platedHoles ?? []).map((h) => h.pin),
+  ])
+    expect(name).not.toMatch(/^\d+$/);
+});
+
+test("J3: ear holes, board edge and key notch", () => {
+  const def = all.PCIE_X1_STRADDLE;
+  expect(def.holes).toEqual([
+    { x: -14.3, y: 0.69, diameter: 2.0 },
+    { x: 14.3, y: 0.69, diameter: 2.0 },
+  ]);
+  // The board edge is at y = +3.2: pads run from 1.4 to 5.0 from the edge,
+  // the ear holes sit 2.51 from it.
+  expect(def.courtyard.y1).toBeCloseTo(3.2);
+  expect(3.2 - padBox(pad(def, "B1")).y1).toBeCloseTo(1.4);
+  expect(3.2 - padBox(pad(def, "B1")).y0).toBeCloseTo(5.0);
+  expect(3.2 - 0.69).toBeCloseTo(2.51);
+  // Contact 1 is on the short side of the key, to the left seen from side B.
+  expect(pad(def, "B1").x).toBeCloseTo(-9.5);
+  expect(pad(def, "B18").x).toBeCloseTo(9.5);
+  // The outline's key notch (lib/geometry.ts) is where the land pattern has its gap.
+  const keyCentre = (pad(def, "B11").x + pad(def, "B12").x) / 2;
+  expect(keyCentre).toBeCloseTo(KEY_NOTCH_X - 56.05);
+  expect(KEY_NOTCH_WIDTH).toBeCloseTo(1.9);
+});
+
+test("headers: numbering, rows and pin 1", () => {
+  const j4 = all.HEADER_2X5_RIGHT_ANGLE;
+  for (let n = 1; n <= 10; n++) {
+    const h = plated(j4, String(n));
+    // Odd pins are the row next to the plastic body (towards -y).
+    expect(h.y).toBeCloseTo(n % 2 === 1 ? -1.27 : 1.27);
+    expect(h.x).toBeCloseTo(-5.08 + 2.54 * Math.floor((n - 1) / 2));
+    expect(h.square === true).toBe(n === 1);
+    expect(h.holeW).toBeCloseTo(1.1);
+  }
+  expect(j4.body?.y1).toBeLessThan(-1.27 - 0.9);
+  const jp = all.HEADER_1X2;
+  expect(plated(jp, "1")).toMatchObject({ x: -1.27, y: 0, square: true });
+  expect(plated(jp, "2")).toMatchObject({ x: 1.27, y: 0 });
+});
+
+test("SOT packages: where pin 1 is", () => {
+  for (const def of [all.SOT23, all.SOT23_AO3401A]) {
+    expect(pad(def, "1").x).toBeGreaterThan(0);
+    expect(pad(def, "1").y).toBeCloseTo(-0.95);
+    expect(pad(def, "2").x).toBeGreaterThan(0);
+    expect(pad(def, "2").y).toBeCloseTo(0.95);
+    expect(pad(def, "3").x).toBeLessThan(0);
+    expect(pad(def, "3").y).toBeCloseTo(0);
+  }
+  for (const def of [all.SOT23_6_MT3608B, all.SOT23_6_SRV05]) {
+    expect(pad(def, "1")).toMatchObject({ y: -0.95 });
+    expect(pad(def, "3")).toMatchObject({ y: 0.95 });
+    expect(pad(def, "4")).toMatchObject({ y: 0.95 });
+    expect(pad(def, "6")).toMatchObject({ y: -0.95 });
+    expect(pad(def, "1").x).toBeGreaterThan(0);
+    expect(pad(def, "6").x).toBeLessThan(0);
+  }
+  // SOT-89: leads on the right, pin 1 at the bottom; pin 2 is the centre lead and the tab.
+  const sot89 = all.SOT89;
+  expect(pad(sot89, "1")).toMatchObject({ y: -1.5 });
+  expect(pad(sot89, "3")).toMatchObject({ y: 1.5 });
+  const pin2 = sot89.pads.filter((p) => p.pin === "2").map(padBox);
+  expect(pin2).toHaveLength(2);
+  const [lead, tab] = pin2;
+  if (!lead || !tab) throw new Error("pin 2");
+  // The two halves of pin 2 overlap properly, not by a hair.
+  expect(tab.x1 - lead.x0).toBeGreaterThanOrEqual(0.1);
+  expect(tab.x0).toBeLessThan(-3);
+});
+
+test("diodes and LEDs: pad 1 and the silkscreen dot", () => {
+  // The dot is always on the cathode side.
+  const cathodeIsPad1 = [all.SMA_SS34, all.SOD123F, all.SOD123];
+  const anodeIsPad1 = [all.SMA_SS54, all.LED0603];
+  for (const def of cathodeIsPad1) {
+    expect(pad(def, "1").x).toBeLessThan(0);
+    expect(def.pin1Mark?.x).toBeLessThan(pad(def, "1").x);
+  }
+  for (const def of anodeIsPad1) {
+    expect(pad(def, "1").x).toBeGreaterThan(0);
+    expect(def.pin1Mark?.x).toBeLessThan(pad(def, "2").x);
+  }
 });
