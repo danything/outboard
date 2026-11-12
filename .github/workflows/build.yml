@@ -35,10 +35,17 @@ jobs:
       # ガーバー・BOM・配置表・回路図の PDF・絵・circuit.json と SHA256SUMS (dist/fab/)
       - run: bun run fab
       - run: cp tools/outboard.kicad_dru dist/index/kicad/index.kicad_dru
+      # ケース (皿・ふた・ハッチ) の STL・STEP と絵 (dist/case/)。site にも入り、Pages の case/ に出る
+      - run: bun run case
       - uses: actions/upload-artifact@v7
         with:
           name: fab
           path: dist/fab
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: case
+          path: dist/case
           if-no-files-found: error
       - uses: actions/upload-artifact@v7
         with:

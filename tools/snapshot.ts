@@ -5,8 +5,12 @@
 //   bun run snapshot            compare with the committed pictures (CI)
 //   bun run snapshot --update   rewrite them
 // The 3D views come from tools/render3d.ts (parts, card and bracket, framed
-// on the board), not from tsci, whose 3D view leaves the board small in a corner.
+// on the board), not from tsci, whose 3D view leaves the board small in a corner;
+// the pictures of the case (case*.snap.png) from case/render.ts.
 import { mkdir, rm } from "node:fs/promises";
+import { layout } from "../case/layout";
+import { bodySolid, initCad } from "../case/model";
+import { renderCase } from "../case/render";
 import { renderAll } from "./render3d";
 
 const update = Bun.argv.includes("--update");
@@ -65,10 +69,33 @@ const exported = await tsci([
 ]);
 if (!exported) fail();
 
+// The case with the board in it (case/render.ts), from the same circuit.
+await initCad();
+const plan = layout();
+const caseFiles = await renderCase(
+  circuitJson,
+  plan,
+  {
+    tray: bodySolid(plan.tray),
+    lid: bodySolid(plan.lid),
+    hatch: bodySolid(plan.hatchBody),
+  },
+  WORK,
+);
+
+const pictures: [file: string, committed: string][] = [
+  ...(await renderAll(circuitJson, WORK)).map((file): [string, string] => [
+    file,
+    `__snapshots__/index.circuit-${file.slice(WORK.length + 1, -".png".length)}.snap.png`,
+  ]),
+  ...caseFiles.map((file): [string, string] => [
+    file,
+    `__snapshots__/${file.slice(WORK.length + 1, -".png".length)}.snap.png`,
+  ]),
+];
+
 let differ = false;
-for (const file of await renderAll(circuitJson, WORK)) {
-  const name = file.slice(WORK.length + 1, -".png".length);
-  const committed = `__snapshots__/index.circuit-${name}.snap.png`;
+for (const [file, committed] of pictures) {
   const fresh = new Uint8Array(await Bun.file(file).arrayBuffer());
   const old = Bun.file(committed);
   const same =

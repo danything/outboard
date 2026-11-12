@@ -131,7 +131,7 @@ export const J6_POS: Point = {
 // [DS] PHR-4 housing: 9.8 wide (2.0 x 3 + 3.8), 4.5 high. [EST] It stands
 // out about 6 from the mating face when pushed home; the cable bends
 // within 4 more.
-const PH_PLUG = { width: 9.8, out: 6, bend: 4 };
+export const PH_PLUG = { width: 9.8, out: 6, bend: 4, height: 4.5 };
 const phPlug = (c: Point): Rect => ({
   x0: c.x - PH_PLUG.width / 2,
   y0: CARD_USB_FACE_Y - PH_PLUG.out - PH_PLUG.bend,
