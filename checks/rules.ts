@@ -273,3 +273,115 @@ export const FUSE_DISTANCE = { part: "F1", from: ["Q1", "D4", "L2"], min: 8 };
 
 /** Boost hot loop: D4 cathode to C18 along the copper, C18 ground to U4 ground in a straight line. */
 export const BOOST_LOOP = { diodeToCap: 4.0, capToGround: 3.5 };
+
+// --- Signals -----------------------------------------------------------------
+
+/** USB D+ and D-: track length from J1 to J4 may differ by this much. */
+export const USB_PAIR = {
+  nets: ["USB_DP", "USB_DN"] as const,
+  from: [
+    ["J1.A6", "J1.B6"],
+    ["J1.A7", "J1.B7"],
+  ] as const,
+  to: ["J4.DP", "J4.DN"] as const,
+  maxDifference: 0.5,
+  /** The flipped contact (A6 / B7) may cross on the bottom for this long in all. */
+  maxBottom: 2.6,
+};
+
+/** USB-C receptacles and their CC nets; nothing of these runs under the shell. */
+export const USB_C_SHELLS: { part: string; nets: string[] }[] = [
+  { part: "J1", nets: ["J1_CC1", "J1_CC2"] },
+  { part: "J2", nets: ["J2_CC1", "J2_CC2"] },
+];
+/** Names of the shell legs of the receptacle (lib/parts.tsx). */
+export const SHELL_PINS = ["SH1", "SH2", "SH3", "SH4"];
+
+/** No bottom track under these groups of parts: it would cut the ground under them. */
+export const NO_BOTTOM_UNDER: Record<string, string[]> = {
+  buck: ["U3", "L1", "C8", "C9", "C10", "C11", "C13", "C14"],
+  boost: ["U4", "L2", "D4", "C18", "C19"],
+};
+/** A bottom track of another net stays this far from a USB data track above it. */
+export const USB_BOTTOM_MARGIN = 0.5;
+
+/** Feedback nets stay on top (docs/history.md, U4). */
+export const TOP_ONLY_NETS = ["FB_3V3", "FB_12V"];
+
+/**
+ * Track on the bottom layer in all, mm. docs/history.md aims at 150; rev D
+ * has the A row of J3 on the bottom, and rev D's check allowed 500.
+ */
+export const BOTTOM_TRACK = { limit: 500, target: 150 };
+
+// --- Mechanical (docs/mechanical.md) ------------------------------------------
+
+/** Tallest part above the top surface: the bracket reaches +16.36 from the board centre. */
+export const TOP_HEIGHT_LIMIT = 15.56;
+/** Deepest lead below the bottom surface: inside the body of J3. */
+export const BOTTOM_DEPTH_LIMIT = 2.98;
+
+/**
+ * Heights of land patterns that have none in lib/footprints.ts, by export
+ * name. Estimates carried over from rev D's check_board.py; move them into
+ * lib/footprints.ts once read from the datasheets.
+ */
+export const HEIGHT_FALLBACK: Record<string, number> = {
+  ESSOP10: 1.75,
+  SOT583: 0.6,
+  SOT23_6_MT3608B: 1.5,
+  SOT23_6_SRV05: 1.5,
+  SOT89: 1.6,
+  TSSOP20: 1.2,
+  HEADER_1X2: 8.6,
+  TESTPOINT_1V5: 0,
+  SOLDER_JUMPER: 0,
+};
+
+/** How far each through-hole land pattern reaches below the board (estimates from rev D). */
+export const DEPTH_BELOW: Record<string, number> = {
+  PCIE_X1_STRADDLE: 2.98,
+  HEADER_2X5_RIGHT_ANGLE: 1.4,
+  HEADER_1X2: 1.4,
+  USBC_TYPE_C_31_M_12: 0.8,
+};
+
+/**
+ * Areas no part may enter, in the coordinates of docs/mechanical.md (x from
+ * the rear edge, y away from the card). `except` lists parts that belong there.
+ */
+export const KEEP_OUT: {
+  name: string;
+  x: [number, number];
+  y: [number, number];
+  except?: string[];
+}[] = [
+  {
+    name: "bracket plate (the stepped rear edge)",
+    x: [-10, 1.5],
+    y: [-10, 10],
+  },
+  // The tongue of the bracket ends at y = 14.95; the USB-C shells start 0.5 further.
+  { name: "bracket tongue", x: [-10, 0], y: [-10, 15.45] },
+  { name: "J3 ear (rear)", x: [38.4, 45.1], y: [0, 9], except: ["J3"] },
+  { name: "J3 ear (front)", x: [67.0, 73.7], y: [0, 9], except: ["J3"] },
+];
+
+/** Where the connectors must sit so that the USB-C mouths line up with the bracket. */
+export const CONNECTOR_POSITION = {
+  usbC: ["J1", "J2"],
+  /** Footprint origin of the USB-C receptacles from the rear edge. */
+  usbCX: 4.08,
+  /** Between the two receptacles, centre to centre. */
+  usbCSpacing: 15,
+  /** Contact 1 of the slot from the rear edge (47.54 from the mouth). */
+  slotPin: "J3.B1",
+  slotPinX: 46.55,
+  tolerance: 0.05,
+};
+
+/** Heights by reference, where the part in use is taller than its land pattern says. */
+export const HEIGHT_OVERRIDE: Record<string, number> = {
+  // With the cable's plug pushed onto the right-angle header (estimate from rev D).
+  J4: 6.5,
+};

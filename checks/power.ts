@@ -3,7 +3,7 @@
 // everything, GND included, with thin tracks; these checks say where that is
 // not enough. The numbers are in rules.ts.
 import type { Circuit } from "../tools/circuit";
-import { type Check, type Finding, skip } from "./board";
+import { type Check, type Finding, skip } from "./finding";
 import {
   type Copper,
   type Pad,
@@ -221,7 +221,7 @@ export const routeLength = (
 const unrouted = (b: Copper): boolean =>
   b.segments.length === 0 && b.pours.length === 0;
 
-const check =
+export const layoutCheck =
   (name: string, run: (b: Copper) => string[] | { skip: string }): Check =>
   (circuit: Circuit): Finding[] => {
     const b = copperOf(circuit);
@@ -247,7 +247,7 @@ const skipIfAllMissing = (
     : [...absent.map((n) => `${n} is not on the board`), ...findings];
 
 /** A track of a power net or GND may not be thin unless a pour carries the current. */
-export const netWidth = check("netWidth", (b) => {
+export const netWidth = layoutCheck("netWidth", (b) => {
   const out: string[] = [];
   for (const s of b.segments) {
     const min = NET_MIN_WIDTH[s.net];
@@ -268,7 +268,7 @@ export const netWidth = check("netWidth", (b) => {
   return out;
 });
 
-export const powerPaths = check("powerPaths", (b) => {
+export const powerPaths = layoutCheck("powerPaths", (b) => {
   const out: string[] = [];
   const absent: string[] = [];
   for (const p of POWER_PATHS) {
@@ -289,7 +289,7 @@ export const powerPaths = check("powerPaths", (b) => {
   return skipIfAllMissing(absent, POWER_PATHS.length, out);
 });
 
-export const viaCount = check("viaCount", (b) => {
+export const viaCount = layoutCheck("viaCount", (b) => {
   const out: string[] = [];
   const absent: string[] = [];
   for (const r of VIA_RULES) {
@@ -327,7 +327,7 @@ export const copperArea = (b: Copper, net: string, layer: string): number =>
     .filter((s) => s.net === net && s.layer === layer && !inPour(b, s))
     .reduce((sum, s) => sum + segmentLength(s) * s.width, 0);
 
-export const diodeCopper = check("diodeCopper", (b) => {
+export const diodeCopper = layoutCheck("diodeCopper", (b) => {
   const out: string[] = [];
   const absent = missing(b, [...new Set(COPPER_AREA.map((r) => r.part))]);
   if (absent.length > 0) return skipIfAllMissing(absent, absent.length, []);
@@ -341,7 +341,7 @@ export const diodeCopper = check("diodeCopper", (b) => {
   return out;
 });
 
-export const fuseDistance = check("fuseDistance", (b) => {
+export const fuseDistance = layoutCheck("fuseDistance", (b) => {
   const names = [FUSE_DISTANCE.part, ...FUSE_DISTANCE.from];
   const absent = missing(b, names);
   if (absent.length > 0) return skipIfAllMissing(absent, absent.length, []);
@@ -356,7 +356,7 @@ export const fuseDistance = check("fuseDistance", (b) => {
   });
 });
 
-export const boostLoop = check("boostLoop", (b) => {
+export const boostLoop = layoutCheck("boostLoop", (b) => {
   const names = ["D4.K", "C18.1", "C18.2", "U4.GND"];
   const absent = missing(b, names);
   if (absent.length > 0) return skipIfAllMissing(absent, absent.length, []);

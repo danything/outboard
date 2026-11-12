@@ -64,6 +64,8 @@ export interface Pour {
 export interface Part {
   ref: string;
   center: Point;
+  /** Origin of the land pattern; the centre when circuit.json has none. */
+  origin: Point;
   layer: string;
   /** Bounding box of the pads and the body, as tscircuit reports it. */
   box: Box;
@@ -549,6 +551,9 @@ export const copperOf = (circuit: Circuit): Copper => {
     parts.set(ref, {
       ref,
       center: { x: c.x, y: c.y },
+      origin: e.footprint_origin
+        ? (points([e.footprint_origin])[0] as Point)
+        : { x: c.x, y: c.y },
       layer: str(e.layer),
       box: {
         x0: c.x - w / 2,

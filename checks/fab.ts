@@ -2,7 +2,7 @@
 // tscircuit's own checks let most of these through, so they are held here.
 // The numbers are in rules.ts.
 import type { Circuit } from "../tools/circuit";
-import type { Check, Finding } from "./board";
+import type { Check, Finding } from "./finding";
 import {
   type Box,
   type Copper,
