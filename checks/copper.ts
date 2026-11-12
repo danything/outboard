@@ -72,6 +72,8 @@ export interface Part {
   /** Courtyard size, long side first; undefined without a courtyard. */
   courtyard?: [number, number];
   pads: number;
+  /** Rotation, degrees counter-clockwise. */
+  rotation: number;
 }
 
 export interface Box {
@@ -603,6 +605,7 @@ export const copperOf = (circuit: Circuit): Copper => {
       },
       courtyard: courtyards.get(id),
       pads: pads.filter((p) => p.ref === ref).length,
+      rotation: num(e.rotation),
     });
   }
 

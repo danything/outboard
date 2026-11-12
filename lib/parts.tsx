@@ -3,6 +3,7 @@
 // block only says which net each pin goes to. Every pin has to be listed:
 // leaving one out, or naming a net that does not exist, is a type error.
 // Pins left open on purpose are wired to NC.
+import type { JSX } from "react";
 import { footprintOf } from "./Footprint";
 import { cadModelOf } from "./cad";
 import * as fp from "./footprints";
@@ -12,6 +13,11 @@ import { positionOf } from "./placement";
 
 interface PartInfo {
   footprint: FootprintDef;
+  /**
+   * Pins by name that the part draws its supply from (power) and that are
+   * its ground. Given for the ICs, so that tscircuit knows their pins.
+   */
+  supply?: { power: string[]; ground: string[] };
   /** Manufacturer part number. */
   mpn?: string;
   /** LCSC number. Parts without one are not assembled. */
@@ -192,6 +198,24 @@ export const L = ({ name, nets }: TwoPinProps) => (
 
 // --- Everything else ------------------------------------------------------
 
+type ChipProps = JSX.IntrinsicElements["chip"];
+
+/** The <chip> of a part: land pattern, supply pins, sourcing and position. */
+const Body = ({ info, ...props }: ChipProps & { info: PartInfo }) => (
+  <chip
+    {...props}
+    footprint={footprintOf(info.footprint)}
+    {...(info.supply && {
+      pinAttributes: Object.fromEntries([
+        ...info.supply.power.map((pin) => [pin, { requiresPower: true }]),
+        ...info.supply.ground.map((pin) => [pin, { requiresGround: true }]),
+      ]),
+    })}
+    {...sourcing(info)}
+    {...positionOf(props.name)}
+  />
+);
+
 type PinNets<Pins extends readonly string[]> = { [K in Pins[number]]: Conn };
 
 /**
@@ -201,16 +225,14 @@ const numbered =
   <const Pins extends readonly string[]>(info: PartInfo, pins: Pins) =>
   ({ name, nets }: { name: string; nets: PinNets<Pins> }) => (
     <>
-      <chip
+      <Body
+        info={info}
         name={name}
-        footprint={footprintOf(info.footprint)}
         pinLabels={Object.fromEntries(
           pins.flatMap((label, i) =>
             label === `pin${i + 1}` ? [] : [[`pin${i + 1}`, label]],
           ),
         )}
-        {...sourcing(info)}
-        {...positionOf(name)}
       />
       {wires(name, nets)}
     </>
@@ -224,11 +246,9 @@ const named =
   <const Pads extends readonly string[]>(info: PartInfo, _pads: Pads) =>
   ({ name, nets }: { name: string; nets: PinNets<Pads> }) => (
     <>
-      <chip
+      <Body
+        info={info}
         name={name}
-        footprint={footprintOf(info.footprint)}
-        {...sourcing(info)}
-        {...positionOf(name)}
         // The receptacle overhangs the board edge on purpose.
         allowOffBoard
       />
@@ -238,37 +258,67 @@ const named =
 
 /** USB PD sink controller. Pin 11 is the exposed pad. */
 export const CH224A = numbered(
-  { footprint: fp.ESSOP10, lcsc: "C42459160", mpn: "CH224A" },
+  {
+    footprint: fp.ESSOP10,
+    lcsc: "C42459160",
+    mpn: "CH224A",
+    supply: { power: ["VHV"], ground: ["EP"] },
+  },
   ["VHV", "SCL", "SDA", "DP", "DM", "CC2", "CC1", "VBUS", "CFG1", "PG", "EP"],
 );
 
 /** 3 A buck converter. */
 export const TPS62933 = numbered(
-  { footprint: fp.SOT583, lcsc: "C3200405", mpn: "TPS62933DRLR" },
+  {
+    footprint: fp.SOT583,
+    lcsc: "C3200405",
+    mpn: "TPS62933DRLR",
+    supply: { power: ["VIN"], ground: ["GND"] },
+  },
   ["RT", "EN", "VIN", "GND", "SW", "BST", "SS", "FB"],
 );
 
 /** Boost converter. */
 export const MT3608B = numbered(
-  { footprint: fp.SOT23_6_MT3608B, lcsc: "C19189893", mpn: "MT3608B" },
+  {
+    footprint: fp.SOT23_6_MT3608B,
+    lcsc: "C19189893",
+    mpn: "MT3608B",
+    supply: { power: ["VIN"], ground: ["GND"] },
+  },
   ["SW", "GND", "FB", "EN", "VIN", "NC"],
 );
 
 /** ESD array for the USB data lines. */
 export const SRV05 = numbered(
-  { footprint: fp.SOT23_6_SRV05, lcsc: "C85364", mpn: "SRV05-4-P-T7" },
+  {
+    footprint: fp.SOT23_6_SRV05,
+    lcsc: "C85364",
+    mpn: "SRV05-4-P-T7",
+    supply: { power: [], ground: ["GND"] },
+  },
   ["IO1", "GND", "IO2", "IO3", "REF", "IO4"],
 );
 
 /** 5 V LDO for the microcontroller. */
 export const HT7550 = numbered(
-  { footprint: fp.SOT89, lcsc: "C16106", mpn: "HT7550-1" },
+  {
+    footprint: fp.SOT89,
+    lcsc: "C16106",
+    mpn: "HT7550-1",
+    supply: { power: ["VIN"], ground: ["GND"] },
+  },
   ["GND", "VIN", "VOUT"],
 );
 
 /** Microcontroller, TSSOP-20. */
 export const CH32V003 = numbered(
-  { footprint: fp.TSSOP20, lcsc: "C5187096", mpn: "CH32V003F4P6" },
+  {
+    footprint: fp.TSSOP20,
+    lcsc: "C5187096",
+    mpn: "CH32V003F4P6",
+    supply: { power: ["VDD"], ground: ["VSS"] },
+  },
   [
     "PD4",
     "PD5",
@@ -387,11 +437,9 @@ export const PcieSlot = ({
   };
   return (
     <>
-      <chip
+      <Body
+        info={info}
         name={name}
-        footprint={footprintOf(info.footprint)}
-        {...sourcing(info)}
-        {...positionOf(name)}
         // The slot straddles the board edge.
         allowOffBoard
       />

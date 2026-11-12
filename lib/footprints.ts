@@ -64,6 +64,16 @@ export interface FootprintDef {
    * points, solder jumpers). Paste on an open jumper could bridge it in reflow.
    */
   noPaste?: boolean;
+  /**
+   * The side a cable, plug or card comes from, in the land pattern's own
+   * frame, named as tscircuit's footprint `insertionDirection`: from_top is
+   * +y, from_bottom -y, from_left -x, from_right +x, from_above +z.
+   * Passed on to tscircuit. checks/mechanical.ts checks that a side
+   * (connectorFacing) points where the cable or card goes, turned with the
+   * part (index.circuit.tsx says why tscircuit's own check is off).
+   */
+  insertionDirection?:
+    "from_top" | "from_bottom" | "from_left" | "from_right" | "from_above";
 }
 
 const box = (x0: number, y0: number, x1: number, y1: number): Box => ({
@@ -371,6 +381,7 @@ export const USBC_TYPE_C_31_M_12: FootprintDef = {
   ],
   courtyard: box(-5.08, -5.24, 5.08, 3.27),
   height: 3.36,
+  insertionDirection: "from_bottom",
 };
 
 /** Contact x positions of a PCIe x1 edge: 1.0 pitch, key between 11 and 12. */
@@ -395,6 +406,8 @@ export const PCIE_X1_STRADDLE: FootprintDef = {
   noPaste: true,
   courtyard: box(-17.65, -5.8, 17.65, 3.2),
   height: 4.5,
+  // The card comes in over the board edge (+y).
+  insertionDirection: "from_top",
 };
 
 const header = (
@@ -427,6 +440,8 @@ export const HEADER_2X5_RIGHT_ANGLE: FootprintDef = {
   courtyard: box(-6.75, -11.8, 6.75, 2.32),
   body: box(-6.35, -5.31, 6.35, -2.81),
   height: 5.15,
+  // The plug slides onto the pins from their tips (-y).
+  insertionDirection: "from_bottom",
 };
 
 /** JP1, JP2, J5: 1x2 header, not assembled. */
@@ -437,6 +452,8 @@ export const HEADER_1X2: FootprintDef = {
     header("2", 1.27, 0, 2.0, 1.1),
   ],
   courtyard: centredBox(5.38, 2.84),
+  // A jumper cap, a probe or the programmer's clip goes on from above.
+  insertionDirection: "from_above",
 };
 
 // --- Bare copper ----------------------------------------------------------
@@ -453,6 +470,8 @@ export const SOLDER_JUMPER: FootprintDef = {
   pads: twoPads(1.3, 1.0, 1.5),
   noPaste: true,
   courtyard: centredBox(2.8, 2.0),
+  // Not a connector, but named JP: bridged or cut from above.
+  insertionDirection: "from_above",
 };
 
 /**
@@ -466,4 +485,6 @@ export const SOLDER_JUMPER_CLOSED: FootprintDef = {
   tiedPins: [["1", "2"]],
   noPaste: true,
   courtyard: centredBox(2.8, 2.0),
+  // Not a connector, but named JP: bridged or cut from above.
+  insertionDirection: "from_above",
 };

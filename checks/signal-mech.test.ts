@@ -6,10 +6,12 @@ import { at } from "../lib/geometry";
 import type { Circuit } from "../tools/circuit";
 import { copperOf } from "./copper";
 import {
+  connectorFacing,
   connectorPosition,
   keepOut,
   landPatternsOf,
   partHeight,
+  noConnectorWarnings,
   partsOnTop,
 } from "./mechanical";
 import { HEIGHT_FALLBACK } from "./rules";
@@ -385,4 +387,50 @@ test("bottomUnder lets only the listed crossing pass under the USB pair", () => 
       ]),
     ),
   ).toHaveLength(1);
+});
+
+const turned = (circuit: Circuit, rotation: number): Circuit =>
+  circuit.map((e) =>
+    e.type === "pcb_component" ? ({ ...e, rotation } as typeof e) : e,
+  );
+
+test("connectorFacing passes a connector facing the bracket or the card", () => {
+  // J4's plug comes from -y; turned half round, it comes from the card (+y).
+  expect(
+    connectorFacing([
+      board(),
+      ...turned(real("J4", "HEADER_2X5_RIGHT_ANGLE"), 180),
+    ]),
+  ).toEqual([]);
+  // The USB-C mouth faces -y; a quarter turn clockwise points it at the bracket (x-).
+  expect(
+    connectorFacing([
+      board(),
+      ...turned(real("J1", "USBC_TYPE_C_31_M_12"), 270),
+    ]),
+  ).toEqual([]);
+  expect(connectorFacing([board(), ...real("J3", "PCIE_X1_STRADDLE")])).toEqual(
+    [],
+  );
+});
+
+test("connectorFacing fails a connector facing elsewhere", () => {
+  expect(
+    connectorFacing([board(), ...real("J4", "HEADER_2X5_RIGHT_ANGLE")]),
+  ).toHaveLength(1);
+  expect(
+    connectorFacing([
+      board(),
+      ...turned(real("J1", "USBC_TYPE_C_31_M_12"), 90),
+    ]),
+  ).toHaveLength(1);
+});
+
+test("noConnectorWarnings fails on tscircuit's connector warning", () => {
+  expect(noConnectorWarnings([board()])).toEqual([]);
+  const warning = {
+    type: "pcb_connector_not_in_accessible_orientation_warning",
+    message: "J4 is facing y+ but should face y-",
+  } as unknown as Circuit[number];
+  expect(noConnectorWarnings([board(), warning])).toHaveLength(1);
 });
