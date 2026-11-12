@@ -40,13 +40,13 @@ KiCad の版は main から消した。タグ [`kicad-rev-c`](../../tree/kicad-r
 
 ## 主な仕様
 
-| 項目               | 値                                                                                      |
-| ------------------ | --------------------------------------------------------------------------------------- |
-| 入力               | USB-C ×2、USB PD 9V (CH224A ×2)。2 口を SS54 で合流                                     |
-| 出力               | 3.3V・3A (TPS62933)、12V・0.5A (MT3608B)。12V は AO3401A + PTC で入り切り、過電圧で遮断 |
-| マイコン           | CH32V003 (電源の順序・監視・LED)                                                        |
-| 基板               | 2 層・厚み 1.6mm (J3 のため)。100 × 42mm                                                |
-| ケースの厚みの内寸 | 約 20〜21.6mm ([docs/mechanical.md](docs/mechanical.md))                                |
+| 項目     | 値                                                                                                                      |
+| -------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 入力     | USB-C ×2、USB PD 9V (CH224A ×2)。2 口を SS54 で合流                                                                     |
+| 出力     | 3.3V・3A (TPS62933)、12V・0.5A (MT3608B)。12V は AO3401A + PTC で入り切り、過電圧で遮断                                 |
+| マイコン | CH32V003 (電源の順序・監視・LED)                                                                                        |
+| 基板     | 2 層・厚み 1.6mm (J3 のため)。100 × 42mm                                                                                |
+| ケース   | 光造形 (JLC3DP の 9600)。外形 約 145 × 151 × 21mm (カードの寸法は推定。[docs/mechanical.md](docs/mechanical.md#ケース)) |
 
 ## 見方
 
@@ -90,6 +90,7 @@ bun run build      # dist/ に circuit.json・絵・KiCad の基板・見るた�
 bun run check      # 型検査 (bun check)・テスト (bun test)・自前の検査 (基板・回路の値・rev D とのネットリストの比べ)
 bun run snapshot   # __snapshots__ の絵と同じか。変えたときは bun run snapshot --update
 bun run fab        # dist/fab/ に製造用のファイル一式
+bun run case       # dist/case/ にケース (皿・ふた・ハッチ) の STL と STEP、絵 (先に build)
 bun run lint       # oxlint と bun fmt --check。直すときは bun run format
 ```
 
@@ -104,21 +105,22 @@ bun run lint       # oxlint と bun fmt --check。直すときは bun run format
 | `lib/`                        | `blocks.tsx` (ブロックごとの回路)・`parts.tsx` (部品。ピンとネットを型で縛る)・`nets.ts` (ネットの一覧)・`footprints.ts` (ランド)・`placement.ts` (位置)・`routing/` (銅。ブロックごと)・`geometry.ts` (外形)・`revision.ts` (版) |
 | `land-patterns.circuit.tsx`   | 全部のランドを並べた見本 (作る基板ではない)                                                                                                                                                                                       |
 | `checks/`                     | circuit.json を読む自前の検査と、検査のテスト。`board.ts` (基板)・`design.ts` (分圧の値・定格など、回路の意図)                                                                                                                    |
+| `case/`                       | ケース (replicad)。`card.ts` (カードの推定の寸法)・`layout.ts` (形)・`case.test.ts` (中身と重ならないか)                                                                                                                          |
 | `tools/`                      | 製造用の出力・スナップショット・KiCad の DRC の判定・`netlist.ts` (rev D とのネットリストの比べ)                                                                                                                                  |
 | `fixtures/rev-d-netlist.json` | rev D の KiCad のネットリスト (部品と、パッドごとのつながり)。比べる相手                                                                                                                                                          |
 
 ## CI/CD
 
-| いつ                                                                | 何をする                                                                                                                                                      |
-| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PR・main への push ([check.yml](.github/workflows/check.yml))       | lint → ビルド (tscircuit の検査を含む) → 型検査・テスト・自前の検査 (rev D とのネットリストの比べを含む) → スナップショット → 製造用の出力 → **KiCad の DRC** |
-| main への push                                                      | 上に加えて、見るためのページを GitHub Pages に出す                                                                                                            |
-| タグ `rev-*` の push ([release.yml](.github/workflows/release.yml)) | 同じ手順で作った製造用のファイルを GitHub Release に添付                                                                                                      |
+| いつ                                                                | 何をする                                                                                                                                                               |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PR・main への push ([check.yml](.github/workflows/check.yml))       | lint → ビルド (tscircuit の検査を含む) → 型検査・テスト・自前の検査 (rev D とのネットリストの比べを含む) → スナップショット → 製造用の出力 → ケース → **KiCad の DRC** |
+| main への push                                                      | 上に加えて、見るためのページを GitHub Pages に出す                                                                                                                     |
+| タグ `rev-*` の push ([release.yml](.github/workflows/release.yml)) | 同じ手順で作った製造用のファイルを GitHub Release に添付                                                                                                               |
 
 - **二重の検査**: tscircuit が書き出した KiCad の基板に、KiCad 10 の DRC (`--refill-zones`) をかける。
   つながっていない所・短絡・面を塗り直したあとの間隔を見る。自前の検査との役割の分け方は [docs/checks.md](docs/checks.md)。
   書き出しのせいで出る指摘は、理由を付けて [tools/kicad-drc.ts](tools/kicad-drc.ts) で除外する。決まり ([tools/outboard.kicad_dru](tools/outboard.kicad_dru)) の数字は `checks/rules.ts` と同じ
-- **成果物** (Actions の Artifacts): `fab` (ガーバーの zip・BOM・配置表・回路図の PDF・絵・circuit.json・SHA256SUMS)、`site` (ページ)、`kicad-drc` (DRC の報告)
+- **成果物** (Actions の Artifacts): `fab` (ガーバーの zip・BOM・配置表・回路図の PDF・絵・circuit.json・SHA256SUMS)、`case` (ケースの STL・STEP・絵)、`site` (ページ)、`kicad-drc` (DRC の報告)
 - **必須のチェック** (ルールセット `default`): `build / build`・`build / kicad-drc`・`claude-review`。緑になるまで main にマージできない。CI のジョブを足したり名前を変えたりしたら、ルールセットも直す: `gh api repos/danything/outboard/rulesets --jq '.[]|select(.name=="default").id'` で id を引き、`gh api -X PUT repos/danything/outboard/rulesets/<id> --input <直した JSON>`
 - **スナップショット**: 絵が 1 つでも変わると CI が落ちる。Renovate の PR は、絵が変わらないときだけ自分でマージされる
 - **リリース**: `lib/revision.ts` の版 (基板のシルクと同じ) と同じ名前のタグを main のコミットに打って push する。
@@ -131,9 +133,9 @@ bun run lint       # oxlint と bun fmt --check。直すときは bun run format
 | [docs/design.md](docs/design.md)               | ブロック図、ブロックごとの回路、つなぎ方ごとの動き、電力の見積もり |
 | [docs/parts.md](docs/parts.md)                 | 部品と選んだ理由、LCSC の品番                                      |
 | [docs/footprints.md](docs/footprints.md)       | ランドとデータシートの突き合わせの表、部品データの出どころ         |
-| [docs/mechanical.md](docs/mechanical.md)       | 形の選び方、寸法、ブラケット、ケースの内寸、実物で測る所           |
+| [docs/mechanical.md](docs/mechanical.md)       | 形の選び方、寸法、ブラケット、ケース、実物で測る所                 |
 | [docs/firmware.md](docs/firmware.md)           | ファームウェアの仕様、LED の点滅                                   |
-| [docs/manufacturing.md](docs/manufacturing.md) | JLCPCB への出し方、見積もり                                        |
+| [docs/manufacturing.md](docs/manufacturing.md) | JLCPCB への出し方、見積もり、ケースの JLC3DP への出し方            |
 | [docs/bringup.md](docs/bringup.md)             | 試作で最初に測ること、試験の一覧                                   |
 | [docs/history.md](docs/history.md)             | rev A〜C のレビューで決めたこと (いまの設計の理由)                 |
 | [docs/checks.md](docs/checks.md)               | 基板の検査の一覧、自前の検査と KiCad の DRC の役割の分け方         |

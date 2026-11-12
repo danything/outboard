@@ -35,7 +35,7 @@ import {
 import { type Solid, block, objDataUrl, prism } from "../lib/mesh";
 import { CIRCUIT_JSON, type Circuit, loadCircuit } from "./circuit";
 
-type V3 = [number, number, number];
+export type V3 = [number, number, number];
 
 /** How much of the card (and of the bracket beside it) is drawn, from the card's edge. */
 const CARD_DRAWN = 28;
@@ -44,7 +44,7 @@ const CARD_DRAWN = 28;
 const flip = (y: number) => -y;
 
 /** The card and its bracket, in board coordinates with z = 0 at the board's mid-plane. */
-const surroundings = (): { solids: Solid[]; translucent: boolean }[] => {
+const surroundings = (): Extra[] => {
   const half = BOARD_THICKNESS / 2;
   const cardTop = CARD_EDGE_Y - CARD_DRAWN;
   const card: Solid[] = [
@@ -87,10 +87,16 @@ const surroundings = (): { solids: Solid[]; translucent: boolean }[] => {
   ];
 };
 
-/** The circuit plus the card and the bracket as extra CAD models. */
-const withSurroundings = (circuit: Circuit): Circuit => [
+/** Solids drawn beside the board, in board coordinates (z = 0 at the board's mid-plane). */
+export interface Extra {
+  solids: Solid[];
+  translucent: boolean;
+}
+
+/** The circuit plus extra CAD models (the card, the bracket, the case). */
+export const withExtras = (circuit: Circuit, extras: Extra[]): Circuit => [
   ...circuit,
-  ...surroundings().map(
+  ...extras.map(
     ({ solids, translucent }, i) =>
       ({
         type: "cad_component",
@@ -142,31 +148,37 @@ export const VIEWS: View[] = [
   { name: "3d-usb", from: [-1, -0.3, 0.3], surroundings: true },
 ];
 
-/** Corners of the box that holds what is drawn, in board coordinates. */
-const extent = (surround: boolean): V3[] => {
-  const x0 = surround ? Math.min(BRACKET_FACE_X, CARD_REAR_X) : -1.5;
-  const x1 = surround
-    ? Math.max(BOARD_WIDTH, CARD_REAR_X + CARD_LENGTH_DRAWN)
-    : BOARD_WIDTH;
-  const y0 = surround ? flip(CARD_EDGE_Y - CARD_DRAWN) : 12;
-  const y1 = -BOARD_DEPTH - 1.5;
-  const z0 = surround ? BRACKET_Z.min : -6;
-  const z1 = surround ? BRACKET_Z.max : 6;
-  return [x0, x1].flatMap((x) =>
+/** The eight corners of a box, in board coordinates. */
+export const boxCorners = ([x0, y0, z0]: V3, [x1, y1, z1]: V3): V3[] =>
+  [x0, x1].flatMap((x) =>
     [y0, y1].flatMap((y) => [z0, z1].map((z): V3 => [x, y, z])),
   );
-};
 
-const camera = (view: View, aspect: number, fov: number) => {
-  const corners = extent(view.surroundings).map(([x, y, z]) =>
-    toScene(x, y, z),
+/** Corners of the box that holds what is drawn, in board coordinates. */
+const extent = (surround: boolean): V3[] =>
+  boxCorners(
+    [
+      surround ? Math.min(BRACKET_FACE_X, CARD_REAR_X) : -1.5,
+      surround ? flip(CARD_EDGE_Y - CARD_DRAWN) : 12,
+      surround ? BRACKET_Z.min : -6,
+    ],
+    [
+      surround
+        ? Math.max(BOARD_WIDTH, CARD_REAR_X + CARD_LENGTH_DRAWN)
+        : BOARD_WIDTH,
+      -BOARD_DEPTH - 1.5,
+      surround ? BRACKET_Z.max : 6,
+    ],
   );
+
+const camera = (from: V3, frame: V3[], aspect: number, fov: number) => {
+  const corners = frame.map(([x, y, z]) => toScene(x, y, z));
   const lo = [0, 1, 2].map((i) => Math.min(...corners.map((c) => c[i] ?? 0)));
   const hi = [0, 1, 2].map((i) => Math.max(...corners.map((c) => c[i] ?? 0)));
   const target: V3 = [0, 1, 2].map(
     (i) => ((lo[i] ?? 0) + (hi[i] ?? 0)) / 2,
   ) as V3;
-  const back = unit(toScene(...view.from));
+  const back = unit(toScene(...from));
   const forward: V3 = [-back[0], -back[1], -back[2]];
   const right = unit(cross(forward, [0, 1, 0]));
   const up = cross(right, forward);
@@ -196,20 +208,31 @@ export const WIDTH = 1200;
 export const HEIGHT = 800;
 const FOV = 30;
 
-export const renderView = async (
-  circuit: Circuit,
-  view: View,
+/**
+ * The scene seen from direction `from`, framed so that every point of
+ * `frame` (board coordinates) is in the picture.
+ */
+export const renderScene = async (
+  scene: Circuit,
+  from: V3,
+  frame: V3[],
 ): Promise<Uint8Array> => {
-  const scene = view.surroundings ? withSurroundings(circuit) : circuit;
   const glb = await convertCircuitJsonToGltf(scene as never, { format: "glb" });
   return renderGLTFToPNGFromGLB(glb as ArrayBuffer, {
     width: WIDTH,
     height: HEIGHT,
     fov: FOV,
     backgroundColor: [1, 1, 1],
-    ...camera(view, WIDTH / HEIGHT, FOV),
+    ...camera(from, frame, WIDTH / HEIGHT, FOV),
   });
 };
+
+export const renderView = (circuit: Circuit, view: View): Promise<Uint8Array> =>
+  renderScene(
+    view.surroundings ? withExtras(circuit, surroundings()) : circuit,
+    view.from,
+    extent(view.surroundings),
+  );
 
 /** Every view of the circuit in `circuitJson`, written to `out/<name>.png`. */
 export const renderAll = async (

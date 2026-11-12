@@ -36,7 +36,7 @@ services:
     profiles: [tools]
     command: >-
       sh -c "bun install --frozen-lockfile && bun run lint && bun run build && bun run check
-      && bun run snapshot && bun run fab && cp tools/outboard.kicad_dru dist/index/kicad/index.kicad_dru"
+      && bun run snapshot && bun run fab && cp tools/outboard.kicad_dru dist/index/kicad/index.kicad_dru && bun run case"
 
   snapshots:
     <<: *bun

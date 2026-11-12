@@ -7,6 +7,7 @@
     "check": "bun check --no-script && bun test && bun checks/run.ts --strict",
     "snapshot": "bun tools/snapshot.ts",
     "fab": "bun tools/fab.ts",
+    "case": "bun case/build.ts",
     "lint": "oxlint && bun fmt --check",
     "format": "oxlint --fix && bun fmt"
   },
@@ -15,6 +16,8 @@
     "@types/react": "19.3.0",
     "circuit-json": "0.0.548",
     "oxlint": "1.93.0",
+    "replicad": "1.2.1",
+    "replicad-opencascadejs": "1.2.1",
     "tscircuit": "0.0.3161"
   }
 }
