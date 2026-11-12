@@ -280,6 +280,8 @@ export const BLOCKS = {
       rect(64.15, 17.2, 72.5, 17.7),
       rect(59, 17.7, 72.5, 21.9),
       rect(59, 21.9, 79, 34.6),
+      // V12_BOOST meets switch12 at y 21.75, clear of the ground pad of C19.
+      rect(72.5, 21.75, 79, 21.9),
     ],
     parts: {
       U4: p("SOT23_6_MT3608B", 0, 0, 180),
@@ -309,7 +311,8 @@ export const BLOCKS = {
       rect(45.2, 14.1, 83, 17.2),
       // 12 V (0.8 wide) passes south of JP2, whose holes block the row.
       rect(59.6, 17.2, 64.15, 17.7),
-      rect(72.5, 17.2, 83, 21.9),
+      rect(72.5, 17.2, 79, 21.75),
+      rect(79, 17.2, 83, 21.9),
       rect(59, 34.6, 79, 38.6),
     ],
     parts: absolute(Q1, {
@@ -546,13 +549,22 @@ export const HANDOFFS: Handoff[] = [
     "boost",
     "switch12",
     77.2,
-    21.9,
+    21.75,
     0.8,
     "top",
-    "from C19 north to y 21.8, east to the source of Q1 from below",
+    "from C19 north to y 21.75, east; switch12 goes on from here to the source of Q1. At y 21.9 the 0.8 mm track would pass 0.075 mm from the ground pad of C19",
   ),
-  h("V12", "switch12", "slot", 48, 14.1, 1.5, "top", "up to contacts B1..B3"),
-  h("V3V3", "buck", "slot", 83, 10.4, 3, "top", "row y 9.2..11.6 to B8"),
+  h(
+    "V12",
+    "switch12",
+    "slot",
+    48,
+    14.1,
+    1,
+    "top",
+    "switch12 comes in 1 mm wide at x 47.8; the slot's leg is x 47.0..48.6, 0.25 mm from the PERST# via at (49.15, 13.65)",
+  ),
+  h("V3V3", "buck", "slot", 83, 10.4, 2.4, "top", "row y 9.2..11.6 to B8"),
   h(
     "V3V3",
     "buck",
@@ -716,8 +728,8 @@ export const HANDOFFS: Handoff[] = [
     79,
     22.3,
     0.2,
-    "bottom",
-    "via at (79.45, 22.3), hop under V12_BOOST and Q1_G to a via at (82.75, 16.5), up to R15",
+    "top",
+    "on top to here; the via at (79.45, 22.3) is switch12's: hop under V12_BOOST and Q1_G to a via at (82.75, 16.5), up to R15",
   ),
   // --- PERST#: contact A11 is on the bottom side -------------------------------
   h(

@@ -4,20 +4,39 @@
 // The anodes of D1 and D2 face west (VBUS1, VBUS2), the cathodes sit on the
 // VIN band: one area across the board from D1 to D2 and on along the far
 // edge to the buck. Both diodes get rid of their heat through this copper,
-// and through six 0.8 mm vias each, for a VIN area on the bottom. The bottom
-// belongs to trunks.tsx; the areas asked for lie under the vias: x 52.5 to
-// 58.8, y 17.5 to 21.3 for D1, and x 52.5 to 70, y 37.3 to the edge for D2.
+// and through six 0.8 mm vias each, to a small VIN area on the bottom right
+// under them (KiCad flags a via joined on one side only).
 //
-// Kept free on purpose:
-// - top, between the pads of each diode (x 50.3 to 52.3): V12_SENSE and LED_STAT
-// - top, south of the VBUS2 area (y 38.2 and more, west of x 52.4): LED_STAT
-// - bottom, the band between the ground vias of C4 and of C5 (y 25.6 to 29.8)
-//   and between C5 and D2 (y 30.6 to 37.2): EN_12V, Q2_G and EN_3V3 cross there
-import { Pour, Track, VIA, Vias, pad, rect } from "./kit";
+// The lines that pass through the block:
+// - top, between the pads of each diode: V12_SENSE under D1, LED_STAT under
+//   D2 and on west, south of the VBUS2 area
+// - bottom, under the band from the microcontroller to the boost and the
+//   switch: EN_12V north, EN_3V3 and Q2_G south, side by side and never
+//   crossing, clear of the ground vias of C4 and C5
+import { type Point, Pour, Track, VIA, Vias, handoff, pad, rect } from "./kit";
 
 const D1_K = pad("D1", 2);
 const D2_K = pad("D2", 2);
 const GROUND_PADS = [pad("C4", 2), pad("C5", 2)];
+
+const p = (h: { x: number; y: number }): Point => ({ x: h.x, y: h.y });
+
+// Columns of the three lines under the band, east of the ground vias of C4
+// and C5 (x 56.75 at most).
+const EN12_X = 57.6;
+const Q2G_X = 57.6;
+const EN3_X = 58.4;
+
+const EN12_IN = p(handoff("EN_12V", "mcu", "input"));
+const EN12_OUT = p(handoff("EN_12V", "input", "boost"));
+const EN3_IN = p(handoff("EN_3V3", "mcu", "input"));
+const EN3_OUT = p(handoff("EN_3V3", "input", "boost"));
+const Q2G_IN = p(handoff("Q2_G", "mcu", "input"));
+const Q2G_OUT = p(handoff("Q2_G", "input", "switch12"));
+const SENSE_IN = p(handoff("V12_SENSE", "switch12", "input"));
+const SENSE_OUT = p(handoff("V12_SENSE", "input", "mcu"));
+const LED_IN = p(handoff("LED_STAT", "mcu", "input"));
+const LED_OUT = p(handoff("LED_STAT", "input", "mcu"));
 
 // Where the VIN area of the buck (buck.tsx) meets the strip, widened by 0.2.
 const BUCK_VIN = { x0: 83.7, x1: 85.9 };
@@ -96,6 +115,57 @@ export const InputRouting = () => (
       points={[
         { x: 84.8, y: 39.6 },
         { x: 84.8, y: 37.6 },
+      ]}
+    />
+    {/* 12 V sense from the switch, between the pads of D1. */}
+    <Track
+      net="V12_SENSE"
+      width={0.2}
+      layer="top"
+      points={[SENSE_IN, SENSE_OUT]}
+    />
+    {/* Status LED: between the pads of D2, then west south of the VBUS2 area. */}
+    <Track
+      net="LED_STAT"
+      width={0.2}
+      layer="top"
+      points={[LED_IN, { x: LED_IN.x, y: LED_OUT.y }, LED_OUT]}
+    />
+    {/* Under the band, on the bottom: the vias at both ends belong to the blocks on either side. */}
+    <Track
+      net="EN_12V"
+      width={0.2}
+      layer="bottom"
+      points={[
+        EN12_IN,
+        { x: EN12_X, y: EN12_IN.y },
+        { x: EN12_X, y: EN12_OUT.y + 0.6 },
+        { x: EN12_X + 0.6, y: EN12_OUT.y },
+        EN12_OUT,
+      ]}
+    />
+    <Track
+      net="EN_3V3"
+      width={0.2}
+      layer="bottom"
+      points={[
+        EN3_IN,
+        { x: EN3_X, y: EN3_IN.y },
+        { x: EN3_X, y: EN3_OUT.y - 0.5 },
+        { x: EN3_X + 0.5, y: EN3_OUT.y },
+        EN3_OUT,
+      ]}
+    />
+    <Track
+      net="Q2_G"
+      width={0.2}
+      layer="bottom"
+      points={[
+        Q2G_IN,
+        { x: Q2G_X, y: Q2G_IN.y },
+        { x: Q2G_X, y: Q2G_OUT.y - 0.6 },
+        { x: Q2G_X + 0.6, y: Q2G_OUT.y },
+        Q2G_OUT,
       ]}
     />
   </>
