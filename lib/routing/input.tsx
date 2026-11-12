@@ -4,13 +4,15 @@
 // The anodes of D1 and D2 face west (VBUS1, VBUS2), the cathodes sit on the
 // VIN band: one area across the board from D1 to D2 and on along the far
 // edge to the buck. Both diodes get rid of their heat through this copper,
-// and through six vias each to a small VIN area on the bottom.
+// and through six 0.8 mm vias each, for a VIN area on the bottom. The bottom
+// belongs to trunks.tsx; the areas asked for lie under the vias: x 52.5 to
+// 58.8, y 17.5 to 21.3 for D1, and x 52.5 to 70, y 37.3 to the edge for D2.
 //
 // Kept free on purpose:
 // - top, between the pads of each diode (x 50.3 to 52.3): V12_SENSE and LED_STAT
 // - top, south of the VBUS2 area (y 38.2 and more, west of x 52.4): LED_STAT
-// - bottom, the whole band between y 21.5 and 37.1: EN_12V, Q2_G and EN_3V3
-//   cross there, and the ground stays joined from west to east
+// - bottom, the band between the ground vias of C4 and of C5 (y 25.6 to 29.8)
+//   and between C5 and D2 (y 30.6 to 37.2): EN_12V, Q2_G and EN_3V3 cross there
 import { Pour, Track, VIA, Vias, pad, rect } from "./kit";
 
 const D1_K = pad("D1", 2);
@@ -50,8 +52,7 @@ export const InputRouting = () => (
       )}
       {...VIA.power}
     />
-    <Pour net="VIN" layer="bottom" outline={rect(52.5, 17.5, 58.8, 21.3)} />
-    {/* Heat of D2: six vias south of the cathode, and the bottom area under the start of the strip. */}
+    {/* Heat of D2: six vias south of the cathode. */}
     <Vias
       net="VIN"
       at={[53.3, 54.5, 55.7].flatMap((x) =>
@@ -59,7 +60,6 @@ export const InputRouting = () => (
       )}
       {...VIA.power}
     />
-    <Pour net="VIN" layer="bottom" outline={rect(52.5, 37.3, 70, SOUTH)} />
     {/* Ground of C4 and C5: two vias each, in line with the pads so the band stays wide on both sides. */}
     {GROUND_PADS.map((g) => (
       <Track
@@ -77,7 +77,7 @@ export const InputRouting = () => (
       )}
       {...VIA.signal}
     />
-    {/* Pours join only through a track, a pad or a via: a stitch from the strip into the VIN area of the buck. */}
+    {/* Pours join only through a track, a pad or a via: a stitch from the strip into the VIN area of the buck, which ends where the strip begins. */}
     <Track
       net="VIN"
       width={1.8}
