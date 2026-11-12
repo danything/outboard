@@ -279,10 +279,10 @@ export const BLOCKS = {
       D4: p("SMA_SS34", -5.6, -1.5, "W"),
       C16: p("C0805", 4.05, -0.6, "N"),
       C17: p("C0603", 6.2, -0.6, "N"),
-      // C18 and C19 0.15 west of rev B, so the 12 V output can pass east of
-      // the ground pad of C19.
+      // C18 and C19 0.15 west of rev B, and C19 0.05 south, so the 12 V
+      // output can pass north of the ground pad of C19, under the gate of Q1.
       C18: p("C0805", -4.85, 1.25, "W"),
-      C19: p("C0805", -9.15, 1.25, "E"),
+      C19: p("C0805", -9.15, 1.2, "E"),
       R12: p("R0603", -0.1, 3.22, "W"),
       R11: p("R0603", -3.3, 3.22, "W"),
       R13: p("R0603", 4, 3.05, "W"),

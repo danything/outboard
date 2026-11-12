@@ -30,10 +30,11 @@ const VIN_TOP = Math.max(VIN_IN.y - VIN_IN.width / 2, 25.1);
 const BRIDGE_Y = Math.max(VIN_IN.y, 25.6);
 
 // V12_BOOST leaves from the positive pad of C19 to the north, never behind
-// its ground pad, then east along y 21.75 to the handoff.
+// its ground pad, then east between that pad and the gate pad of Q1
+// (0.2 mm to each, KiCad's clearance) to the handoff.
 const C19_P = pad("C19", 1);
 const C19_G = pad("C19", 2);
-const V12_RUN = 21.75;
+const V12_RUN = 21.81;
 const v12Out: Point[] = [
   C19_P,
   { x: C19_P.x, y: V12_RUN },
@@ -50,15 +51,16 @@ export const BoostRouting = () => (
     <Pour
       net="VIN"
       layer="top"
+      // 0.1 mm off the band: KiCad refuses zones of one net that touch.
       outline={[
-        { x: VIN_IN.x, y: VIN_TOP },
+        { x: VIN_IN.x + 0.1, y: VIN_TOP },
         { x: 65.3, y: VIN_TOP },
         { x: 65.3, y: 26.7 },
         { x: 69.05, y: 26.7 },
         { x: 69.05, y: 32.75 },
         { x: 66, y: 32.75 },
         { x: 66, y: 34.4 },
-        { x: VIN_IN.x, y: 34.4 },
+        { x: VIN_IN.x + 0.1, y: 34.4 },
       ]}
     />
     {/* Pours join only through a track, a pad or a via: a 1.6 mm bridge from the band. */}
@@ -186,15 +188,15 @@ export const BoostRouting = () => (
       net="GND"
       layer="top"
       outline={[
-        { x: C19_G.x - 0.7, y: 22.375 },
-        { x: C19_G.x + 0.7, y: 22.375 },
-        { x: C19_G.x + 0.7, y: 24.9 },
-        { x: C19_G.x - 0.7, y: 24.9 },
+        { x: C19_G.x - 0.7, y: C19_G.y - 0.675 },
+        { x: C19_G.x + 0.7, y: C19_G.y - 0.675 },
+        { x: C19_G.x + 0.7, y: C19_G.y + 1.85 },
+        { x: C19_G.x - 0.7, y: C19_G.y + 1.85 },
       ]}
     />
     <Vias
       net="GND"
-      at={[-0.425, 0.425].map((dx) => ({ x: C19_G.x + dx, y: 24.4 }))}
+      at={[-0.425, 0.425].map((dx) => ({ x: C19_G.x + dx, y: C19_G.y + 1.35 }))}
       {...VIA.signal}
     />
     {/* Feedback: top only, north of U4, away from SW and L2. Sensed at C18. */}

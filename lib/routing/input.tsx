@@ -19,6 +19,9 @@ const D1_K = pad("D1", 2);
 const D2_K = pad("D2", 2);
 const GROUND_PADS = [pad("C4", 2), pad("C5", 2)];
 
+// Where the VIN area of the buck (buck.tsx) meets the strip, widened by 0.2.
+const BUCK_VIN = { x0: 83.7, x1: 85.9 };
+
 // Board edge minus the clearance to the outline.
 const SOUTH = 41.7;
 
@@ -35,6 +38,12 @@ export const InputRouting = () => (
         { x: 52.4, y: 17.5 },
         { x: 59, y: 17.5 },
         { x: 59, y: 38.6 },
+        // 0.1 mm clear of the VIN area of the buck, which ends at y 38.6:
+        // KiCad refuses zones of one net that touch. The stitch below joins them.
+        { x: BUCK_VIN.x0, y: 38.6 },
+        { x: BUCK_VIN.x0, y: 38.7 },
+        { x: BUCK_VIN.x1, y: 38.7 },
+        { x: BUCK_VIN.x1, y: 38.6 },
         { x: 86.9, y: 38.6 },
         { x: 86.9, y: SOUTH },
         { x: 52.4, y: SOUTH },
@@ -52,6 +61,7 @@ export const InputRouting = () => (
       )}
       {...VIA.power}
     />
+    <Pour net="VIN" layer="bottom" outline={rect(52.5, 17.5, 58.8, 21.3)} />
     {/* Heat of D2: six vias south of the cathode. */}
     <Vias
       net="VIN"
@@ -60,6 +70,7 @@ export const InputRouting = () => (
       )}
       {...VIA.power}
     />
+    <Pour net="VIN" layer="bottom" outline={rect(52.5, 37.3, 62, SOUTH)} />
     {/* Ground of C4 and C5: two vias each, in line with the pads so the band stays wide on both sides. */}
     {GROUND_PADS.map((g) => (
       <Track
