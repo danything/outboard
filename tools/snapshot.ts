@@ -1,24 +1,30 @@
 // Board pictures kept in the repository (__snapshots__): schematic, both
-// copper layers together, top, bottom and a 3D view. A pull request that
-// changes the board shows up as a picture diff.
+// copper layers together, top, bottom and a 3D view of the board, and the
+// land patterns. A pull request that changes any of them shows up as a
+// picture diff.
 //   bun run snapshot            compare with the committed pictures (CI)
 //   bun run snapshot --update   rewrite them
 export {};
 
-const ENTRY = "index.circuit.tsx";
 const update = Bun.argv.includes("--update");
 
-const runs: string[][] = [["--3d"], ["--layer", "top"], ["--layer", "bottom"]];
+const runs: [entry: string, ...options: string[]][] = [
+  ["index.circuit.tsx", "--3d"],
+  ["index.circuit.tsx", "--layer", "top"],
+  ["index.circuit.tsx", "--layer", "bottom"],
+  ["footprints.circuit.tsx", "--pcb-only", "--show-courtyards"],
+  ["footprints.circuit.tsx", "--layer", "bottom"],
+];
 
-for (const extra of runs) {
+for (const [entry, ...options] of runs) {
   const args = [
     "bunx",
     "tsci",
     "snapshot",
-    ENTRY,
+    entry,
     "--disable-parts-engine",
     update ? "--update" : "--test",
-    ...extra,
+    ...options,
   ];
   const proc = Bun.spawn(args, { stdout: "inherit", stderr: "inherit" });
   if ((await proc.exited) !== 0) {
