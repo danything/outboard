@@ -318,8 +318,8 @@ export const Mcu = () => (
         PC6: "I2C2_SDA",
         PC7: NC,
         PD1: "SWIO",
-        PD2: "VBUS1_SENSE",
-        PD3: "CC1_SENSE",
+        PD2: "CC1_SENSE",
+        PD3: "VBUS1_SENSE",
       }}
     />
     <Header2 name="J5" nets={{ pin1: "SWIO", pin2: "GND" }} />

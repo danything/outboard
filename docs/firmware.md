@@ -17,10 +17,10 @@ CH32V003F4P6、TSSOP20。電源は +5V (5V 入力のときは 4.2〜4.4V にな�
 | 6    | PA2/A0   | 12V_SENSE                                                       |     | 16   | PC6     | U2 の SDA                            |
 | 7    | VSS      | GND                                                             |     | 17   | PC7     | 未接続                               |
 | 8    | PD0      | LED_STAT                                                        |     | 18   | PD1     | SWIO (J5 の 1 番)                    |
-| 9    | VDD      | +5V                                                             |     | 19   | PD2/A3  | VBUS1_SENSE                          |
-| 10   | PC0      | SW1_IN (10kΩ で +5V へ。JP7 をつなぐと GND)                     |     | 20   | PD3/A4  | CC1_SENSE                            |
+| 9    | VDD      | +5V                                                             |     | 19   | PD2/A3  | CC1_SENSE                            |
+| 10   | PC0      | SW1_IN (10kΩ で +5V へ。JP7 をつなぐと GND)                     |     | 20   | PD3/A4  | VBUS1_SENSE                          |
 
-- ADC のチャンネル: VIN = A7 (PD4)、+12V = A0 (PA2)、VBUS1 = A3 (PD2)、CC1 = A4 (PD3)、CC2 = A2 (PC4)。
+- ADC のチャンネル: VIN = A7 (PD4)、+12V = A0 (PA2)、VBUS1 = A4 (PD3)、CC1 = A3 (PD2)、CC2 = A2 (PC4)。
 - **rev D の KiCad の回路図とは 7 本のピンが違う** (2・3・5・13・14・19・20 番)。ポートから来る検出 3 本をポートの側の列の ADC ピンへ、降圧・昇圧へ行く 3 本を VIN の帯の側の列へ入れ替えた (配線が部品の反対の側へ回らないようにするため)。差分の表は `tools/netlist.ts` の `REV_D_CHANGES`。
 - PD5 は UART の送信 (UTX) の既定のピンでもある。SW12_ON に使うので、デバッグの出力を UART に出さない。
 
