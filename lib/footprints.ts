@@ -290,7 +290,7 @@ export const SOT89: FootprintDef = {
   pads: [
     { pin: "1", x: 1.46, y: -1.5, w: 1.775, h: 0.672 },
     { pin: "2", x: 1.42, y: 0, w: 1.85, h: 0.66 },
-    { pin: "2", x: -1.37, y: 0, w: 3.74, h: 1.9 },
+    { pin: "2", x: -1.32, y: 0, w: 3.84, h: 1.9 },
     { pin: "3", x: 1.46, y: 1.5, w: 1.775, h: 0.672 },
   ],
   courtyard: box(-3.49, -2.48, 2.6, 2.48),
@@ -416,7 +416,7 @@ export const HEADER_2X5_RIGHT_ANGLE: FootprintDef = {
     header(String(2 * i + 2), -5.08 + 2.54 * i, 1.27, 1.8, 1.1),
   ]),
   courtyard: box(-6.75, -11.8, 6.75, 2.32),
-  body: box(-6.35, -5.63, 6.35, -3.09),
+  body: box(-6.35, -5.31, 6.35, -2.81),
   height: 5.15,
 };
 
