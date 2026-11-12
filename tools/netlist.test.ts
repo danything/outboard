@@ -2,6 +2,7 @@
 import { expect, test } from "bun:test";
 import {
   type Netlist,
+  REV_D_ADDED_PARTS,
   REV_D_CHANGES,
   applyChanges,
   compareNetlists,
@@ -88,11 +89,11 @@ test("a different part number is reported", () => {
   expect(compareNetlists(reference, other)).toHaveLength(1);
 });
 
-test("the rev D fixture has the expected size", async () => {
+test("the reference (rev D and the changes) has the expected size", async () => {
   const fixture = await loadFixture();
-  // 115 parts in KiCad, 4 of them mounting holes.
+  // 115 parts in KiCad, 4 of them mounting holes; none added yet.
   expect(Object.keys(fixture.components)).toHaveLength(111);
-  // 56 nets and 42 pads left open.
+  // 56 nets and 42 pads left open in rev D; no new nets yet.
   expect(fixture.nets.filter((n) => n.length > 1)).toHaveLength(56);
   expect(fixture.nets.filter((n) => n.length === 1)).toHaveLength(42);
 });
@@ -124,8 +125,40 @@ test("a change that does not fit the reference is an error", () => {
   ).toThrow();
 });
 
-test("the changes from rev D only swap pins of U7 between existing nets", () => {
-  expect(REV_D_CHANGES.every((c) => c.pad.startsWith("U7."))).toBe(true);
-  const count = (key: "from" | "to") => REV_D_CHANGES.map((c) => c[key]).sort();
+test("the pins of U7 only swap between existing nets", () => {
+  const u7 = REV_D_CHANGES.filter((c) => c.pad.startsWith("U7."));
+  expect(u7).toHaveLength(7);
+  const count = (key: "from" | "to") => u7.map((c) => c[key]).sort();
   expect(count("from")).toEqual(count("to"));
+});
+
+test("new pads belong to added parts, and every pad of an added part is listed", () => {
+  for (const c of REV_D_CHANGES.filter((c) => c.from === null))
+    expect(REV_D_ADDED_PARTS[c.pad.split(".")[0] ?? ""]).toBeDefined();
+  const listed = new Set(REV_D_CHANGES.map((c) => c.pad.split(".")[0]));
+  for (const ref of Object.keys(REV_D_ADDED_PARTS))
+    expect(listed.has(ref)).toBe(true);
+});
+
+test("an added part and a new net extend the reference", () => {
+  const changed = applyChanges(
+    small,
+    [
+      { pad: "R1.1", from: "A", to: "N" },
+      { pad: "R9.1", from: null, to: "N" },
+      { pad: "R9.2", from: null, to: null },
+    ],
+    { R9: { value: "1k", footprint: "R0603", lcsc: "C21190", mpn: "x" } },
+    ["N"],
+  );
+  expect(changed.nets.N).toEqual(["R1.1", "R9.1"]);
+  expect(changed.nets["unconnected:R9.2"]).toEqual(["R9.2"]);
+  expect(changed.components.R9).toBeDefined();
+  // A new pad of a part that was not added, and a net that nobody declared.
+  expect(() =>
+    applyChanges(small, [{ pad: "R9.1", from: null, to: "A" }]),
+  ).toThrow();
+  expect(() =>
+    applyChanges(small, [{ pad: "U1.1", from: "A", to: "N" }]),
+  ).toThrow();
 });

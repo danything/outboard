@@ -158,12 +158,24 @@ export const compareNetlists = (
   return problems;
 };
 
-/** One pad that is on another net than in rev D, on purpose. Net names are rev D's. */
+/**
+ * One pad that is on another net than in rev D, on purpose. Net names are
+ * rev D's, or one of REV_D_NEW_NETS. `from: null` is a pad of a part added
+ * since rev D (REV_D_ADDED_PARTS); `to: null` leaves the pad unconnected.
+ */
 export interface Change {
   pad: string;
-  from: string;
-  to: string;
+  from: string | null;
+  to: string | null;
 }
+
+type Part = Fixture["components"][string];
+
+/** Parts added since rev D. Empty until the USB hub is on the board. */
+export const REV_D_ADDED_PARTS: Record<string, Part> = {};
+
+/** Nets that rev D does not have. */
+export const REV_D_NEW_NETS: string[] = [];
 
 /**
  * Every intended difference from the rev D schematic. The fixture stays what
@@ -185,28 +197,59 @@ export const REV_D_CHANGES: Change[] = [
   { pad: "U7.20", from: "SW12_ON", to: "VBUS1_SENSE" },
 ];
 
-/** The fixture with the changes applied. Throws when a change does not fit the fixture. */
-export const applyChanges = (fixture: Fixture, changes: Change[]): Fixture => {
+/**
+ * The fixture with the changes applied. Throws when a change does not fit
+ * the fixture: a pad that is not where it says, a net that exists in neither
+ * the fixture nor `newNets`, a new pad of a part that `added` lacks, or a
+ * net left without pads.
+ */
+export const applyChanges = (
+  fixture: Fixture,
+  changes: Change[],
+  added: Record<string, Part> = {},
+  newNets: string[] = [],
+): Fixture => {
   const nets = Object.fromEntries(
     Object.entries(fixture.nets).map(([name, pads]) => [name, [...pads]]),
   );
+  for (const name of newNets) {
+    if (nets[name])
+      throw new Error(`${name} is already a net of the reference`);
+    nets[name] = [];
+  }
+  const components = { ...fixture.components, ...added };
   for (const { pad, from, to } of changes) {
-    const source = nets[from];
-    const target = nets[to];
-    if (!source?.includes(pad))
-      throw new Error(`${pad} is not on ${from} in the reference`);
-    if (!target) throw new Error(`${to} is not a net of the reference`);
-    nets[from] = source.filter((q) => q !== pad);
-    target.push(pad);
+    const ref = pad.split(".")[0] ?? "";
+    if (from === null) {
+      if (!added[ref]) throw new Error(`${pad}: ${ref} is not an added part`);
+      if (Object.values(nets).some((n) => n.includes(pad)))
+        throw new Error(`${pad} is already in the reference`);
+    } else {
+      const source = nets[from];
+      if (!source?.includes(pad))
+        throw new Error(`${pad} is not on ${from} in the reference`);
+      nets[from] = source.filter((q) => q !== pad);
+    }
+    if (to === null) nets[`unconnected:${pad}`] = [pad];
+    else {
+      const target = nets[to];
+      if (!target) throw new Error(`${to} is not a net of the reference`);
+      target.push(pad);
+    }
   }
   for (const [name, pads] of Object.entries(nets))
     if (pads.length === 0) throw new Error(`${name} is left without pads`);
-  return { ...fixture, nets };
+  return { ...fixture, components, nets };
 };
 
 export const loadFixture = async (
   path = "fixtures/rev-d-netlist.json",
 ): Promise<Netlist> =>
   fixtureNetlist(
-    applyChanges((await Bun.file(path).json()) as Fixture, REV_D_CHANGES),
+    applyChanges(
+      (await Bun.file(path).json()) as Fixture,
+      REV_D_CHANGES,
+      REV_D_ADDED_PARTS,
+      REV_D_NEW_NETS,
+    ),
   );
