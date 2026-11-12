@@ -2,14 +2,14 @@
 	(version "E")
 	(design
 		(source "D:\\danything\\pcie-tuner-board\\pcie-tuner-board.kicad_sch")
-		(date "2026-11-12T11:03:51")
+		(date "2026-11-12T12:32:07")
 		(tool "Eeschema 10.0.8")
 		(sheet
 			(number "1")
 			(name "/")
 			(tstamps "/")
 			(title_block
-				(title "PCIe tuner external power board")
+				(title "outboard - PCIe tuner external power board")
 				(company "danything")
 				(rev "D")
 				(date "2026-11-12")

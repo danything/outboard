@@ -5,7 +5,7 @@
 	(uuid "8a0fb4e6-d81e-58df-a1ca-d25e33a82b27")
 	(paper "A2")
 	(title_block
-		(title "PCIe tuner external power board")
+		(title "outboard - PCIe tuner external power board")
 		(date "2026-11-12")
 		(rev "D")
 		(company "danything")

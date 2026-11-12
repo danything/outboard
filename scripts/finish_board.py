@@ -235,10 +235,10 @@ def dot(b, x, y, r=0.2):
 
 # シルクの文字 (文字, x, y[, 大きさ, 線の太さ])。大きさは JLCPCB の最小 (高さ 1.0mm・線 0.15mm) 以上
 TEXTS = [
-    ("PCIe TUNER", 90.9, 10.0, 1.1, 0.17),
-    ("EXT PWR", 90.9, 11.8, 1.1, 0.17),
-    ("rev D", 90.9, 13.5),
-    ("2026-11", 90.9, 15.1),
+    ("outboard", W - 5.1, 10.0, 1.3, 0.2),
+    ("PCIe PWR", W - 5.1, 11.8),
+    ("rev D", W - 5.1, 13.4),
+    ("2026-11", W - 5.1, 15.0),
     ("BRACKET", 5.0, 8.4, 0.9),
     # J4 (横向き)。数字のある列 = 奇数の列 (1・3・5・7・9) = 下の段 (基板に近い側)。カードの 1 列 5 ピンのケーブルはこの段に挿す
     ("J4 USB 1=5V", 21.9, J4Y + 4.55),
@@ -249,12 +249,11 @@ TEXTS = [
     ("2 CHG", 24.0, J2Y + 4.7, 1.2, 0.18),
     ("3V3", LEDS[0][1], H - 2.9),
     ("STAT", LEDS[1][1], H - 2.9),
-    ("12V ON", 69.8, 26.9),
-    ("SWIO", 74.3, 35.4, 0.9), ("GND", 74.3, 37.9, 0.9),
+    ("12V ON", 73.8, 26.9),
+    ("SWIO", U4X - 3.7, 35.4, 0.9), ("GND", U4X - 3.7, 37.9, 0.9),
     ("VIN", 44.2, 34.9),
     ("3V3", 78.0, 5.9),
     ("12V", 44.6, 22.6),
-    ("5V", 65.9, 37.55, 0.8),
     ("GND", 86.5, 2.5),
     ("JP1 3V3", 83.5, 12.9),
     ("JP2 12V", 60.5, 23.3),
@@ -264,7 +263,8 @@ TEXTS = [
 PIN1 = [("U1", U1X + 4.25, U1Y + 2.7), ("U2", 17.55, J2Y + 3.55), ("U4", U4X + 0.9, U4Y + 1.9), ("U5", 17.4, J1Y + 2.95),
         ("U6", 50.4, 22.55)]
 
-REF_FIXED = {}     # 自動で置き場所が見つからなかった部品番号の位置 (手で決める)
+# 自動で置き場所が見つからなかった部品番号の位置 (手で決める。x, y, 角度)
+REF_FIXED = {"Q3": (W - 5.0, 27.6, 0), "TP4": (68.3, 36.2, 90), "R20": (60.5, 41.75, 0), "C25": (58.65, 29.3, 0)}
 REF_SIZE = 0.8      # 部品番号の文字の高さ (mm)。線は 0.15mm
 
 
@@ -397,7 +397,8 @@ def import_ses():
         for pd in fp.Pads():
             bb = pd.GetBoundingBox()
             th = pd.GetAttribute() == pcbnew.PAD_ATTRIB_PTH
-            pads.append((pd.GetNetCode(), None if th else F, bb.GetLeft(), bb.GetTop(), bb.GetRight(), bb.GetBottom()))
+            pads.append((pd.GetNetCode(), None if th else (F if pd.IsOnLayer(F) else B), bb.GetLeft(), bb.GetTop(), bb.GetRight(),
+                         bb.GetBottom()))        # rev D: J3 の A 列はうらの面のパッド
     for z in b.Zones():
         if not z.GetIsRuleArea():
             ch = z.Outline().Outline(0)
@@ -545,7 +546,7 @@ def main():
         fill(b)
     silk(b)
     tb = b.GetTitleBlock()
-    tb.SetTitle("PCIe tuner external power board")
+    tb.SetTitle("outboard - PCIe tuner external power board")
     tb.SetRevision("D")
     tb.SetDate("2026-11-12")
     pcbnew.SaveBoard(dst, b, True)

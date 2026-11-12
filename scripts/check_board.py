@@ -1,9 +1,10 @@
-"""できあがった基板 (pcie-tuner-board.kicad_pcb) を、DRC とは別の目で検査する。rev C。
+"""できあがった基板 (pcie-tuner-board.kicad_pcb) を、DRC とは別の目で検査する。rev D。
 
 - 電源の道すじの「いちばん細い所」の幅 (線・面・パッド・ビアをたどって、端子から端子まで)
 - USB の D+ と D- の長さの差、CC の線が USB-C の殻の下を通っていないこと
-- 機構: USB-C の口の面とブラケットの外の面、ブラケットをよける段、取り付け穴、LED の位置
-- スロットと USB-C の向き、部品が全部おもてにあること、線とビアの最小の大きさ、うらの面の配線の量
+- 機構: USB-C の口の面とブラケットの外の面、後ろの辺の段、キーの切り欠き、取り付け穴、LED・J4 のプラグ・コネクタの耳の下
+- スロット (基板の端をまたぐ形) のおもてとうらのパッドのつなぎ、部品が全部おもてにあること、線とビアの最小の大きさ、うらの面の配線の量
+- 厚み: 部品の高さの表と、ケースの内の厚み
 結果は out/board_check.txt に残す。NG があれば終了コード 1。
 
 使い方: "C:\\Program Files\\KiCad\\10.0\\bin\\python.exe" scripts/check_board.py
@@ -54,7 +55,7 @@ class Net:
                 if pd.GetNetCode() == code:
                     bb = pd.GetBoundingBox()
                     th = pd.GetAttribute() == pcbnew.PAD_ATTRIB_PTH
-                    self.nodes.append(("pad", None if th else pcbnew.F_Cu, MM(bb.GetLeft()), MM(bb.GetTop()),
+                    self.nodes.append(("pad", None if th else (pcbnew.F_Cu if pd.IsOnLayer(pcbnew.F_Cu) else pcbnew.B_Cu), MM(bb.GetLeft()), MM(bb.GetTop()),
                                        MM(bb.GetRight()), MM(bb.GetBottom()),
                                        min(MM(bb.GetWidth()), MM(bb.GetHeight())),
                                        f"{fp.GetReference()}.{pd.GetNumber()}"))
@@ -84,8 +85,9 @@ class Net:
         if a[1] is not None and b[1] is not None and a[1] != b[1]:
             return False
         if a[0] == "zone" or b[0] == "zone":
-            if a[0] == b[0]:
-                return False
+            if a[0] == b[0]:                    # 同じネットの面どうし (四角に分けて描いた面): 角が相手の中にあればつながっている
+                return a[1] == b[1] and (any(inside(self.polys[i], x, y) for x, y in self.polys[j])
+                                         or any(inside(self.polys[j], x, y) for x, y in self.polys[i]))
             if b[0] == "zone":
                 a, b, i, j = b, a, j, i
             poly = self.polys[i]                 # a が面。b の端 (線)、中心 (パッド・ビア) が面の中にあるか
@@ -111,7 +113,7 @@ class Net:
     def find(self, padname):
         return [i for i, nd in enumerate(self.nodes) if nd[7] == padname]
 
-    def widest(self, src, dst):
+    def widest(self, src, dst, exempt=None):
         """src から dst までの道のうち、いちばん細い所がいちばん太い道。その細い所の幅を返す (パッドと面は数えない)。"""
         best = {}
         heap = [(-99.0, i) for i in self.find(src)]
@@ -126,7 +128,7 @@ class Net:
                 return w
             for j in self.adj[i]:
                 if j not in best:
-                    cap = self.nodes[j][6] if self.nodes[j][0] in ("seg", "via") else 99.0
+                    cap = self.nodes[j][6] if self.nodes[j][0] in ("seg", "via") and not (exempt and exempt(self.nodes[j])) else 99.0
                     heapq.heappush(heap, (-min(w, cap), j))
         return None
 
@@ -177,34 +179,41 @@ def main():
     # ---- 電源の道すじの幅 ------------------------------------------------------
     paths = [
         ("VBUS1", "J1.A4B9", "D1.1", 0.6, "① の VBUS (上のパッド) -> おもての面 -> D1"),
-        ("VBUS1", "J1.B4A9", "D1.1", 0.5, "① の VBUS (下のパッド) -> うらの帯 -> D1 (ビアは外径 0.8mm が 2 個と 6 個)"),
+        ("VBUS1", "J1.B4A9", "D1.1", 0.5, "① の VBUS (下のパッド) -> うらの橋 -> おもての面 -> D1 (ビアは外径 0.8mm が 2 個と 2 個)"),
         ("VBUS2", "J2.A4B9", "D2.1", 0.6, "② の VBUS (上のパッド) -> おもての面 -> D2"),
         ("VBUS2", "J2.B4A9", "D2.1", 0.5, "② の VBUS (下のパッド) -> うらの橋 -> おもての面 -> D2"),
         ("VIN", "D1.2", "C9.1", 1.5, "VIN: D1 -> 降圧の入力コンデンサ"),
         ("VIN", "D2.2", "C9.1", 1.5, "VIN: D2 -> 降圧の入力コンデンサ"),
-        ("VIN", "D1.2", "L2.1", 0.8, "VIN: D1 -> うらの面 -> 昇圧のコイル (ビアは外径 0.8mm が 8 個と 6 個)"),
-        ("+3V3_BUCK", "L1.2", "JP1.1", 1.5, "3.3V: コイル -> JP1"),
-        ("+3V3", "JP1.2", "J3.A10", 1.5, "3.3V: JP1 -> スロット A10"),
-        ("+3V3", "JP1.2", "J3.B8", 1.5, "3.3V: JP1 -> スロット B8"),
-        ("+3V3", "JP5.2", "J3.A10", 1.0, "3.3V: JP5 (はんだジャンパー) -> スロット A10"),
-        ("+3V3", "J3.A10", "J3.A9", 0.8, "3.3V: A10 -> A9 (ピン 1 本ぶん、最大 1.1A)"),
+        ("VIN", "D1.2", "L2.1", 1.5, "VIN: D1 -> 下の帯 (おもて) -> 昇圧のコイル"),
+        ("+3V3_BUCK", "L1.2", "JP5.1", 1.5, "3.3V: コイル -> JP5 (閉じたはんだジャンパー)"),
+        ("+3V3_BUCK", "L1.2", "JP1.1", 1.0, "3.3V: コイル -> JP1 (電流を測るときのヘッダ)"),
+        ("+3V3", "JP1.2", "J3.B8", 1.5, "3.3V: JP1 -> 幹 -> スロット B8 (パッドのそばの短い所は除く)"),
+        ("+3V3", "JP1.2", "J3.A10", 1.5, "3.3V: JP1 -> 幹 -> ビア 4 個 -> うら -> スロット A10 (ビアとパッドのそばの短い所は除く)"),
+        ("+3V3", "JP1.2", "J3.A9", 1.5, "3.3V: JP1 -> 幹 -> ビア 4 個 -> うら -> スロット A9 (同上)"),
+        ("+3V3", "JP5.2", "J3.A10", 1.0, "3.3V: JP5 (はんだジャンパー) -> スロット A10 (同上)"),
         ("+12V_BOOST", "D4.1", "Q1.2", 0.8, "12V: D4 -> Q1"),
         ("+12V_SW", "Q1.3", "F1.1", 0.8, "12V: Q1 -> F1 (ヒューズ)"),
-        ("+12V_F", "F1.2", "JP2.1", 0.6, "12V: F1 -> JP2"),
+        ("+12V_F", "F1.2", "JP2.1", 0.8, "12V: F1 -> JP2"),
         ("+12V_F", "F1.2", "JP6.1", 0.8, "12V: F1 -> JP6 (はんだジャンパー)"),
-        ("+12V", "JP2.2", "J3.B2", 0.8, "12V: JP2 -> スロット B2"),
-        ("+12V", "JP6.2", "J3.B2", 1.0, "12V: JP6 -> スロット B2"),
-        ("+12V", "JP2.2", "J3.A3", 0.8, "12V: JP2 -> スロット A3 (B3 から向かいの A3 へ)"),
-        ("+12V", "JP2.2", "J3.B3", 0.8, "12V: JP2 -> スロット B3"),
-        ("+12V", "JP2.2", "J3.B1", 0.8, "12V: JP2 -> スロット B1"),
-        ("+12V", "JP2.2", "J3.A2", 0.8, "12V: JP2 -> スロット A2"),
+        ("+12V", "JP6.2", "J3.A2", 0.8, "12V: JP6 -> ビア 3 個 -> うら -> スロット A2 (パッドのそばの短い所は除く)"),
+        ("+12V", "JP2.2", "J3.A3", 0.8, "12V: JP2 -> スロット A3 (同上)"),
+        ("+12V", "JP2.2", "J3.B2", 0.8, "12V: JP2 -> うら -> パッドのすぐ下のビア 2 個 -> スロット B2 (同上)"),
     ]
+    # パッドのそばの短い所 (y < 幹の上の辺。スロットのパッドから 2.6mm 以内) と、幹からうらへ降りるビアは、幅の検査から除く
+    near_j3 = MB.YT - 0.35 + OY
+
+    def exempt(nd):
+        if nd[0] == "seg":
+            return max(nd[3], nd[5]) <= near_j3 + 0.01 and MB.SLOT[0] - 10.5 + OX <= min(nd[2], nd[4])
+        return nd[0] == "via" and nd[6] >= 0.79
     cache = {}
     for net, a, c, need, title in paths:
         g = cache.setdefault(net, Net(b, net))
-        w = g.widest(a, c)
+        w = g.widest(a, c, exempt)
+        w0 = g.widest(a, c)
         ok(f"{title}: いちばん細い所が {need}mm 以上", w is not None and w >= need - 1e-6,
-           "つながっていない" if w is None else ("面とパッドだけ" if w > 90 else f"{w:.2f} mm"))
+           "つながっていない" if w is None else ("面とパッドだけ" if w > 90 else f"{w:.2f} mm")
+           + ("" if w is None or abs(w - w0) < 1e-6 else f" (除いた所を入れると {w0:.2f} mm)"))
 
     def res(net, a, c):
         """a から c までの銅の抵抗 (mΩ)。1oz の銅を 0.49mΩ/□ として、線の長さ / 幅を足す (面は 0 と数える)。"""
@@ -212,8 +221,8 @@ def main():
         return g.cost(a, c, lambda nd: 0.49 * math.hypot(nd[4] - nd[2], nd[5] - nd[3]) / nd[6] if nd[0] == "seg" else 0.0)
 
     ra, rb = res("+3V3", "JP1.2", "J3.A10"), res("+3V3", "JP1.2", "J3.B8")
-    ok("3.3V: JP1 から A10 までと B8 までの銅の抵抗 (記録するだけ。そろってはいない)", True,
-       f"A10 まで {ra:.1f} mΩ、B8 まで {rb:.1f} mΩ")
+    ok("3.3V: JP1 から A10 までと B8 までの銅の抵抗 (記録するだけ。ビアは数えていない)", True,
+       f"A10 まで {ra:.1f} mΩ、B8 まで {rb:.1f} mΩ。12V: JP6 から A2 まで {res('+12V', 'JP6.2', 'J3.A2'):.1f} mΩ、D4 から Q1 まで {res('+12V_BOOST', 'D4.1', 'Q1.2'):.1f} mΩ、Q1 から F1 まで {res('+12V_SW', 'Q1.3', 'F1.1'):.1f} mΩ")
 
     # ---- USB -----------------------------------------------------------------
     dp, dn = Net(b, "USB_DP"), Net(b, "USB_DN")
@@ -226,6 +235,8 @@ def main():
     usb_b = sum(math.hypot(nd[4] - nd[2], nd[5] - nd[3]) for g in (dp, dn) for nd in g.nodes
                 if nd[0] == "seg" and nd[1] == pcbnew.B_Cu)
     ok("USB: うらの面を通るのは A6 の橋 (約 2.3mm) だけ", usb_b < 2.6, f"{usb_b:.2f} mm")
+    lmax_ = max(lp, ln)
+    ok("USB: J1 から J4 までの長さ (記録)", True, f"{lmax_:.1f} mm。U5 から先は、D- が J4 の上の列のすぐ上、D+ が 2 列の間を通る (間隔 2.5mm で 約 8mm 並ばない)")
 
     # ---- CC の線は USB-C の殻の下を通らない -------------------------------------
     for j in ("J1", "J2"):
@@ -277,8 +288,8 @@ def main():
         return z is not None and z.HitTestFilledArea(z.GetLayer(), pcbnew.VECTOR2I(pcbnew.FromMM(x + OX), pcbnew.FromMM(y + OY)), 0)
 
     def buck(x, y):
-        """rev B の降圧のまわりの座標 (U3 が (47, 9)) を、いまの基板の座標に直す (90 度回してある)。"""
-        return (MB.U3X + (y - 9.0), MB.U3Y - (x - 47.0))
+        """rev B の降圧のまわりの座標 (U3 が (47, 9)) を、いまの基板の座標に直す (180 度回してある)。"""
+        return (MB.U3X - (x - 47.0), MB.U3Y - (y - 9.0))
 
     def gnd_vias_near(ref, num, r):
         px, py = pos[(ref, num)]
@@ -317,78 +328,187 @@ def main():
             lens[net] = lens.get(net, 0.0) + math.hypot(x2 - x1, y2 - y1)
     lb = sum(lens.values())
     lf = sum(math.hypot(x2 - x1, y2 - y1) for _n, lay, x1, y1, x2, y2, _w in segs if lay == pcbnew.F_Cu)
-    ok("うらの面の線の長さの合計が 300mm 以下 (目標は 150mm 以下。" + ("届いている" if lb <= 150 else "届いていない") + ")", lb <= 300.0,
-       f"うら {lb:.0f} mm (おもて {lf:.0f} mm)。長い順: " + ", ".join(f"{k} {v:.0f}" for k, v in sorted(lens.items(), key=lambda kv: -kv[1])[:10]))
-    boxes = {"降圧": (68.6, 8.4, 83.4, 39.0), "昇圧": (MB.U4X - 0.6, 45.2, 35.0, 60.2),
-             "USB のデータ線 (D+ 自身の A6 の渡り 2.3mm は除く)": (MB.JX + 7.12, MB.J1Y - 1.3, MB.JX + 16.92, MB.J1Y + 3.2)}
+    # rev D: スロットの A 列がうらのパッドで、VIN の帯を 10 本前後の信号がうらでくぐるので、手で決めたうらの線だけで 約 300mm ある。
+    # 上限は 500mm に置き、目標 (150mm) に届いていないことを記録する
+    ok("うらの面の線の長さの合計が 500mm 以下 (目標は 150mm 以下。" + ("届いている" if lb <= 150 else "届いていない") + "。rev C は 257mm)", lb <= 500.0,
+       f"うら {lb:.0f} mm・{len(lens)} ネット (おもて {lf:.0f} mm)。長い順: " + ", ".join(f"{k} {v:.0f}" for k, v in sorted(lens.items(), key=lambda kv: -kv[1])[:14]))
+    xb1, xb2 = MB.BAND_W, MB.BAND_E
+    cross = {}
+    for net, lay, x1, y1, x2, y2, _w in segs:
+        if lay == pcbnew.B_Cu and min(x1, x2) < xb2 and max(x1, x2) > xb1 and abs(y2 - y1) < abs(x2 - x1) + 1e-6 and net not in ("VIN",):
+            cross[net] = cross.get(net, 0.0) + math.hypot(x2 - x1, y2 - y1)
+    ok("うらの面: VIN の帯をくぐる線 (左右をまたぐ信号。記録)", True,
+       f"{len(cross)} 本、合計 {sum(cross.values()):.0f} mm: " + ", ".join(f"{k} {v:.0f}" for k, v in sorted(cross.items(), key=lambda kv: -kv[1])))
+    boxes = {"降圧": MB.NO_BOTTOM["buck-gnd"], "昇圧": MB.NO_BOTTOM["boost-gnd"],
+             "USB のデータ線 (J1 -> U5。D+ 自身の A6 の渡り 2.3mm は除く)": MB.NO_BOTTOM["usb-gnd-1"],
+             "USB のデータ線 (U5 -> J4)": MB.NO_BOTTOM["usb-gnd-2"]}
     for name, (bx1, by1, bx2, by2) in boxes.items():
         hit = sorted({net for net, lay, x1, y1, x2, y2, _w in segs if lay == pcbnew.B_Cu and net != "USB_DP"
                       and any(bx1 <= x1 + (x2 - x1) * k / 20 <= bx2 and by1 <= y1 + (y2 - y1) * k / 20 <= by2 for k in range(21))})
         ok(f"うらの面: {name}の下 (x {bx1:.1f}〜{bx2:.1f}、y {by1:.1f}〜{by2:.1f}) を通る線が無い", not hit, " ".join(hit) or "0 本")
 
-    # ---- スロット ----------------------------------------------------------------
-    for num in ("A11", "B11"):
-        pd = [p for p in fps["J3"].Pads() if p.GetNumber() == num][0]
-        gap = math.hypot(1.65, 1.25) - 2.35 / 2 - MM(pd.GetSizeX()) / 2
-        wall = math.hypot(1.65, 1.25) - 2.35 / 2 - MM(pd.GetDrillSizeX()) / 2
-        ok(f"J3: {num} のパッドと、切り欠きの横の柱の穴 (2.35mm) の間が 0.27mm 以上、穴と穴の間の壁が 0.45mm 以上",
-           gap >= 0.27 - 1e-6 and wall >= 0.45, f"銅まで {gap:.3f} mm、穴の壁 {wall:.3f} mm")
-    holes = sorted(round(MM(p.GetDrillSizeX()), 2) for p in fps["J3"].Pads() if p.GetAttribute() == pcbnew.PAD_ATTRIB_NPTH)
-    ok("J3: 柱の穴は 2 か所とも 2.35mm (UMAX の図面の推奨 ø2.35±0.05。柱は ø2.20±0.10 と ø2.05±0.10)",
-       holes == [2.35, 2.35], str(holes))
-    a1, a18, b1 = pos[("J3", "A1")], pos[("J3", "A18")], pos[("J3", "B1")]
-    ok("J3: 1 番ピンが左 (ブラケットの側)、18 番が右。A 面が上、B 面が下", a1[0] < a18[0] and a1[1] < b1[1]
-       and abs(a1[0] - b1[0]) < 0.01, f"A1 ({a1[0]:.2f}, {a1[1]:.2f})、B1 ({b1[0]:.2f}, {b1[1]:.2f})、A18 x={a18[0]:.2f}")
+    back = [r for r, fp in fps.items() if fp.GetLayer() != pcbnew.F_Cu]
+    # ---- スロット (rev D: 基板の端をまたぐ形) -----------------------------------------
+    def padobj(ref, num):
+        return [p for p in fps[ref].Pads() if p.GetNumber() == num][0]
 
-    # ---- 機構: ブラケットと USB-C の口 --------------------------------------------
+    b1, a1, b18 = pos[("J3", "B1")], pos[("J3", "A1")], pos[("J3", "B18")]
+    rows_ok = all(padobj("J3", f"B{i}").IsOnLayer(pcbnew.F_Cu) and not padobj("J3", f"B{i}").IsOnLayer(pcbnew.B_Cu)
+                  and padobj("J3", f"A{i}").IsOnLayer(pcbnew.B_Cu) and not padobj("J3", f"A{i}").IsOnLayer(pcbnew.F_Cu)
+                  for i in range(1, 19))
+    ok("J3: B 列がおもて (F.Cu)、A 列がうら (B.Cu)。B1・A1 は x = 46.55、18 番は右", rows_ok and abs(b1[0] - 46.55) < 0.005
+       and abs(a1[0] - 46.55) < 0.005 and b18[0] > b1[0], f"B1 ({b1[0]:.2f}, {b1[1]:.2f})、A1 x={a1[0]:.2f}、B18 x={b18[0]:.2f}")
+    pb = padobj("J3", "B1")
+    py1, py2 = b1[1] - MM(pb.GetSizeY()) / 2, b1[1] + MM(pb.GetSizeY()) / 2
+    ok("J3: パッドは 0.7 x 3.6、y = 1.4〜5.0 (基板の辺から 1.4)", abs(MM(pb.GetSizeX()) - 0.7) < 0.005 and abs(py1 - 1.4) < 0.005
+       and abs(py2 - 5.0) < 0.005, f"{MM(pb.GetSizeX()):.2f} x {MM(pb.GetSizeY()):.2f}、y {py1:.2f}〜{py2:.2f}")
+    ears = sorted((round(MM(p.GetPosition().x) - OX, 2), round(MM(p.GetPosition().y) - OY, 2), round(MM(p.GetDrillSizeX()), 2))
+                  for p in fps["J3"].Pads() if p.GetAttribute() == pcbnew.PAD_ATTRIB_NPTH)
+    ok("J3: 耳の穴 (めっきなし ø2.0) は (41.75, 2.51) と (70.35, 2.51)", ears == [(41.75, 2.51, 2.0), (70.35, 2.51, 2.0)], str(ears))
+    edge, arcs = [], []
+    for d in b.GetDrawings():
+        if d.GetLayer() == pcbnew.Edge_Cuts:
+            for p in (d.GetStart(), d.GetEnd()):
+                edge.append((round(MM(p.x) - OX, 2), round(MM(p.y) - OY, 2)))
+            if d.GetShape() == pcbnew.SHAPE_T_ARC:
+                c = d.GetCenter()
+                arcs.append((round(MM(c.x) - OX, 2), round(MM(c.y) - OY, 2), round(MM(d.GetRadius()), 2)))
+    kx1, kx2, kr = MB.KEY_X - MB.KEY_W / 2, MB.KEY_X + MB.KEY_W / 2, MB.KEY_W / 2
+    notch = all(q in edge for q in ((round(kx1, 2), 0.0), (round(kx1, 2), round(MB.KEY_D - kr, 2)), (round(kx2, 2), 0.0),
+                                    (round(kx2, 2), round(MB.KEY_D - kr, 2)))) and (round(MB.KEY_X, 2), round(MB.KEY_D - kr, 2), round(kr, 2)) in arcs
+    ok("外形: J3 のキーの切り欠きがある (中心 x = 58.05、幅 1.90、辺から深さ 6.0、先は半円)", notch and abs(MB.KEY_X - 58.05) < 0.005
+       and abs(MB.KEY_W - 1.9) < 0.005 and abs(MB.KEY_D - 6.0) < 0.005, f"x {kx1:.2f}〜{kx2:.2f}、半円の中心 y={MB.KEY_D - kr:.2f}")
+    g11 = kx1 - (pos[("J3", "B11")][0] + 0.35)
+    g12 = (pos[("J3", "B12")][0] - 0.35) - kx2
+    ok("J3: 切り欠きと B11/A11・B12/A12 のパッドの間は 0.20mm (図面どおり。DRU でこのパッドだけ 0.2 を許している)",
+       abs(g11 - 0.2) < 0.005 and abs(g12 - 0.2) < 0.005, f"左 {g11:.3f} mm、右 {g12:.3f} mm")
+    # おもてとうらの同じネットのパッドがつながっていること
+    for net, nums in (("+12V", ("B1", "B2", "B3", "A2", "A3")), ("+3V3", ("B8", "A9", "A10"))):
+        g = cache.setdefault(net, Net(b, net))
+        bad = [n for n in nums[1:] if g.shortest("J3." + nums[0], "J3." + n) is None]
+        ok(f"J3: {net} のおもてとうらのパッド ({'・'.join(nums)}) が線とビアでつながっている", not bad, " ".join(bad) or f"{len(nums)} 本とも")
+    gg = Net(b, "GND")
+    bad = [n for n in ("B4", "B7", "B13", "B16", "B18", "A4", "A12", "A15", "A18")
+           if not any(gg.nodes[j][0] == "seg" for i in gg.find("J3." + n) for j in gg.adj[i])]
+    ok("J3: GND のパッド (おもて 5 本・うら 4 本) は、ベタに頼らず線でビアにつないである", not bad, " ".join(bad) or "9 本とも")
+    a9, a10 = pos[("J3", "A9")], pos[("J3", "A10")]
+    n33 = [(x, y) for x, y, n, dia, _h in vias if n == "+3V3" and dia >= 0.79 and abs(y - MB.YT) < 0.6 and abs(x - a9[0]) < 4.0]
+    ok("J3: +3V3 をうらの A9・A10 へ降ろすビア (外径 0.8mm) が 4 個以上", len(n33) >= 4,
+       f"{len(n33)} 個: " + " ".join(f"({x:.2f}, {y:.2f})" for x, y in sorted(n33)))
+
+    def cy(ref):
+        bb = fps[ref].GetCourtyard(pcbnew.F_Cu).BBox()
+        return (MM(bb.GetLeft()) - OX, MM(bb.GetTop()) - OY, MM(bb.GetRight()) - OX, MM(bb.GetBottom()) - OY)
+
+    def hits(box, skip):
+        return sorted(r for r in fps if r not in skip and cy(r)[2] > cy(r)[0]
+                      and cy(r)[0] < box[2] and box[0] < cy(r)[2] and cy(r)[1] < box[3] and box[1] < cy(r)[3])
+
+    for i, (x1, x2) in enumerate(MB.EARS):
+        h = hits((x1, 0.0, x2, MB.EAR_Y), ("J3",))
+        ok(f"J3: 耳の下 (x {x1}〜{x2}、y 0〜{MB.EAR_Y}。推定) に部品が無い", not h, " ".join(h) or "0 個")
+
+    # ---- 機構: ブラケットと USB-C の口・J4・LED・穴 -----------------------------------
     mouths = {j: fpos[j][0] - 5.07 for j in ("J1", "J2")}
     for j in ("J1", "J2"):
         sig, sh = pos[(j, "A6")], pos[(j, "2")]
         ok(f"{j}: 口が左の辺を向く (信号のパッドが内側、前の殻の足が外側)。基板の端 (x=0) は原点から 4.08mm", sig[0] > sh[0]
            and abs(fpos[j][0] - 4.08) < 0.005, f"パッド x={sig[0]:.2f}、前の殻の足 x={sh[0]:.2f}、口の面 x={mouths[j]:.2f}")
-    ok("J1 と J2 の口の面は同じ", abs(mouths["J1"] - mouths["J2"]) < 0.005)
-    d1 = a1[0] - mouths["J1"]
+        top = fpos[j][1] - 4.47
+        ok(f"{j}: 殻 (幅 8.94mm) が y >= {MB.SHELL_MIN_Y} にある (ブラケットの舌の先 y = {MB.TONGUE_Y} より下)", top >= MB.SHELL_MIN_Y - 1e-6
+           and fpos[j][1] + 4.47 <= MB.H, f"殻 y {top:.2f}〜{fpos[j][1] + 4.47:.2f}")
+    ok("J1 と J2 の口の面は同じ。中心の間隔が 15mm 以上", abs(mouths["J1"] - mouths["J2"]) < 0.005 and abs(fpos["J1"][1] - fpos["J2"][1]) >= 15.0,
+       f"間隔 {abs(fpos['J1'][1] - fpos['J2'][1]):.2f} mm")
+    d1 = b1[0] - mouths["J1"]
     ok("USB-C の口の面 = ブラケットの外の面: 1 番ピンの中心から口の面まで 47.54mm (±0.05)", abs(d1 - 47.54) <= 0.05,
-       f"{d1:.2f} mm (口の面 x={mouths['J1']:.2f}、1 番ピン x={a1[0]:.2f}。47.54 は推定の値)")
+       f"{d1:.2f} mm (口の面 x={mouths['J1']:.2f}、1 番ピン x={b1[0]:.2f}。47.54 は推定の値)")
     br_in = mouths["J1"] + MB.BRACKET_T
-    sy = fpos["J3"][1]
-    edge = []
-    for d in b.GetDrawings():
-        if d.GetLayer() == pcbnew.Edge_Cuts:
-            for p in (d.GetStart(), d.GetEnd()):
-                edge.append((round(MM(p.x) - OX, 2), round(MM(p.y) - OY, 2)))
     stepped = (MB.STEP_X, MB.STEP_Y) in edge and (0.0, MB.STEP_Y) in edge
-    left_low = min(x for x, y in edge if y > MB.STEP_Y + 0.5)
-    ok("ブラケットをよける段: ブラケットが通る所で、基板の左の辺がブラケットの内の面から 0.5mm 以上引っ込んでいる",
-       stepped and left_low - br_in >= 0.5 and left_low >= MB.STEP_X - 0.001,
-       f"ブラケットの内の面 x={br_in:.2f}、基板の辺 x={left_low:.2f}、すきま {left_low - br_in:.2f} mm")
-    ya, ya2 = sy - MB.BRACKET_A, sy - MB.BRACKET_A_MAX
-    ok("ブラケットをよける段: 段の位置が、ブラケットの A 面の側の端より 0.5mm 以上手前 (張り出しを大きく読んだ 2.5mm でも)",
-       ya2 - MB.STEP_Y >= 0.5,
-       f"ブラケットの端 y={ya:.2f} (CEM 2.0 の図から 2.06mm) 〜 {ya2:.2f} (2.5mm と読んだとき)、段 y={MB.STEP_Y:.2f}、余裕 {ya - MB.STEP_Y:.2f} 〜 {ya2 - MB.STEP_Y:.2f} mm")
-    by = [(x, y, n) for x, y, n, _d, _h in vias if x < 3.0 and abs(y - MB.STEP_Y) < 2.5]
-    ok("段のそばのビアが、基板の端から 0.5mm 以上離れている",
-       all((y <= MB.STEP_Y - 0.8) or (x >= MB.STEP_X + 0.8) for x, y, _n in by), " ".join(f"({x:.1f}, {y:.1f})" for x, y, _n in by) or "近くに無い")
-    for j, (nm, wmin_) in (("J1", ("VBUS1", 0.8)), ("J2", ("VBUS2", 0.8))):
+    left_top = min(x for x, y in edge if y < MB.STEP_Y - 0.5)
+    ok("後ろの辺の段: y < 10 では辺が x = 1.5 (ブラケットの板の内の面から 0.5mm 以上)。y >= 10 は x = 0",
+       stepped and abs(MB.STEP_Y - 10.0) < 0.005 and abs(left_top - MB.STEP_X) < 0.005 and left_top - br_in >= 0.5
+       and min(x for x, y in edge) == 0.0,
+       f"ブラケットの内の面 x={br_in:.2f}、辺 x={left_top:.2f}、すきま {left_top - br_in:.2f} mm。板が全幅の所の端 y={MB.BRACKET_FULL_Y} (推定) から段まで {MB.STEP_Y - MB.BRACKET_FULL_Y:.2f} mm")
+    low = hits((-5.0, -5.0, MB.STEP_X, MB.STEP_Y), ())
+    ok("引っ込めた所 (x < 1.5、y < 10) に部品が無い", not low, " ".join(low) or "0 個")
+    for j, nm in (("J1", "VBUS1"), ("J2", "VBUS2")):
         g = cache.setdefault(nm, Net(b, nm))
         w = g.widest(f"{j}.A4B9", ("D1.1" if j == "J1" else "D2.1"))
         ok(f"{j}: VBUS の上のパッドから面までの線が、パッドの列を出たあと 0.9mm (パッドの上だけ 0.6mm)", w is not None, f"{w}")
-    for j in ("J1", "J2"):
-        ok(f"{j}: 殻 (幅 8.94mm) が段より上にある (ブラケットと重ならない)", fpos[j][1] + 4.47 <= MB.STEP_Y - 0.5,
-           f"殻の下の端 y={fpos[j][1] + 4.47:.2f}")
-    low = [r for r, fp in fps.items() if (lambda bb: MM(bb.GetLeft()) - OX < MB.STEP_X and MM(bb.GetBottom()) - OY > MB.STEP_Y)(fp.GetCourtyard(pcbnew.F_Cu).BBox())]
-    ok("引っ込めた所 (x < 1.5、y > 44) に部品が無い", not low, " ".join(low) or "0 個")
-    want = [(3.5, 3.5), (MB.W - 3.5, 3.5), (MB.STEP_X + 3.5, MB.H - 3.5), (MB.W - 3.5, MB.H - 3.5)]
     got = [fpos[h] for h in ("H1", "H2", "H3", "H4")]
-    ok("取り付け穴 (M3、穴 3.2mm) が四隅にある", all(math.hypot(g[0] - w[0], g[1] - w[1]) < 0.01 for g, w in zip(got, want)),
-       " ".join(f"({x:.1f}, {y:.1f})" for x, y in got))
+    ok("取り付け穴 (M3、穴 3.2mm): 左上・右上・右下の角と、2 つの USB-C の間 (後ろの遠い角は USB-C でふさがる)",
+       all(math.hypot(g[0] - w[1], g[1] - w[2]) < 0.01 for g, w in zip(got, MB.HOLES))
+       and fpos["H1"][0] < 9 and fpos["H1"][1] < 7 and fpos["H2"][0] > MB.W - 7 and fpos["H2"][1] < 7
+       and fpos["H4"][0] > MB.W - 7 and fpos["H4"][1] > MB.H - 7 and abs(fpos["H3"][0] - 3.5) < 0.01
+       and fpos["J1"][1] < fpos["H3"][1] < fpos["J2"][1],
+       " ".join(f"{h} ({x:.2f}, {y:.2f})" for h, (x, y) in zip(("H1", "H2", "H3", "H4"), got)))
     l3, l5 = fpos["LED3"], fpos["LED5"]
-    ok("LED 2 個は同じ長い辺 (上 = カードのはんだ面の側) に並び、胴体の端が辺から 1mm 以内、間が 5mm 以上",
-       abs(l3[1] - l5[1]) < 0.01 and l3[1] - 0.4 <= 1.0 and abs(l3[0] - l5[0]) >= 5.0,
-       f"LED3 ({l3[0]:.1f}, {l3[1]:.1f})、LED5 ({l5[0]:.1f}, {l5[1]:.1f})。胴体の端は辺から {l3[1] - 0.4:.1f} mm")
-    j4 = fpos["J4"]
-    ok("J4 (内部 USB のヘッダ) は、カードのはんだ面の側で、カードの面から 8mm 以上離れている (ケーブルのプラグが当たらない)",
-       sy - (j4[1] + 6.55) >= 6.0 and sy - j4[1] >= 8.0, f"ヘッダの中心からカードの面まで {sy - j4[1]:.1f} mm、ヘッダの端から {sy - j4[1] - 6.55:.1f} mm")
+    ok("LED 2 個は下の長い辺 (カードと反対の辺) に並び、胴体の端が辺から 1mm 以内、間が 5mm 以上",
+       abs(l3[1] - l5[1]) < 0.01 and MB.H - (l3[1] + 0.4) <= 1.0 and abs(l3[0] - l5[0]) >= 5.0,
+       f"LED3 ({l3[0]:.1f}, {l3[1]:.1f})、LED5 ({l5[0]:.1f}, {l5[1]:.1f})。胴体の端は辺から {MB.H - (l3[1] + 0.4):.1f} mm")
+    # J4 (横向き): プラグは基板の上に寝る。その下とヘッダの樹脂の下に部品を置かない
+    odd, even = pos[("J4", "1")], pos[("J4", "2")]
+    px1, py1_, px2, py2_ = MB.J4_PLUG
+    ok("J4: 奇数の列 (1・3・5・7・9 = 下の段) がプラグの側。プラグ (推定 14 x 13.2) は上 (カードの辺の側) へ寝て、基板の中に収まる",
+       odd[1] < even[1] and py1_ >= 0.0 and px1 >= 0.0 and px2 <= MB.W and all(abs(pos[("J4", str(n))][1] - odd[1]) < 0.01 for n in (3, 5, 7, 9)),
+       f"奇数の列 y={odd[1]:.2f}、偶数の列 y={even[1]:.2f}、プラグ x {px1:.1f}〜{px2:.1f}、y {py1_:.2f}〜{py2_:.2f} (先は基板の辺から {py1_:.2f} mm)")
+    h = hits(MB.J4_PLUG, ("J4",)) + hits(MB.J4_BODY, ("J4",))
+    ok("J4: プラグの下と樹脂の下に部品が無い (銅の面と線だけ)", not h, " ".join(h) or "0 個")
+    lp_ = [r for r in ("LED3", "LED5") if px1 - 1 < fpos[r][0] < px2 + 1 and fpos[r][1] < py2_ + 1]
+    ok("LED は J4 のプラグの下に無い", not lp_, " ".join(lp_) or "2 個とも離れている")
+    silk_txt = [t.GetText() for t in b.GetDrawings() if isinstance(t, pcbnew.PCB_TEXT) and t.GetLayer() == pcbnew.F_SilkS]
+    ok("シルク: J4 の列の数字 1・3・5・7・9、「1=5V」、下の段の説明がある", all(d in silk_txt for d in "13579")
+       and any("1=5V" in t for t in silk_txt) and any("LOWER ROW" in t for t in silk_txt), " / ".join(t for t in silk_txt if "J4" in t or "ROW" in t))
+
+    # ---- 厚み ----------------------------------------------------------------------
+    # 高さは基板の面から。出どころ: 3D = EasyEDA の 3D モデルの名前にある H、brief = build/REVD_BRIEF.md、est = 推定 (データシートで確かめていない)
+    HEIGHT = {
+        "C0603": (0.8, "3D"), "C0805": (1.3, "3D"), "R0603": (0.55, "est"), "R0805": (0.6, "3D"), "F1206": (0.6, "3D"),
+        "IND-SMD_L7.0-W6.6": (3.0, "3D"), "LED-SMD_L1.6-W0.8-R-RD": (0.6, "3D"), "SMA_L4.4-W2.8-LS5.4-R-RD": (2.44, "est"),
+        "SMA_L4.3-W2.6-LS5.2-RD": (2.44, "est"), "SOD-123F_L2.7-W1.6-LS3.8-RD": (1.2, "est"), "SOD-123_L2.7-W1.6-LS3.7-RD": (1.4, "3D"),
+        "SOT-23-3_L2.9-W1.3-P1.90-LS2.4-BR": (1.1, "3D"), "SOT-23_L2.9-W1.3-P1.90-LS2.4-BR": (1.1, "3D"),
+        "SOT-23-6_L2.9-W1.6-P0.95-LS2.8-BR": (1.5, "3D"), "SOT-89-3_L4.5-W2.5-P1.50-LS4.2-BR": (1.6, "3D"),
+        "TSSOP-20_L6.5-W4.4-P0.65-LS6.4-BL": (1.2, "est"), "ESSOP-10_L4.9-W3.9-P1.0-LS6.0-TL-EP": (1.75, "est"),
+        "SOT-583-8_L2.1-W1.2-P0.50-LS1.6-BR": (0.6, "est"), "USB-C_SMD-TYPE-C-31-M-12_1": (3.3, "est"),
+        "CONN-SMD_36P-P1.00_X1613WS-36-9TV01": (2.98, "brief"), "HDR-TH_10P-P2.54-H-M-R2-C5-S2.54": (6.5, "est"),
+        "HDR-TH_2P-P2.54-V-M": (8.6, "est"), "TestPoint_Pad_D1.5mm": (0.0, "-"), "MountingHole_3.2mm_M3": (0.0, "-"),
+        "SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm": (0.0, "-"), "SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm": (0.0, "-"),
+    }
+    # うらに出る足 (基板のうらの面から)
+    BELOW = {"CONN-SMD_36P-P1.00_X1613WS-36-9TV01": (2.98, "brief"), "HDR-TH_10P-P2.54-H-M-R2-C5-S2.54": (1.4, "est"),
+             "HDR-TH_2P-P2.54-V-M": (1.4, "est"), "USB-C_SMD-TYPE-C-31-M-12_1": (0.8, "est")}
+    NOTE = {"HDR-TH_10P-P2.54-H-M-R2-C5-S2.54": "J4 にプラグを挿した高さ", "HDR-TH_2P-P2.54-V-M": "載せない。ヘッダを付けたときの高さ",
+            "CONN-SMD_36P-P1.00_X1613WS-36-9TV01": "胴体は基板の中心から ±3.78"}
+    limit_top = MB.Z_TOP - 0.8
+    tbl, miss, over, under = {}, [], [], []
+    for r, fp in fps.items():
+        name = str(fp.GetFPID().GetLibItemName())
+        if name not in HEIGHT:
+            miss.append(r)
+            continue
+        tbl.setdefault(name, []).append(r)
+        if HEIGHT[name][0] > limit_top:
+            over.append(r)
+        if BELOW.get(name, (0.0,))[0] > MB.Z_BOTTOM + 1e-6:
+            under.append(r)
+    lines = []
+    for name in sorted(tbl, key=lambda n: -HEIGHT[n][0]):
+        hh, src = HEIGHT[name]
+        lo = BELOW.get(name)
+        refs = sorted(tbl[name], key=lambda r: (r.rstrip("0123456789"), int("".join(c for c in r if c.isdigit()) or 0)))
+        lines.append(f"{hh:5.2f} mm ({src})" + (f"、うら {lo[0]:.2f} mm ({lo[1]})" if lo else "") + f": {name} x{len(refs)} [{refs[0]}"
+                     + (f"..{refs[-1]}" if len(refs) > 1 else "") + "]" + (f" {NOTE[name]}" if name in NOTE else ""))
+    hmax = max(HEIGHT[n][0] for n in tbl)
+    lmax = max(BELOW[n][0] for n in tbl if n in BELOW)
+    ok(f"厚み: おもての部品は全部、基板の中心から +{MB.Z_TOP}mm (基板の面から {limit_top:.2f}mm) の中。いちばん高いのは {hmax:.1f}mm",
+       not miss and not over, ("高さの表に無い: " + " ".join(miss) + " / " if miss else "") + ("超える: " + " ".join(over) + " / " if over else "")
+       + "高さの表 (基板の面から): " + " | ".join(lines))
+    ok(f"厚み: うらに出る物は全部、基板のうらの面から {MB.Z_BOTTOM}mm (J3 の胴体) の中。J3 を除いていちばん出るのは {max(BELOW[n][0] for n in tbl if n in BELOW and not n.startswith('CONN')):.1f}mm (推定)",
+       not under and not back and lmax <= MB.Z_BOTTOM + 1e-6, " ".join(under) or "うらの面に部品は無い。出るのはスルーホールの足と USB-C の殻の足、J3 の胴体だけ")
+    t1 = MB.Z_TOP + 0.8 + MB.Z_BOTTOM
+    ok("厚み: ケースの内の厚み (記録)。おもての限り (ブラケットの B 面の側の張り出し) + 基板 + J3 の胴体のうらの側", True,
+       f"読み方 1: {MB.Z_TOP} + 0.8 + {MB.Z_BOTTOM} = {t1:.2f} mm。読み方 2: {t1 + 1.44:.2f} mm (おもての限りを +1.44 = {MB.Z_TOP + 1.44:.2f} と読んだとき)。"
+       f"どちらでも、この基板の部品でいちばん高い {hmax:.1f}mm (面から) は {limit_top:.2f}mm の中")
 
     # ---- そのほか ----------------------------------------------------------------
     shown = [fp.GetReference() for fp in b.GetFootprints()
@@ -401,7 +521,6 @@ def main():
             if g.GetLayer() == pcbnew.F_SilkS and hasattr(g, "GetWidth") and 0 < MM(g.GetWidth()) < 0.149:
                 thin += 1
     ok("シルク: 0.15mm より細い線が無い", thin == 0, f"{thin} 本")
-    back = [r for r, fp in fps.items() if fp.GetLayer() != pcbnew.F_Cu]
     ok("部品は全部おもて面", not back, " ".join(back) or f"{len(fps)} 個")
     bb = b.GetBoardEdgesBoundingBox()
     ok(f"外形は {MB.W:.0f} x {MB.H:.0f}mm", abs(MM(bb.GetWidth()) - MB.W - 0.1) < 0.2 and abs(MM(bb.GetHeight()) - MB.H - 0.1) < 0.2,
