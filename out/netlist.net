@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "D:\\danything\\pcie-tuner-board\\pcie-tuner-board.kicad_sch")
-		(date "2026-11-12T01:39:11")
+		(date "2026-11-12T11:03:51")
 		(tool "Eeschema 10.0.8")
 		(sheet
 			(number "1")
@@ -11,7 +11,7 @@
 			(title_block
 				(title "PCIe tuner external power board")
 				(company "danything")
-				(rev "C")
+				(rev "D")
 				(date "2026-11-12")
 				(source "pcie-tuner-board.kicad_sch")
 				(comment
@@ -2801,33 +2801,33 @@
 		(comp
 			(ref "J3")
 			(value "PCIe x1 slot")
-			(footprint "pcie-tuner:CONN-TH_36P-P1.00-V_3183-XXXXXPXT")
-			(description "PCIe x1 slot 36P through-hole (UMAX)")
+			(footprint "pcie-tuner:CONN-SMD_36P-P1.00_X1613WS-36-9TV01")
+			(description "PCIe x1 slot 36P straddle mount for 1.57mm PCB (XKB)")
 			(fields
 				(field
-					(name "LCSC") "C404113")
+					(name "LCSC") "C21263091")
 				(field
-					(name "MPN") "3183-10200P1T")
+					(name "MPN") "X1613WS-36D-9TV01")
 				(field
-					(name "Footprint") "pcie-tuner:CONN-TH_36P-P1.00-V_3183-XXXXXPXT")
+					(name "Footprint") "pcie-tuner:CONN-SMD_36P-P1.00_X1613WS-36-9TV01")
 				(field
 					(name "Datasheet")
 				)
 				(field
-					(name "Description") "PCIe x1 slot 36P through-hole (UMAX)")
+					(name "Description") "PCIe x1 slot 36P straddle mount for 1.57mm PCB (XKB)")
 			)
 			(libsource
 				(lib "pcie-tuner")
 				(part "PCIE_X1")
-				(description "PCI Express x1 card edge socket, 36 pin (UMAX 3183-10200P1T)")
+				(description "PCI Express x1 card edge socket, 36 pin, straddle mount (XKB X1613WS-36D)")
 			)
 			(property
 				(name "LCSC")
-				(value "C404113")
+				(value "C21263091")
 			)
 			(property
 				(name "MPN")
-				(value "3183-10200P1T")
+				(value "X1613WS-36D-9TV01")
 			)
 			(property
 				(name "Sheetname")
@@ -2961,20 +2961,20 @@
 		(comp
 			(ref "J4")
 			(value "J4 USB header")
-			(footprint "pcie-tuner:HDR-TH_10P-P2.54-V-M-R2-C5-S2.54")
-			(description "Pin header 2x5 2.54mm (XFCN)")
+			(footprint "pcie-tuner:HDR-TH_10P-P2.54-H-M-R2-C5-S2.54")
+			(description "Pin header 2x5 2.54mm right angle (XFCN)")
 			(fields
 				(field
-					(name "LCSC") "C492422")
+					(name "LCSC") "C492433")
 				(field
-					(name "MPN") "PZ254V-12-10P")
+					(name "MPN") "PZ254R-12-10P")
 				(field
-					(name "Footprint") "pcie-tuner:HDR-TH_10P-P2.54-V-M-R2-C5-S2.54")
+					(name "Footprint") "pcie-tuner:HDR-TH_10P-P2.54-H-M-R2-C5-S2.54")
 				(field
 					(name "Datasheet")
 				)
 				(field
-					(name "Description") "Pin header 2x5 2.54mm (XFCN)")
+					(name "Description") "Pin header 2x5 2.54mm right angle (XFCN)")
 			)
 			(libsource
 				(lib "pcie-tuner")
@@ -2983,11 +2983,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "C492422")
+				(value "C492433")
 			)
 			(property
 				(name "MPN")
-				(value "PZ254V-12-10P")
+				(value "PZ254R-12-10P")
 			)
 			(property
 				(name "Sheetname")
@@ -7870,7 +7870,7 @@
 		(libpart
 			(lib "pcie-tuner")
 			(part "PCIE_X1")
-			(description "PCI Express x1 card edge socket, 36 pin (UMAX 3183-10200P1T)")
+			(description "PCI Express x1 card edge socket, 36 pin, straddle mount (XKB X1613WS-36D)")
 			(fields
 				(field
 					(name "Reference") "J")
@@ -7883,7 +7883,7 @@
 					(name "Datasheet")
 				)
 				(field
-					(name "Description") "PCI Express x1 card edge socket, 36 pin (UMAX 3183-10200P1T)")
+					(name "Description") "PCI Express x1 card edge socket, 36 pin, straddle mount (XKB X1613WS-36D)")
 			)
 			(pins
 				(pin

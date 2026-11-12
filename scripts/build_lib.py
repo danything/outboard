@@ -68,10 +68,30 @@ def convert(name):
     t[1] = Str(name)
     pts = []
     out = []
+    straddle = name.startswith("CONN-SMD_36P-P1.00_X1613WS")
     for c in t:
         if isinstance(c, list) and c:
             lay = find(c, "layer")
             layer = lay[1] if lay else None
+            if straddle:
+                # rev D の J3 (基板の端をまたぐスロット)。XKB の図面 (X1613WS、推奨の基板) に合わせて直す:
+                #  - 基板の外形 (Edge.Cuts) と胴体のシルクは消す。外形は make_board.py が描く
+                #    (EasyEDA は耳の所を切り欠いているが、図面は辺がまっすぐで、耳の穴が基板に開く)
+                #  - 列の入れ替え: 図面の推奨の基板は「口を上、1 番ピンを左」に見た面が B 列。CEM の図 6-7
+                #    (部品面から見て端子が下・ブラケットが左) とも合う。EasyEDA は同じ向きで A 列をおもてに
+                #    置いていて、逆になっている。ここで B 列をおもて (F.Cu)、A 列をうら (B.Cu) にする
+                #  - 耳の穴: ø2.20 のめっき穴 -> ø2.00 のめっきなし。辺から 2.51mm (パッドの中心は辺から 3.20mm)
+                if c[0] in ("fp_line", "fp_circle", "fp_arc") and layer in ("Edge.Cuts", "F.SilkS", "Cmts.User"):
+                    continue
+                if c[0] == "pad" and c[2] == "smd":
+                    ls = find(c, "layers")
+                    side = "F" if str(c[1]).startswith("B") else "B"
+                    ls[1:] = [Sym(side + ".Cu"), Sym(side + ".Paste"), Sym(side + ".Mask")]
+                if c[0] == "pad" and c[2] == "thru_hole" and c[1] == "":
+                    find(c, "at")[2] = Sym("-0.69")
+                    find(c, "drill")[1] = Sym("2.0")
+                    find(c, "size")[1] = Sym("2.0")
+                    find(c, "size")[2] = Sym("2.0")
             if c[0] in ("fp_line", "fp_circle", "fp_arc", "fp_poly", "fp_rect") and layer == "F.CrtYd":
                 continue
             if c[0] == "fp_circle" and layer == "F.SilkS" and (float(find(c, "width")[1]) < 0.1 or name.startswith("LED")):

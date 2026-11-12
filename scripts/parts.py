@@ -8,8 +8,8 @@ PARTS: 部品の種類ごとの定義。sym はダイオードと LED のシン�
 
 FP = {
     "USBC": "USB-C_SMD-TYPE-C-31-M-12_1",
-    "PCIE": "CONN-TH_36P-P1.00-V_3183-XXXXXPXT",
-    "HDR10": "HDR-TH_10P-P2.54-V-M-R2-C5-S2.54",
+    "PCIE": "CONN-SMD_36P-P1.00_X1613WS-36-9TV01",
+    "HDR10": "HDR-TH_10P-P2.54-H-M-R2-C5-S2.54",
     "HDR2": "HDR-TH_2P-P2.54-V-M",
     "ESSOP10": "ESSOP-10_L4.9-W3.9-P1.0-LS6.0-TL-EP",
     "SOT583": "SOT-583-8_L2.1-W1.2-P0.50-LS1.6-BR",
@@ -48,12 +48,13 @@ def _c(value, fp, lcsc, mpn):
 PARTS = {
     "USBC": dict(value="TYPE-C-31-M-12", fp="USBC", lcsc="C165948", mpn="TYPE-C-31-M-12",
                  desc="USB Type-C receptacle 16P (Korean Hroparts)"),
-    "PCIE": dict(value="3183-10200P1T", fp="PCIE", lcsc="C404113", mpn="3183-10200P1T",
-                 desc="PCIe x1 slot 36P through-hole (UMAX)"),
+    # rev D: 基板の端をまたぐ形 (straddle mount)。カードが基板と同じ平面に挿さる。1.57mm の基板用 (品番の D)
+    "PCIE": dict(value="X1613WS-36D-9TV01", fp="PCIE", lcsc="C21263091", mpn="X1613WS-36D-9TV01",
+                 desc="PCIe x1 slot 36P straddle mount for 1.57mm PCB (XKB)"),
     # J4 (2x5) は JLCPCB に載せてもらう (rev C)。1x2 のヘッダ (JP1・JP2・J5) は載せない (穴だけ作り、要る所に自分ではんだ付けする)。
     # 1x2 も載せてもらうなら lcsc を "C492401" に戻す
-    "HDR10": dict(value="PZ254V-12-10P", fp="HDR10", lcsc="C492422", mpn="PZ254V-12-10P",
-                  desc="Pin header 2x5 2.54mm (XFCN)"),
+    "HDR10": dict(value="PZ254R-12-10P", fp="HDR10", lcsc="C492433", mpn="PZ254R-12-10P",
+                  desc="Pin header 2x5 2.54mm right angle (XFCN)"),
     "HDR2": dict(value="PZ254V-11-02P", fp="HDR2", lcsc="", mpn="PZ254V-11-02P",
                  desc="Pin header 1x2 2.54mm (XFCN C492401) - not assembled"),
     "CH224A": dict(value="CH224A", fp="ESSOP10", lcsc="C42459160", mpn="CH224A", desc="USB PD sink (WCH)"),
@@ -106,7 +107,7 @@ PARTS = {
 
 # LCSC の品番 -> EasyEDA のシンボルの名前 (build_lib.py の突き合わせ用)
 EASYEDA_SYMBOL = {
-    "C165948": "TYPE-C-31-M-12", "C404113": "3183-10200P1T", "C492422": "PZ254V-12-10P", "C492401": "PZ254V-11-02P",
+    "C165948": "TYPE-C-31-M-12", "C21263091": "X1613WS-36-9TV01", "C492433": "PZ254R-12-10P", "C492401": "PZ254V-11-02P",
     "C42459160": "CH224A", "C3200405": "TPS62933DRLR", "C19189893": "MT3608B", "C85364": "SRV05-4-P-T7",
     "C16106": "HT7550-1_C16106", "C5187096": "CH32V003F4P6", "C15127": "AO3401A", "C8545": "2N7002",
     "C22452": "SS54_C22452", "C8678": "SS34_C8678", "C81598": "1N4148W_C81598",

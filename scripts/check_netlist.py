@@ -402,7 +402,7 @@ class Checker:
 
         # ---- 11. 部品の情報 --------------------------------------------------
         nol = [r for r, d in c.comps.items() if not d["fields"].get("LCSC") and not re.match(r"^(TP|H|JP\d|J5$)", r)]
-        c.ok("部品を載せるものには全部 LCSC の品番がある (J4 も載せる)", not nol and c.comps["J4"]["fields"].get("LCSC") == "C492422",
+        c.ok("部品を載せるものには全部 LCSC の品番がある (J4 も載せる)", not nol and c.comps["J4"]["fields"].get("LCSC") == "C492433",
              " ".join(nol) or f"{len(c.comps)} 個中、載せないのは TP・H・はんだジャンパー・1x2 のピンヘッダ (J5・JP1・JP2)")
         nofp = [r for r, d in c.comps.items() if not d["footprint"]]
         c.ok("全部の部品にフットプリントがある", not nofp, " ".join(nofp))

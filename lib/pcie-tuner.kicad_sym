@@ -173,7 +173,7 @@
 (property "Value" "PCIE_X1" (at 0 0 0) (effects (font (size 1.27 1.27))))
 (property "Footprint" "" (at 0 0 0) (effects (font (size 1.27 1.27)) (hide yes)))
 (property "Datasheet" "" (at 0 0 0) (effects (font (size 1.27 1.27)) (hide yes)))
-(property "Description" "PCI Express x1 card edge socket, 36 pin (UMAX 3183-10200P1T)" (at 0 0 0) (effects (font (size 1.27 1.27)) (hide yes)))
+(property "Description" "PCI Express x1 card edge socket, 36 pin, straddle mount (XKB X1613WS-36D)" (at 0 0 0) (effects (font (size 1.27 1.27)) (hide yes)))
 (symbol "PCIE_X1_0_1" (rectangle (start -15.24 25.4) (end 15.24 -25.4) (stroke (width 0.254) (type default)) (fill (type background))))
 (symbol "PCIE_X1_1_1"
 (pin passive line (at -17.78 22.86 0) (length 2.54) (name "PRSNT1#" (effects (font (size 1.27 1.27)))) (number "A1" (effects (font (size 1.27 1.27)))))
