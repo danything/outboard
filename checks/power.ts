@@ -228,7 +228,7 @@ export const layoutCheck =
     if (unrouted(b)) return skip(name, "the board is not routed yet");
     const result = run(b);
     return Array.isArray(result)
-      ? result.map((message) => ({ check: name, message }))
+      ? result.map((message) => ({ check: name, message, layout: true }))
       : skip(name, result.skip);
   };
 

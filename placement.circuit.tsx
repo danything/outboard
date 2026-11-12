@@ -54,7 +54,7 @@ export default () => (
   <board
     outline={boardOutline()}
     thickness={BOARD_THICKNESS}
-    layers={2}
+    layers={4}
     routingDisabled
   >
     {mountingHoles.map((q, i) => (

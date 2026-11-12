@@ -51,6 +51,12 @@ const Plated = ({ hole }: { hole: PlatedHole }) => {
         holeDiameter={hole.holeW}
         rectPadWidth={hole.padW}
         rectPadHeight={hole.padH}
+        // Given although they are the defaults: without them tscircuit's
+        // floating-copper pass builds this pad with NaN corners and crashes
+        // as soon as a track of the pad's net meets a pour (0.0.3161).
+        holeOffsetX={0}
+        holeOffsetY={0}
+        rectBorderRadius={0}
       />
     );
   return (

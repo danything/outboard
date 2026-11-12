@@ -7,7 +7,7 @@ outboard (rev D) を JLCPCB に出すときの設定、見積もり、見積も�
 
 ## JLCPCB への出し方
 
-1. 基板: 2 層、1.6mm、銅 1oz、ほかは標準。外形は [寸法](mechanical.md#寸法) (後ろの辺に 1.5mm の段、J3 の所にキーの切り欠きがある。入り隅は工具の丸みになる)
+1. 基板: 4 層 (層構成は JLC04161H-7628)、1.6mm、銅 1oz、ほかは標準。外形は [寸法](mechanical.md#寸法) (後ろの辺に 1.5mm の段、J3 の所にキーの切り欠きがある。入り隅は工具の丸みになる)
 2. 「PCB Assembly」をオン。**Economic**、Top Side、数量 2。
    備考欄に「J1/J2 (USB-C) overhang the board edge by 1 mm」と書く (基板の端から部品が出ることを先に伝える)
 3. BOM と配置のファイルを上げる
