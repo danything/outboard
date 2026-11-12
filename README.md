@@ -29,7 +29,7 @@ outboard はその電源を USB-C (PD 9V) から作り、内部 USB を USB-C �
 | 5    | 製造用の出力と文書の仕上げ                                  |                                                 |
 
 **回路は入った**: 部品 111 個・ネット 56 本・未接続のパッド 42 個が、rev D (KiCad) のネットリストと完全に同じつながり方になっている (CI が毎回比べる)。
-**配置と配線はまだ**: 位置が決まっているのはコネクタ (J1〜J4) だけで、ほかの部品は重ならないように格子に並べてあるだけ (`lib/placement.ts`)。線は 1 本も引いていない。基板の大きさ (88 × 56mm) も仮。
+**配線はまだ**: 部品は全部置いてある (`lib/placement.ts`。ブロックごとの配置と、ブロックをまたぐネットの受け渡しの点。配置だけの絵は [`placement.circuit-pcb.snap.svg`](__snapshots__/placement.circuit-pcb.snap.svg))。線は 1 本も引いていない。基板は 100 × 42mm ([docs/mechanical.md](docs/mechanical.md#寸法))。
 
 配線が入るまでのあいだ、KiCad の DRC の「未接続」は除外してある (`tools/kicad-drc.ts` の `temporary` の項目)。**配線を入れる PR で、この除外を消す。**
 自前の検査のうち配線に頼る 11 個も、いまは「飛ばした」と出して通している。**段階 4 が済んだら飛ばしを 0 にする** (check を `bun checks/run.ts --strict` に替える。飛ばしが残ると落ちる)。

@@ -14,6 +14,7 @@ const runs: [entry: string, ...options: string[]][] = [
   ["index.circuit.tsx", "--layer", "bottom"],
   ["land-patterns.circuit.tsx", "--pcb-only", "--show-courtyards"],
   ["land-patterns.circuit.tsx", "--layer", "bottom"],
+  ["placement.circuit.tsx", "--pcb-only", "--show-courtyards"],
 ];
 
 for (const [entry, ...options] of runs) {

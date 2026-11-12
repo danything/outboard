@@ -147,7 +147,18 @@ export const builtPads = (circuit: Circuit): Map<string, BuiltPad[]> => {
         w: p.radius * 2,
         h: p.radius * 2,
       });
-    else throw new Error(`unexpected pad shape ${p.shape}`);
+    else if (p.shape === "rotated_pill") {
+      // tscircuit keeps the unrotated size of a pill on a turned part.
+      const quarter = Math.round(p.ccw_rotation / 90) % 2 !== 0;
+      add(p.pcb_component_id, {
+        name,
+        x: p.x,
+        y: p.y,
+        layer,
+        w: quarter ? p.height : p.width,
+        h: quarter ? p.width : p.height,
+      });
+    } else throw new Error(`unexpected pad shape ${p.shape}`);
   }
   for (const h of elementsOf(circuit, "pcb_plated_hole")) {
     const name = padName(h.port_hints);
