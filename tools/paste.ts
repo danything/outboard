@@ -10,7 +10,7 @@
 //   (PASTE), and the check `solderPaste` holds every opening to the area ratio.
 // - No paste on the bottom: the board is assembled on one side, so there is
 //   no bottom stencil (tscircuit puts some under the shell legs of USB-C).
-// - No paste over a hole inside a pad (the four ground holes of U8's
+// - No paste over a hole inside a pad (the two ground holes of U8's
 //   exposed pad): it would run down the hole. The exposed pad of U8 gets
 //   windows between the holes instead (PASTE).
 import type { Box } from "../lib/footprints";
