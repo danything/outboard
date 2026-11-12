@@ -189,7 +189,9 @@ export const BLOCKS = {
   },
   /**
    * CH32V003 with its 5 V regulator and everything it senses. Pins 11 to 20
-   * face the ports (I2C), pins 1 to 10 face the VIN band.
+   * face the ports: I2C and the three sense lines that come from them. Pins 1
+   * to 10 face the VIN band: the lines to the converters and the VIN and 12 V
+   * sense, whose dividers sit next to them.
    */
   mcu: {
     title: "Microcontroller",
@@ -197,7 +199,7 @@ export const BLOCKS = {
     rotation: 0,
     region: [
       rect(17.6, 24.7, 53, 34.3),
-      rect(34.2, 20.6, 47.5, 24.7),
+      rect(34.2, 20.6, 53, 24.7),
       rect(38, 38.2, 47.4, 42),
     ],
     parts: absolute(U7, {
@@ -206,31 +208,34 @@ export const BLOCKS = {
       // Decoupling next to VDD (pin 9).
       C21: p("C0603", 50.6, 25.6, "W"),
       C22: p("C0603", 50.6, 27.35, "W"),
-      // Series parts of the lines that cross the VIN band.
-      R23: p("R0603", 50.6, 29.1, "E"),
-      R38: p("R0603", 50.6, 30.9, "W"),
-      R34: p("R0603", 50.6, 32.7, "W"),
-      R37: p("R0603", 46, 33, "W"),
-      R8: p("R0603", 42.5, 33, "W"),
-      D5: p("SOD123F", 38, 33, "W"),
+      // Series parts of the lines that cross the VIN band, in the order of
+      // the pins they come from (3, 2, 1), and the VIN divider at pin 1.
+      R38: p("R0603", 50.6, 29.1, "W"),
+      R34: p("R0603", 50.6, 30.9, "W"),
+      R23: p("R0603", 50.6, 32.7, "E"),
+      R24: p("R0603", 47.4, 33.3, "E"),
+      C25: p("C0603", 44.3, 33.3, "E"),
+      // 12 V divider: the sense line arrives from the north, under D1.
+      R33: p("R0603", 50.3, 22.7, "N"),
+      C33: p("C0603", 52.05, 22.7, "N"),
+      // PERST#: pin 13 leaves under the body to the north.
+      R37: p("R0603", 39.6, 23.3, "E"),
+      R8: p("R0603", 41.1, 33, "W"),
+      D5: p("SOD123F", 37, 33, "W"),
       // 5 V regulator, tab (VIN) to the east.
       U6: p("SOT89", 36, 28.3, 180),
       C7: p("C0805", 30.9, 26.6, "E"),
       C6: p("C0805", 30.9, 29, "E"),
       TP4: p("TESTPOINT_1V5", 30.9, 31.6),
       TP5: p("TESTPOINT_1V5", 33, 33.2),
-      // Sense dividers and their capacitors, nearest the ports.
+      // Dividers and capacitors of what is sensed at the ports, nearest them.
       R21: p("R0603", 20, 25.8, "W"),
       R22: p("R0603", 20, 27.6, "W"),
       R25: p("R0603", 20, 29.4, "W"),
       R26: p("R0603", 20, 31.2, "W"),
-      R24: p("R0603", 20, 33, "W"),
       C23: p("C0603", 23.6, 25.8, "W"),
       C24: p("C0603", 23.6, 27.6, "W"),
       C26: p("C0603", 23.6, 29.4, "W"),
-      C25: p("C0603", 23.6, 31.2, "W"),
-      C33: p("C0603", 23.6, 33, "W"),
-      R33: p("R0603", 26.9, 25.8, "W"),
       R19: p("R0603", 26.9, 27.6, "W"),
       JP7: p("SOLDER_JUMPER", 26.9, 29.7, "W"),
       // Status LED on the far edge.
@@ -494,7 +499,16 @@ export const HANDOFFS: Handoff[] = [
   h("VIN", "input", "boost", 59, 24.9, 4),
   h("VIN", "input", "buck", 86.9, 40, 3, "top", "end of the strip, up to C9"),
   h("VIN", "input", "switch12", 66.2, 38.6, 0.3, "top", "D7"),
-  h("VIN", "input", "mcu", 53, 29.1, 0.3, "top", "R23, and U6 along y 32"),
+  h(
+    "VIN",
+    "input",
+    "mcu",
+    53,
+    32.7,
+    0.3,
+    "top",
+    "R23; U6 is fed below the top",
+  ),
   h("V12_BOOST", "boost", "switch12", 79, 23.05, 1, "top", "C19 to Q1 source"),
   h("V12", "switch12", "slot", 48, 14.1, 1.5, "top", "up to contacts B1..B3"),
   h("V3V3", "buck", "slot", 83, 10.4, 3, "top", "row y 9.2..11.6 to B8"),
@@ -515,11 +529,11 @@ export const HANDOFFS: Handoff[] = [
   h("V12_SENSE", "input", "mcu", 51.3, 20.6, 0.2, "top", "under D1"),
   h("LED_STAT", "mcu", "input", 51.3, 34.3, 0.2, "top", "under D2"),
   // --- Under the VIN band, on the bottom side ---------------------------------
-  h("EN_12V", "mcu", "input", 53, 25, 0.2, "bottom"),
+  h("EN_12V", "mcu", "input", 53, 27.6, 0.2, "bottom"),
   h("EN_12V", "input", "boost", 59, 22, 0.2, "bottom"),
-  h("Q2_G", "mcu", "input", 53, 32.7, 0.2, "bottom"),
+  h("Q2_G", "mcu", "input", 53, 30.9, 0.2, "bottom"),
   h("Q2_G", "input", "switch12", 59, 36.6, 0.2, "bottom"),
-  h("EN_3V3", "mcu", "input", 53, 30.9, 0.2, "bottom"),
+  h("EN_3V3", "mcu", "input", 53, 29.1, 0.2, "bottom"),
   h(
     "EN_3V3",
     "input",
@@ -536,11 +550,11 @@ export const HANDOFFS: Handoff[] = [
     "PERST_N",
     "mcu",
     "slot",
-    47.5,
-    22,
+    38.9,
+    20.6,
     0.2,
     "bottom",
-    "north under VBUS1 and the 12 V row to A11",
+    "via beside R37, then under VBUS1 and the 12 V row to A11",
   ),
   h("Q2_D", "switch12", "switch12", 79, 36.6, 0.2, "top", "up x 79..80 to R15"),
 ];
