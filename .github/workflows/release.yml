@@ -1,0 +1,49 @@
+name: Release
+
+# 基板の版のタグ (rev-d など。シルクの版 = lib/revision.ts と同じ名前) を push したら、
+# 製造用のファイル一式と SHA256SUMS を GitHub Release に添付する。
+# 発注するデータは必ずこのリリースから取る (手元で作ったものを出さない)。
+# 手で動かすときは、Actions の画面で「Use workflow from」にタグを選ぶ。
+on:
+  push:
+    tags: ["rev-*"]
+  workflow_dispatch: {}
+
+permissions: {}
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build.yml
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: タグを確かめる
+        run: |
+          if [ "$GITHUB_REF_TYPE" != "tag" ]; then echo "タグを選んで動かす (いまは $GITHUB_REF)"; exit 1; fi
+          revision=$(sed -n 's/^export const REVISION = "\(.*\)";$/\1/p' lib/revision.ts)
+          if [ "$GITHUB_REF_NAME" != "$revision" ]; then echo "タグ $GITHUB_REF_NAME が lib/revision.ts の $revision と違う"; exit 1; fi
+          # main に入っていないコミットは出さない
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "$GITHUB_REF_NAME のコミットが main に無い"; exit 1; }
+      - uses: actions/download-artifact@v8
+        with:
+          name: fab
+          path: fab
+      - run: sha256sum -c SHA256SUMS
+        working-directory: fab
+      # 同じ版を出し直さない (すでにリリースがあれば失敗する)。基板を変えたら版を上げる
+      - run: gh release create "$GITHUB_REF_NAME" fab/* --verify-tag --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}

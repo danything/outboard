@@ -1,0 +1,9 @@
+[fmt]
+ignorePatterns = [
+  "dist",
+  "build",
+  "__snapshots__",
+  "fixtures",
+  "renovate.json",
+  "bun.lock",
+]
