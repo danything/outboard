@@ -1,14 +1,18 @@
 // Runs the checks that need the built circuit.json. Run after `bun run build`.
 import { loadCircuit } from "../tools/circuit";
 import { builtNetlist, compareNetlists, loadFixture } from "../tools/netlist";
-import { CHECKS, runChecks } from "./board";
+import { CHECKS, runChecks, skippedChecks } from "./board";
 import { DESIGN_CHECKS, runDesignChecks, valuesOf } from "./design";
 
 const circuit = await loadCircuit(Bun.argv[2]);
 
 const board = runChecks(circuit);
+const skipped = skippedChecks(circuit);
+for (const f of skipped) console.log(`[${f.check}] ${f.message}`);
 for (const f of board) console.log(`[${f.check}] ${f.message}`);
-console.log(`board checks: ${CHECKS.length} checks, ${board.length} findings`);
+console.log(
+  `board checks: ${CHECKS.length} checks, ${board.length} findings, ${skipped.length} skipped`,
+);
 
 const design = runDesignChecks(valuesOf(circuit));
 for (const f of design) console.log(`[${f.check}] ${f.message}`);
