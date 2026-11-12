@@ -5,6 +5,7 @@ import {
   type Box,
   type Copper,
   type Pad,
+  type Segment,
   type Shape,
   boundsOf,
   circle,
@@ -20,6 +21,7 @@ import {
   NO_BOTTOM_UNDER,
   SHELL_PINS,
   TOP_ONLY_NETS,
+  USB_BOTTOM_CROSSINGS,
   USB_BOTTOM_MARGIN,
   USB_C_SHELLS,
   USB_PAIR,
@@ -116,6 +118,19 @@ export const underShell = layoutCheck("underShell", (b) => {
   ];
 });
 
+/** One of the few bottom tracks allowed under the USB pair (rules.ts), whole and short. */
+const allowedCrossing = (s: Segment): boolean =>
+  USB_BOTTOM_CROSSINGS.some(
+    ({ net, box, maxLength }) =>
+      s.net === net &&
+      segmentLength(s) <= maxLength + EPSILON &&
+      [s.a, s.b].every((p) => {
+        // circuit.json has y up; the box is in design coordinates.
+        const y = -p.y;
+        return p.x >= box.x0 && p.x <= box.x1 && y >= box.y0 && y <= box.y1;
+      }),
+  );
+
 export const bottomUnder = layoutCheck("bottomUnder", (b) => {
   const out: string[] = [];
   const bottom = b.segments.filter((s) => s.layer === "bottom");
@@ -141,6 +156,7 @@ export const bottomUnder = layoutCheck("bottomUnder", (b) => {
   );
   for (const s of bottom) {
     if (USB_PAIR.nets.some((n) => n === s.net)) continue;
+    if (allowedCrossing(s)) continue;
     if (
       usb.some(
         (u) =>
