@@ -10,6 +10,11 @@ export interface Finding {
    * (a part, the routing). Reported, not a failure. Must be 0 once stage 4 is in.
    */
   skipped?: boolean;
+  /**
+   * The finding depends on routing that is still being put in block by block
+   * (stage 4). Reported as open; a failure only with --strict.
+   */
+  layout?: boolean;
 }
 
 export type Check = (circuit: Circuit) => Finding[];

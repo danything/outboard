@@ -19,20 +19,21 @@ outboard はその電源を USB-C (PD 9V) から作り、内部 USB を USB-C �
 
 **rev D・試作前。実機では未検証。** KiCad + Python のスクリプトから [tscircuit](https://tscircuit.com) (TypeScript) へ作り直している途中。
 
-| 段階 | 中身                                                        | 状態                                            |
-| ---- | ----------------------------------------------------------- | ----------------------------------------------- |
-| 0    | リポジトリの土台と CI/CD                                    | 済み                                            |
-| 1    | フットプリント (データシートとの突き合わせ)                 | 済み ([docs/footprints.md](docs/footprints.md)) |
-| 2    | 回路 (rev D のネットリストと同じつながり方になることを検査) | 済み (食い違い 0)                               |
-| 3    | 基板の検査 (自前)                                           | 済み ([docs/checks.md](docs/checks.md))         |
-| 4    | 配置と配線                                                  |                                                 |
-| 5    | 製造用の出力と文書の仕上げ                                  |                                                 |
+| 段階 | 中身                                                        | 状態                                                         |
+| ---- | ----------------------------------------------------------- | ------------------------------------------------------------ |
+| 0    | リポジトリの土台と CI/CD                                    | 済み                                                         |
+| 1    | フットプリント (データシートとの突き合わせ)                 | 済み ([docs/footprints.md](docs/footprints.md))              |
+| 2    | 回路 (rev D のネットリストと同じつながり方になることを検査) | 済み (食い違い 0)                                            |
+| 3    | 基板の検査 (自前)                                           | 済み ([docs/checks.md](docs/checks.md))                      |
+| 4    | 配置と配線                                                  | 途中 (配置は済み。配線は [docs/routing.md](docs/routing.md)) |
+| 5    | 製造用の出力と文書の仕上げ                                  |                                                              |
 
 **回路は入った**: 部品 111 個・ネット 56 本・未接続のパッド 42 個が、rev D (KiCad) のネットリストと完全に同じつながり方になっている (CI が毎回比べる)。
-**配線はまだ**: 部品は全部置いてある (`lib/placement.ts`。ブロックごとの配置と、ブロックをまたぐネットの受け渡しの点。配置だけの絵は [`placement.circuit-pcb.snap.svg`](__snapshots__/placement.circuit-pcb.snap.svg))。線は 1 本も引いていない。基板は 100 × 42mm ([docs/mechanical.md](docs/mechanical.md#寸法))。
+**配線は途中**: 部品は全部置いてある (`lib/placement.ts`。ブロックごとの配置と、ブロックをまたぐネットの受け渡しの点。配置だけの絵は [`placement.circuit-pcb.snap.svg`](__snapshots__/placement.circuit-pcb.snap.svg))。基板は 100 × 42mm ([docs/mechanical.md](docs/mechanical.md#寸法))・4 層。
+銅は `lib/routing/` にブロックごとの別ファイルで書く ([docs/routing.md](docs/routing.md))。入っているのは降圧 (`buck`) と基板全体の面 (内層の GND・+3V3、うらの GND) だけ。
 
-配線が入るまでのあいだ、KiCad の DRC の「未接続」は除外してある (`tools/kicad-drc.ts` の `temporary` の項目)。**配線を入れる PR で、この除外を消す。**
-自前の検査のうち配線に頼る 11 個も、いまは「飛ばした」と出して通している。**段階 4 が済んだら飛ばしを 0 にする** (check を `bun checks/run.ts --strict` に替える。飛ばしが残ると落ちる)。
+全部のブロックの配線が入るまでのあいだ、KiCad の DRC の「未接続」は除外してある (`tools/kicad-drc.ts` の `temporary` の項目)。**配線を入れ終える PR で、この除外を消す。**
+自前の検査のうち配線に頼るものの指摘は、いまは `(open)` と出して通している。**段階 4 が済んだら 0 にする** (check を `bun checks/run.ts --strict` に替える。`(open)` か飛ばしが残ると落ちる)。
 
 KiCad の版は main から消した。タグ [`kicad-rev-c`](../../tree/kicad-rev-c) (rev C。検査 0) と
 ブランチ [`rev-d`](../../tree/rev-d) (rev D の途中。回路図とライブラリまで) に残っている。
@@ -44,7 +45,7 @@ KiCad の版は main から消した。タグ [`kicad-rev-c`](../../tree/kicad-r
 | 入力               | USB-C ×2、USB PD 9V (CH224A ×2)。2 口を SS54 で合流                                     |
 | 出力               | 3.3V・3A (TPS62933)、12V・0.5A (MT3608B)。12V は AO3401A + PTC で入り切り、過電圧で遮断 |
 | マイコン           | CH32V003 (電源の順序・監視・LED)                                                        |
-| 基板               | 2 層・厚み 1.6mm (J3 のため)。100 × 100mm 以内。大きさは段階 4 で決める                 |
+| 基板               | 4 層・厚み 1.6mm (J3 のため)。100 × 42mm                                                |
 | ケースの厚みの内寸 | 約 20〜21.6mm ([docs/mechanical.md](docs/mechanical.md))                                |
 
 ## 見方
@@ -90,14 +91,14 @@ bun run lint       # oxlint と bun fmt --check。直すときは bun run format
 - ビルドは外の部品検索に問い合わせない (`--disable-parts-engine`)。設計を tscircuit.com に送らない
 - `typescript` は入れていない。型検査は `bun check`。`circuit-json` は circuit.json の型のために入れてある
 
-| 場所                          | 中身                                                                                                                                                                                               |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `index.circuit.tsx`           | 基板の全体                                                                                                                                                                                         |
-| `lib/`                        | `blocks.tsx` (ブロックごとの回路)・`parts.tsx` (部品。ピンとネットを型で縛る)・`nets.ts` (ネットの一覧)・`footprints.ts` (ランド)・`placement.ts` (位置)・`geometry.ts` (外形)・`revision.ts` (版) |
-| `land-patterns.circuit.tsx`   | 全部のランドを並べた見本 (作る基板ではない)                                                                                                                                                        |
-| `checks/`                     | circuit.json を読む自前の検査と、検査のテスト。`board.ts` (基板)・`design.ts` (分圧の値・定格など、回路の意図)                                                                                     |
-| `tools/`                      | 製造用の出力・スナップショット・KiCad の DRC の判定・`netlist.ts` (rev D とのネットリストの比べ)                                                                                                   |
-| `fixtures/rev-d-netlist.json` | rev D の KiCad のネットリスト (部品と、パッドごとのつながり)。比べる相手                                                                                                                           |
+| 場所                          | 中身                                                                                                                                                                                                                              |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `index.circuit.tsx`           | 基板の全体                                                                                                                                                                                                                        |
+| `lib/`                        | `blocks.tsx` (ブロックごとの回路)・`parts.tsx` (部品。ピンとネットを型で縛る)・`nets.ts` (ネットの一覧)・`footprints.ts` (ランド)・`placement.ts` (位置)・`routing/` (銅。ブロックごと)・`geometry.ts` (外形)・`revision.ts` (版) |
+| `land-patterns.circuit.tsx`   | 全部のランドを並べた見本 (作る基板ではない)                                                                                                                                                                                       |
+| `checks/`                     | circuit.json を読む自前の検査と、検査のテスト。`board.ts` (基板)・`design.ts` (分圧の値・定格など、回路の意図)                                                                                                                    |
+| `tools/`                      | 製造用の出力・スナップショット・KiCad の DRC の判定・`netlist.ts` (rev D とのネットリストの比べ)                                                                                                                                  |
+| `fixtures/rev-d-netlist.json` | rev D の KiCad のネットリスト (部品と、パッドごとのつながり)。比べる相手                                                                                                                                                          |
 
 ## CI/CD
 
@@ -129,6 +130,7 @@ bun run lint       # oxlint と bun fmt --check。直すときは bun run format
 | [docs/bringup.md](docs/bringup.md)             | 試作で最初に測ること、試験の一覧                                   |
 | [docs/history.md](docs/history.md)             | rev A〜C のレビューで決めたこと (いまの設計の理由)                 |
 | [docs/checks.md](docs/checks.md)               | 基板の検査の一覧、自前の検査と KiCad の DRC の役割の分け方         |
+| [docs/routing.md](docs/routing.md)             | 配線の書き方 (ファイルの分け方、層、座標、部品、確かめ方)          |
 
 ## ライセンス
 
