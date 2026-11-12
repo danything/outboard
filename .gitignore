@@ -3,3 +3,6 @@ dist/
 build/
 .tscircuit/
 *.log
+__snapshots__/*.actual.png
+# tsci leaves the circuit of a snapshot here
+*.circuit.circuit.json

@@ -50,10 +50,16 @@ KiCad の版は main から消した。タグ [`kicad-rev-c`](../../tree/kicad-r
 
 - ブラウザで見る (main の最新。基板・回路図・3D): <https://danything.github.io/outboard/>
 - 絵は [`__snapshots__/`](__snapshots__/) にある (回路図・おもてとうら・おもて・うら・3D)。PR では絵の差分として変化が見える
+- 3D の絵は部品を載せた姿 (形は [`lib/cad.ts`](lib/cad.ts) がデータシートの寸法から作る簡単なもの)。カードとブラケットは推定の寸法で、半透明・途中で切って描く (発注のデータには入らない)。
+  斜め上・真上・横・USB-C の側の 4 枚 (`tools/render3d.ts`)。Pages にも同じ絵がある (`index/3d.png`・`index/3d-top.png`・`index/3d-side.png`・`index/3d-usb.png`)
 
 | 回路図                                                    | 3D                                             |
 | --------------------------------------------------------- | ---------------------------------------------- |
 | ![回路図](__snapshots__/index.circuit-schematic.snap.svg) | ![3D](__snapshots__/index.circuit-3d.snap.png) |
+
+| 3D (USB-C とブラケットの側)                        | 3D (真上)                                          |
+| -------------------------------------------------- | -------------------------------------------------- |
+| ![3D USB-C](__snapshots__/index.circuit-3d-usb.snap.png) | ![3D 真上](__snapshots__/index.circuit-3d-top.snap.png) |
 
 ## 作り方
 

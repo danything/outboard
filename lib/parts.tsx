@@ -4,6 +4,7 @@
 // leaving one out, or naming a net that does not exist, is a type error.
 // Pins left open on purpose are wired to NC.
 import { footprintOf } from "./Footprint";
+import { cadModelOf } from "./cad";
 import * as fp from "./footprints";
 import type { FootprintDef } from "./footprints";
 import type { Conn, Net } from "./nets";
@@ -17,11 +18,13 @@ interface PartInfo {
   lcsc?: string;
 }
 
+// Fitted parts also get their 3D model (lib/cad.ts); bare footprints have none.
 const sourcing = (info: PartInfo) =>
   info.lcsc
     ? {
         manufacturerPartNumber: info.mpn,
         supplierPartNumbers: { jlcpcb: [info.lcsc] },
+        cadModel: cadModelOf(info.footprint),
       }
     : { doNotPlace: true };
 
