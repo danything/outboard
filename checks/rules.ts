@@ -129,3 +129,147 @@ export const MOUNTING_HOLE_KEEPOUT = 1.4;
 
 /** Geometry is compared with this much slack, in mm. */
 export const EPSILON = 1e-6;
+
+// --- Power: per net and per part ---------------------------------------------
+// Net names are those of lib/nets.ts (+3V3 is V3V3, +12V is V12).
+// The numbers come from docs/history.md ("基板で守ること") and from rev D's
+// scripts/check_board.py.
+
+/**
+ * Narrowest track allowed anywhere on a net, outside a pour of the same net.
+ * A track may be as narrow as a narrower pad it lands on.
+ */
+export const NET_MIN_WIDTH: Record<string, number> = {
+  GND: 0.3,
+  VIN: 0.3,
+  VBUS1: 0.3,
+  VBUS2: 0.3,
+  V3V3_BUCK: 0.3,
+  V3V3: 0.3,
+  V12_BOOST: 0.3,
+  V12_SW: 0.3,
+  V12_F: 0.3,
+  V12: 0.3,
+  SW_3V3: 0.3,
+  SW_12V: 0.3,
+};
+
+/**
+ * Current paths: the widest route from one pad to another must be at least
+ * `min` wide at its narrowest. Pours and pads do not count as narrow.
+ */
+export interface PowerPath {
+  net: string;
+  from: string;
+  to: string;
+  min: number;
+  why: string;
+}
+
+export const POWER_PATHS: PowerPath[] = [
+  { net: "VBUS1", from: "J1.A4B9", to: "D1.A", min: 0.6, why: "3 A in" },
+  { net: "VBUS1", from: "J1.B4A9", to: "D1.A", min: 0.5, why: "3 A in" },
+  { net: "VBUS2", from: "J2.A4B9", to: "D2.A", min: 0.6, why: "3 A in" },
+  { net: "VBUS2", from: "J2.B4A9", to: "D2.A", min: 0.5, why: "3 A in" },
+  { net: "VIN", from: "D1.K", to: "C9.1", min: 1.5, why: "buck input" },
+  { net: "VIN", from: "D2.K", to: "C9.1", min: 1.5, why: "buck input" },
+  { net: "VIN", from: "C9.1", to: "U3.VIN", min: 1.5, why: "buck input" },
+  { net: "VIN", from: "D1.K", to: "L2.1", min: 1.5, why: "boost input" },
+  { net: "SW_3V3", from: "U3.SW", to: "L1.1", min: 1.5, why: "buck switch" },
+  { net: "V3V3_BUCK", from: "L1.2", to: "JP5.1", min: 1.5, why: "3.3 V 3 A" },
+  { net: "V3V3_BUCK", from: "L1.2", to: "JP1.1", min: 1.0, why: "3.3 V 3 A" },
+  { net: "V3V3", from: "JP5.2", to: "J3.B8", min: 1.5, why: "3.3 V 3 A" },
+  { net: "V3V3", from: "JP5.2", to: "J3.A9", min: 1.5, why: "3.3 V 3 A" },
+  { net: "V3V3", from: "JP5.2", to: "J3.A10", min: 1.5, why: "3.3 V 3 A" },
+  { net: "V3V3", from: "JP1.2", to: "J3.A10", min: 1.0, why: "3.3 V 3 A" },
+  { net: "SW_12V", from: "L2.2", to: "U4.SW", min: 0.8, why: "boost switch" },
+  { net: "SW_12V", from: "L2.2", to: "D4.A", min: 0.8, why: "boost switch" },
+  { net: "V12_BOOST", from: "D4.K", to: "Q1.S", min: 0.8, why: "12 V 0.5 A" },
+  { net: "V12_SW", from: "Q1.D", to: "F1.1", min: 0.8, why: "12 V 0.5 A" },
+  { net: "V12_F", from: "F1.2", to: "JP6.1", min: 0.8, why: "12 V 0.5 A" },
+  { net: "V12_F", from: "F1.2", to: "JP2.1", min: 0.8, why: "12 V 0.5 A" },
+  { net: "V12", from: "JP6.2", to: "J3.A2", min: 0.8, why: "12 V 0.5 A" },
+  { net: "V12", from: "JP6.2", to: "J3.A3", min: 0.8, why: "12 V 0.5 A" },
+  { net: "V12", from: "JP6.2", to: "J3.B2", min: 0.8, why: "12 V 0.5 A" },
+  { net: "GND", from: "U3.GND", to: "C9.2", min: 1.5, why: "buck hot loop" },
+  { net: "GND", from: "U4.GND", to: "C18.2", min: 0.8, why: "boost hot loop" },
+];
+
+/**
+ * The neck between a pad and the wide copper: within this distance of the
+ * pad at either end of a path, a track may be narrower than the path, but
+ * not narrower than the pad itself.
+ */
+export const NECK_LENGTH = 2.6;
+
+/** A via this large is not counted as a narrow spot; their number is checked instead. */
+export const POWER_VIA_DIAMETER = 0.8;
+
+/** Vias of the pad's net close to a pad (centre to centre). */
+export interface ViaRule {
+  pad: string;
+  net: string;
+  within: number;
+  count: number;
+  /** Smallest via that counts. */
+  outer?: number;
+  why: string;
+}
+
+export const VIA_RULES: ViaRule[] = [
+  {
+    pad: "U3.GND",
+    net: "GND",
+    within: 4.6,
+    count: 4,
+    why: "buck loop and heat",
+  },
+  {
+    pad: "U4.GND",
+    net: "GND",
+    within: 2.2,
+    count: 2,
+    why: "boost loop and heat",
+  },
+  { pad: "J1.A1B12", net: "GND", within: 2, count: 2, why: "USB-C ground" },
+  { pad: "J1.B1A12", net: "GND", within: 2, count: 2, why: "USB-C ground" },
+  { pad: "J2.A1B12", net: "GND", within: 2, count: 2, why: "USB-C ground" },
+  { pad: "J2.B1A12", net: "GND", within: 2, count: 2, why: "USB-C ground" },
+  {
+    pad: "D1.K",
+    net: "VIN",
+    within: 4,
+    count: 6,
+    outer: 0.8,
+    why: "heat to the bottom VIN copper",
+  },
+  {
+    pad: "D2.K",
+    net: "VIN",
+    within: 4,
+    count: 6,
+    outer: 0.8,
+    why: "heat to the bottom VIN copper",
+  },
+  {
+    pad: "J3.A9",
+    net: "V3V3",
+    within: 6,
+    count: 4,
+    outer: 0.8,
+    why: "2 A to the bottom contacts",
+  },
+];
+
+/** Copper on the top layer of a net, in mm2 (pours plus tracks), for heat. */
+export const COPPER_AREA: { net: string; part: string; min: number }[] = [
+  { net: "VBUS1", part: "D1", min: 150 },
+  { net: "VBUS2", part: "D2", min: 150 },
+  { net: "VIN", part: "D1", min: 300 },
+];
+
+/** F1 (PTC) loses hold current when warm: centre to centre from the hot parts. */
+export const FUSE_DISTANCE = { part: "F1", from: ["Q1", "D4", "L2"], min: 8 };
+
+/** Boost hot loop: D4 cathode to C18 along the copper, C18 ground to U4 ground in a straight line. */
+export const BOOST_LOOP = { diodeToCap: 4.0, capToGround: 3.5 };

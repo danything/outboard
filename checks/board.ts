@@ -3,6 +3,7 @@
 import { BOARD_THICKNESS, MOUNTING_HOLE_DIAMETER } from "../lib/geometry";
 import { type Circuit, elementsOf } from "../tools/circuit";
 import { FAB_CHECKS } from "./fab";
+import { POWER_CHECKS } from "./power";
 
 export interface Finding {
   check: string;
@@ -74,7 +75,12 @@ export const mountingHoleCount: Check = (circuit) => {
       ];
 };
 
-export const CHECKS: Check[] = [boardSize, mountingHoleCount, ...FAB_CHECKS];
+export const CHECKS: Check[] = [
+  boardSize,
+  mountingHoleCount,
+  ...FAB_CHECKS,
+  ...POWER_CHECKS,
+];
 
 const runAll = (circuit: Circuit): Finding[] =>
   CHECKS.flatMap((check) => check(circuit));
