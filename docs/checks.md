@@ -20,8 +20,9 @@ tscircuit の検査は、細い線・小さいビア・取り付け穴に重な�
 | 部品の高さ・おもて面だけ・ブラケットと耳の下・コネクタの位置         | **主** (`mechanical.ts`)                  | 見ない                         |
 | 回路の値 (分圧・定格)・rev D と同じつながり方                        | **主** (`design.ts`・`tools/netlist.ts`)  | 見ない                         |
 
-KiCad の側で除外しているのは 2 つだけ ([`tools/kicad-drc.ts`](../tools/kicad-drc.ts)):
-`lib_footprint_issues` (書き出しが `tscircuit` という無いライブラリを名指す) と、`unconnected_items` (**一時的**。配線が入ったら消す。走るたびに表示される)。
+KiCad の側で除外しているのは 3 つだけ ([`tools/kicad-drc.ts`](../tools/kicad-drc.ts)):
+`lib_footprint_issues` (書き出しが `tscircuit` という無いライブラリを名指す) と、`unconnected_items` と `track_dangling` (**一時的**。全ブロックの配線が入ったら消す。走るたびに表示される)。
+閉じたはんだジャンパー (JP3〜JP6) の銅の橋は、書き出したあとで KiCad のネットタイ (`net_tie_pad_groups`) にする ([`tools/kicad-nettie.ts`](../tools/kicad-nettie.ts)。`bun run build` の続き)。自前の検査は、部品が結ぶピン (`tiedPins`) の 2 つのネットを 1 つとして見る (名前は短いほう、主の電源の名前)。
 J3 のパッドとキーの切り欠きの 0.2mm は、除外ではなく KiCad の決まりの側で許している。
 
 配線のある基板を書き出して確かめたこと: ネット・線・ビア・面は KiCad に渡る。シルクの文字の高さ (`text_height`) と重なり (`silk_overlap`) は、部品番号の文字を出すと指摘される見込み。
@@ -65,7 +66,7 @@ J3 のパッドとキーの切り欠きの 0.2mm は、除外ではなく KiCad 
 | 検査                                                      | 理由                                                                              |
 | --------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | U3 の VIN・GND・SW が「パッドのすぐ外から面」             | 面の名前と決め打ちの座標に頼っていた。`powerPaths` (面か 1.5mm 以上) に置き換えた |
-| JP5 の橋の幅 1.0mm                                        | 橋はランドの中の銅で、circuit.json に部品の銅として出ない。ランドの側で守る       |
+| JP5 の橋の幅 1.0mm                                        | 橋はランドの中の pin 1 のパッド。幅は `lib/footprints.test.ts` が見る             |
 | 銅の抵抗の記録、ケースの厚みの記録、VIN の帯をくぐる線    | 記録だけで、合否が無かった                                                        |
 | J3 の列の面・パッドの大きさ・耳の穴・キーの切り欠き       | `lib/footprints.test.ts` と外形 (`lib/geometry.ts`) が持つ                        |
 | J3 のおもてとうらのパッドのつながり、USB の裏返しのパッド | KiCad の DRC の「つながっていない所」が見る                                       |

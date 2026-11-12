@@ -4,6 +4,7 @@ import { assembledParts, bomCsv, cplCsv } from "./fab";
 import { EDGE_EXCEPTIONS, FAB } from "../checks/rules";
 import { SOT89 } from "../lib/footprints";
 import { remaining } from "./kicad-drc";
+import { addNetTies } from "./kicad-nettie";
 import { originOf } from "./origin";
 
 const circuit: Circuit = [
@@ -175,4 +176,25 @@ test("the KiCad rules carry the numbers of checks/rules.ts", async () => {
     edge: { edge_clearance: r.edge.design },
     "edge at J3": { edge_clearance: EDGE_EXCEPTIONS.J3 },
   });
+});
+
+test("closed jumpers become net ties in the KiCad board", () => {
+  const pcb = [
+    "(kicad_pcb",
+    '  (footprint "a"',
+    "    (attr smd dnp)",
+    '    (property "Reference" "JP5")',
+    "  )",
+    '  (footprint "b"',
+    "    (attr smd)",
+    '    (property "Reference" "R1")',
+    "  )",
+    ")",
+  ].join("\n");
+  const out = addNetTies(pcb, new Map([["JP5", [["1", "2"]]]]));
+  expect(out).toContain(
+    '    (attr smd dnp)\n    (net_tie_pad_groups "1,2")\n    (property "Reference" "JP5")',
+  );
+  expect(out.match(/net_tie/g)?.length).toBe(1);
+  expect(() => addNetTies(pcb, new Map([["JP9", [["1", "2"]]]]))).toThrow();
 });

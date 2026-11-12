@@ -144,11 +144,9 @@ export const NET_MIN_WIDTH: Record<string, number> = {
   VIN: 0.3,
   VBUS1: 0.3,
   VBUS2: 0.3,
-  V3V3_BUCK: 0.3,
   V3V3: 0.3,
   V12_BOOST: 0.3,
   V12_SW: 0.3,
-  V12_F: 0.3,
   V12: 0.3,
   SW_3V3: 0.3,
   SW_12V: 0.3,
@@ -166,6 +164,8 @@ export interface PowerPath {
   why: string;
 }
 
+// A closed solder jumper (JP3..JP6) makes its two nets one, named after the
+// main rail (checks/copper.ts): V3V3_BUCK is V3V3 here, V12_F is V12.
 export const POWER_PATHS: PowerPath[] = [
   { net: "VBUS1", from: "J1.A4B9", to: "D1.A", min: 0.6, why: "3 A in" },
   { net: "VBUS1", from: "J1.B4A9", to: "D1.A", min: 0.5, why: "3 A in" },
@@ -176,8 +176,8 @@ export const POWER_PATHS: PowerPath[] = [
   { net: "VIN", from: "C9.1", to: "U3.VIN", min: 1.5, why: "buck input" },
   { net: "VIN", from: "D1.K", to: "L2.1", min: 1.5, why: "boost input" },
   { net: "SW_3V3", from: "U3.SW", to: "L1.1", min: 1.5, why: "buck switch" },
-  { net: "V3V3_BUCK", from: "L1.2", to: "JP5.1", min: 1.5, why: "3.3 V 3 A" },
-  { net: "V3V3_BUCK", from: "L1.2", to: "JP1.1", min: 1.0, why: "3.3 V 3 A" },
+  { net: "V3V3", from: "L1.2", to: "JP5.1", min: 1.5, why: "3.3 V 3 A" },
+  { net: "V3V3", from: "L1.2", to: "JP1.1", min: 1.0, why: "3.3 V 3 A" },
   { net: "V3V3", from: "JP5.2", to: "J3.B8", min: 1.5, why: "3.3 V 3 A" },
   { net: "V3V3", from: "JP5.2", to: "J3.A9", min: 1.5, why: "3.3 V 3 A" },
   { net: "V3V3", from: "JP5.2", to: "J3.A10", min: 1.5, why: "3.3 V 3 A" },
@@ -186,8 +186,8 @@ export const POWER_PATHS: PowerPath[] = [
   { net: "SW_12V", from: "L2.2", to: "D4.A", min: 0.8, why: "boost switch" },
   { net: "V12_BOOST", from: "D4.K", to: "Q1.S", min: 0.8, why: "12 V 0.5 A" },
   { net: "V12_SW", from: "Q1.D", to: "F1.1", min: 0.8, why: "12 V 0.5 A" },
-  { net: "V12_F", from: "F1.2", to: "JP6.1", min: 0.8, why: "12 V 0.5 A" },
-  { net: "V12_F", from: "F1.2", to: "JP2.1", min: 0.8, why: "12 V 0.5 A" },
+  { net: "V12", from: "F1.2", to: "JP6.1", min: 0.8, why: "12 V 0.5 A" },
+  { net: "V12", from: "F1.2", to: "JP2.1", min: 0.8, why: "12 V 0.5 A" },
   { net: "V12", from: "JP6.2", to: "J3.A2", min: 0.8, why: "12 V 0.5 A" },
   { net: "V12", from: "JP6.2", to: "J3.A3", min: 0.8, why: "12 V 0.5 A" },
   { net: "V12", from: "JP6.2", to: "J3.B2", min: 0.8, why: "12 V 0.5 A" },
@@ -336,6 +336,7 @@ export const HEIGHT_FALLBACK: Record<string, number> = {
   HEADER_1X2: 8.6,
   TESTPOINT_1V5: 0,
   SOLDER_JUMPER: 0,
+  SOLDER_JUMPER_CLOSED: 0,
 };
 
 /** How far each through-hole land pattern reaches below the board (estimates from rev D). */

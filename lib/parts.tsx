@@ -415,5 +415,32 @@ export const SolderJumper = numbered({ footprint: fp.SOLDER_JUMPER }, [
   "pin2",
 ]);
 
+/**
+ * Solder jumper that is closed as made: a copper bridge joins the pads, and
+ * the two pins are one net for tscircuit, KiCad and the checks. Cutting the
+ * bridge opens it; nothing needs soldering.
+ */
+export const ClosedJumper = ({
+  name,
+  nets,
+}: {
+  name: string;
+  /** The net on each side, as in rev D. Both become the net of pin 1. */
+  nets: { pin1: Net; pin2: Net };
+}) => (
+  <>
+    <chip
+      name={name}
+      footprint={footprintOf(fp.SOLDER_JUMPER_CLOSED)}
+      internallyConnectedPins={fp.SOLDER_JUMPER_CLOSED.tiedPins?.map((g) =>
+        g.map((pin) => `pin${pin}`),
+      )}
+      doNotPlace
+      {...positionOf(name)}
+    />
+    {wires(name, nets)}
+  </>
+);
+
 /** Test point, copper only. */
 export const TestPoint = numbered({ footprint: fp.TESTPOINT_1V5 }, ["pin1"]);
