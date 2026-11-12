@@ -374,3 +374,17 @@ test("ruleTargets fails when a pad the rules name is missing or on another net",
   expect(about(findings, "C9.2")).toEqual([]);
   expect(about(findings, "U3.GND is not on the board")).toHaveLength(1);
 });
+
+test("a part missing from a group that is otherwise there is a failure, not a skip", () => {
+  const findings = boostLoop([
+    board(),
+    net("V12_BOOST"),
+    ...part("D4", 0, 0, [{ pin: "K", net: "V12_BOOST", x: 0, y: 0 }]),
+    ...track("V12_BOOST", 1, [
+      [0, 0],
+      [3, 0],
+    ]),
+  ]);
+  expect(findings.some((f) => f.skipped)).toBe(false);
+  expect(about(findings, "C18.1 is not on the board")).toHaveLength(1);
+});

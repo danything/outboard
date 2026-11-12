@@ -330,7 +330,12 @@ export const copperArea = (b: Copper, net: string, layer: string): number =>
 export const diodeCopper = layoutCheck("diodeCopper", (b) => {
   const out: string[] = [];
   const absent = missing(b, [...new Set(COPPER_AREA.map((r) => r.part))]);
-  if (absent.length > 0) return skipIfAllMissing(absent, absent.length, []);
+  if (absent.length > 0)
+    return skipIfAllMissing(
+      absent,
+      new Set(COPPER_AREA.map((r) => r.part)).size,
+      [],
+    );
   for (const r of COPPER_AREA) {
     const area = copperArea(b, r.net, "top");
     if (area < r.min)
@@ -344,7 +349,7 @@ export const diodeCopper = layoutCheck("diodeCopper", (b) => {
 export const fuseDistance = layoutCheck("fuseDistance", (b) => {
   const names = [FUSE_DISTANCE.part, ...FUSE_DISTANCE.from];
   const absent = missing(b, names);
-  if (absent.length > 0) return skipIfAllMissing(absent, absent.length, []);
+  if (absent.length > 0) return skipIfAllMissing(absent, names.length, []);
   const fuse = b.parts.get(FUSE_DISTANCE.part)?.center as Point;
   return FUSE_DISTANCE.from.flatMap((ref) => {
     const d = distance(fuse, b.parts.get(ref)?.center as Point);
@@ -359,7 +364,7 @@ export const fuseDistance = layoutCheck("fuseDistance", (b) => {
 export const boostLoop = layoutCheck("boostLoop", (b) => {
   const names = ["D4.K", "C18.1", "C18.2", "U4.GND"];
   const absent = missing(b, names);
-  if (absent.length > 0) return skipIfAllMissing(absent, absent.length, []);
+  if (absent.length > 0) return skipIfAllMissing(absent, names.length, []);
   const [k, c1, c2, g] = names.map((n) => padsOf(b, n)) as [
     Pad[],
     Pad[],
