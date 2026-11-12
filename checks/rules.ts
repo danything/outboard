@@ -306,6 +306,25 @@ export const NO_BOTTOM_UNDER: Record<string, string[]> = {
 /** A bottom track of another net stays this far from a USB data track above it. */
 export const USB_BOTTOM_MARGIN = 0.5;
 
+/**
+ * Bottom tracks that may cross under the USB pair: each one net, inside a
+ * box (design coordinates) and no longer than `maxLength`. Anything else
+ * there is still a finding.
+ */
+export const USB_BOTTOM_CROSSINGS: {
+  net: string;
+  box: { x0: number; y0: number; x1: number; y1: number };
+  maxLength: number;
+  why: string;
+}[] = [
+  {
+    net: "J1_CC1",
+    box: { x0: 10.3, y0: 18.1, x1: 10.7, y1: 22.45 },
+    maxLength: 4.2,
+    why: "CC1 of J1 has to reach U1 across the pair; with two layers the only way is one straight dive north of U1 (the shell and U5 block the others). CC is slow (PD signalling at about 300 kHz)",
+  },
+];
+
 /** Feedback nets stay on top (docs/history.md, U4). */
 export const TOP_ONLY_NETS = ["FB_3V3", "FB_12V"];
 
