@@ -11,7 +11,7 @@
   穴と穴 (パッド)           0.45 mm                  0.45 mm
   穴と線 (めっきあり)       0.28 mm (0.35 推奨)       0.3 mm
   穴と線 (めっきなし)       0.2 mm                   0.2 mm
-  銅と外形                  0.2 mm                   0.3 mm
+  銅と外形                  0.2 mm                   0.3 mm (J3 のパッドだけ 0.2 mm。下の DRU)
   シルクの線幅 / 文字の高さ  0.15 / 1.0 mm            0.15 / 0.8 mm (部品番号だけ 0.8mm。意味を書いた文字は 1.0mm 以上)
   シルクとパッド            0.15 mm                  0.15 mm
 
@@ -35,13 +35,18 @@ HAND_NETS = ["VIN", "VBUS1", "VBUS2", "+3V3", "+3V3_BUCK", "+3V3AUX", "SW_3V3", 
 # 基板の設定 (下限) より厳しくしたい所を、条件つきのルールで書く。
 # 穴と銅: JLCPCB の最小は、めっきのない穴 (NPTH) が 0.2mm、めっきのある穴が 0.28mm (推奨 0.35mm)。
 # 基板の設定は 0.2mm (下限) にしておき、NPTH が相手でないときは 0.3mm を求める。
-# NPTH だけ 0.2mm まで許すのは、PCIe スロットの位置決めの柱の穴と 11 番ピンの間隔が、
-# 部品の寸法で 0.22mm に決まっているため。
+# NPTH だけ 0.2mm まで許すのは rev C の名残 (スルーホールのスロットの柱の穴)。rev D のスロットは表面実装で、耳の穴は離れている。
+# 銅と外形: rev D のスロット (X1613WS-36D、基板の端をまたぐ) は、キーの切り欠きと A11/B11・A12/B12 のパッドの間が
+# 図面どおりで 0.20mm しかない。基板の設定 (下限) を 0.2mm にし、J3 のパッド以外には 0.3mm を求める。
 DRU = """(version 1)
 
 (rule "Plated hole to copper of another net: 0.3mm"
 	(condition "!(A.Pad_Type == 'NPTH, mechanical') && !(B.Pad_Type == 'NPTH, mechanical')")
 	(constraint hole_clearance (min 0.3mm)))
+
+(rule "Copper to board edge: 0.3mm, except the J3 pads beside the key notch (0.2mm by the connector drawing)"
+	(condition "!A.memberOfFootprint('J3') && !B.memberOfFootprint('J3')")
+	(constraint edge_clearance (min 0.3mm)))
 
 (rule "CC lines stay out from under the USB-C shells"
 	(condition "(A.NetName == '/J1_CC1' || A.NetName == '/J1_CC2' || A.NetName == '/J2_CC1' || A.NetName == '/J2_CC2') && (A.intersectsArea('J1-shell-no-via') || A.intersectsArea('J2-shell-no-via'))")
@@ -71,7 +76,7 @@ def main():
                     "max_error": 0.005,
                     "min_clearance": 0.15,
                     "min_connection": 0.0,
-                    "min_copper_edge_clearance": 0.3,
+                    "min_copper_edge_clearance": 0.2,
                     "min_groove_width": 0.0,
                     "min_hole_clearance": 0.2,
                     "min_hole_to_hole": 0.45,

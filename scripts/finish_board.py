@@ -15,7 +15,7 @@ import pcbnew
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from board_lib import B, F, OX, OY, ROOT, fix_paper, mm, pt, unpt  # noqa: E402
-from make_board import H, J1Y, SLOT, STEP_X, STEP_Y, W  # noqa: E402
+from make_board import H, J1Y, J2Y, J4X, J4Y, LEDS, SLOT, STEP_X, STEP_Y, U1X, U1Y, U4X, U4Y, W  # noqa: E402
 
 SILK = pcbnew.F_SilkS
 
@@ -235,34 +235,34 @@ def dot(b, x, y, r=0.2):
 
 # シルクの文字 (文字, x, y[, 大きさ, 線の太さ])。大きさは JLCPCB の最小 (高さ 1.0mm・線 0.15mm) 以上
 TEXTS = [
-    ("PCIe TUNER EXT PWR", 66.5, 59.2, 1.1, 0.17),
-    ("rev C  2026-11", 66.5, 61.2),
-    ("BRACKET", 6.2, 46.0),
-    ("SIDE", 6.2, 47.6),
-    ("J4 USB", 21.5, 42.9),
-    ("1=5V", 21.5, 24.9),
-    # J4 の奇数の列 (1・3・5・7・9。カードの 1 列 5 ピンのケーブルはこの列に挿す)
-    ("1", 18.4, J1Y - 2.81, 0.9), ("3", 18.4, J1Y - 0.27, 0.9), ("5", 18.4, J1Y + 2.27, 0.9), ("7", 18.4, J1Y + 4.81, 0.9),
-    ("9", 18.4, J1Y + 6.3, 0.9),
-    ("1 PC", 3.6, 37.3, 1.2, 0.18),
-    ("2 CHG", 4.0, 19.0, 1.2, 0.18),
-    ("3V3", 39.0, 2.9),
-    ("STAT", 46.0, 2.9),
-    ("12V ON", 71.0, 18.6),
-    ("SWIO GND", 66.9, 8.4),
-    ("VIN", 46.5, 16.2),
-    ("3V3", 70.2, 42.4),
-    ("12V", 51.3, 60.7),
-    ("5V", 61.0, 9.0),
-    ("GND", 8.0, 52.2),
-    ("AUX", 60.6, 53.8),
-    ("JP1 3V3", 78.6, 40.6),
-    ("JP2 12V", 34.0, 60.6),
+    ("PCIe TUNER", 90.9, 10.0, 1.1, 0.17),
+    ("EXT PWR", 90.9, 11.8, 1.1, 0.17),
+    ("rev D", 90.9, 13.5),
+    ("2026-11", 90.9, 15.1),
+    ("BRACKET", 5.0, 8.4, 0.9),
+    # J4 (横向き)。数字のある列 = 奇数の列 (1・3・5・7・9) = 下の段 (基板に近い側)。カードの 1 列 5 ピンのケーブルはこの段に挿す
+    ("J4 USB 1=5V", 21.9, J4Y + 4.55),
+    ("ODD = LOWER ROW", 21.9, J4Y + 6.35),
+    ("1", J4X + 5.08, J4Y + 2.98, 0.9), ("3", J4X + 2.54, J4Y + 2.98, 0.9), ("5", J4X, J4Y + 2.98, 0.9),
+    ("7", J4X - 2.54, J4Y + 2.98, 0.9), ("9", J4X - 5.08, J4Y + 2.98, 0.9),
+    ("1 PC", 12.3, J1Y - 3.8, 1.2, 0.18),
+    ("2 CHG", 24.0, J2Y + 4.7, 1.2, 0.18),
+    ("3V3", LEDS[0][1], H - 2.9),
+    ("STAT", LEDS[1][1], H - 2.9),
+    ("12V ON", 69.8, 26.9),
+    ("SWIO", 74.3, 35.4, 0.9), ("GND", 74.3, 37.9, 0.9),
+    ("VIN", 44.2, 34.9),
+    ("3V3", 78.0, 5.9),
+    ("12V", 44.6, 22.6),
+    ("5V", 65.9, 37.55, 0.8),
+    ("GND", 86.5, 2.5),
+    ("JP1 3V3", 83.5, 12.9),
+    ("JP2 12V", 60.5, 23.3),
 ]
 
 # 1 番ピンの印 (参照名, 印の位置)。make_board.py の配置と合わせてある
-PIN1 = [("U1", 32.75, 37.75), ("U2", 17.55, 15.75), ("U4", 21.9, 51.4), ("U5", 17.4, 33.45),
-        ("U6", 57.6, 13.4)]
+PIN1 = [("U1", U1X + 4.25, U1Y + 2.7), ("U2", 17.55, J2Y + 3.55), ("U4", U4X + 0.9, U4Y + 1.9), ("U5", 17.4, J1Y + 2.95),
+        ("U6", 50.4, 22.55)]
 
 REF_FIXED = {}     # 自動で置き場所が見つからなかった部品番号の位置 (手で決める)
 REF_SIZE = 0.8      # 部品番号の文字の高さ (mm)。線は 0.15mm
@@ -318,7 +318,7 @@ def place_refs(b, texts):
                 bx = _box(px, py, th, tw) if rot else _box(px, py, tw, th)
                 if bx[0] < 0.5 or bx[1] < 0.5 or bx[2] > W - 0.5 or bx[3] > H - 0.5:
                     continue
-                if bx[0] < STEP_X + 0.5 and bx[3] > STEP_Y - 0.5:      # ブラケットをよけて引っ込めた所
+                if bx[0] < STEP_X + 0.5 and bx[1] < STEP_Y + 0.5:      # ブラケットをよけて引っ込めた所
                     continue
                 if any(_hit(bx, k) for k in blocks):
                     continue
@@ -502,14 +502,18 @@ def main():
     gnd = b.FindNet("/GND")
     # GND のベタ (両面)。基板の外形より外まで描いておけば、外形との間隔はルール (0.3mm) で決まる
     outline = [(-1, -1), (W + 1, -1), (W + 1, H + 1), (-1, H + 1)]
-    # スロットのピンの間には、おもてのベタを入れない (細い切れ端の島ができるだけなので。ピンの GND はうらのベタでつながる)
+    # スロットのパッドの間には、両面ともベタを入れない (細い切れ端の島ができるだけなので。GND のパッドは
+    # make_board.py が線とビアでつないでいる)
     sx, sy = SLOT
-    # J4 のピンの間も同じ (CC の線が間を通るので、切れ端しか残らない)
-    for name, box in (("slot-no-top-pour", (sx - 10.7, sy - 4.3, sx + 10.7, sy + 4.3)),
-                      ("j4-no-top-pour", (19.2, J1Y - 4.0, 24.7, J1Y + 8.5))):
+    # J4 のピンの間も同じ (USB と CC の線が間を通るので、切れ端しか残らない。おもてだけ)
+    for name, box, layers in (("slot-no-pour", (sx - 10.05, sy - 2.0, sx + 10.05, sy + 2.0), (F, B)),
+                              ("j4-no-top-pour", (J4X - 6.2, J4Y - 2.6, J4X + 6.2, J4Y + 2.6), (F,))):
         ko = pcbnew.ZONE(b)
         ko.SetIsRuleArea(True)
-        ko.SetLayer(F)
+        ls = pcbnew.LSET()
+        for la in layers:
+            ls.AddLayer(la)
+        ko.SetLayerSet(ls)
         ko.SetDoNotAllowZoneFills(True)
         ko.SetDoNotAllowTracks(False)
         ko.SetDoNotAllowVias(False)
@@ -542,7 +546,7 @@ def main():
     silk(b)
     tb = b.GetTitleBlock()
     tb.SetTitle("PCIe tuner external power board")
-    tb.SetRevision("C")
+    tb.SetRevision("D")
     tb.SetDate("2026-11-12")
     pcbnew.SaveBoard(dst, b, True)
     fix_paper(dst)
