@@ -252,12 +252,12 @@ export const BLOCKS = {
       TP3: p("TESTPOINT_1V5", 47.8, 12.8),
       R18: p("R0603", 50.9, 12.8, "W"),
       // 3.3 V, below contacts 8 to 10.
-      JP4: p("SOLDER_JUMPER", 55.55, 10.5, "S"),
-      C27: p("C0805", 59.5, 10.3, "W"),
-      C28: p("C0603", 63.4, 10.3, "W"),
+      JP4: p("SOLDER_JUMPER", 56.2, 7.2, "E"),
+      C27: p("C0805", 60, 9.2, "S"),
+      C28: p("C0603", 62.6, 9.2, "S"),
       TP2: p("TESTPOINT_1V5", 66.5, 10.3),
       // PERST#, which arrives on the bottom side at contact A11.
-      D6: p("SOD123F", 59, 12.8, "W"),
+      D6: p("SOD123F", 59.5, 12.8, "E"),
       R27: p("R0603", 63.4, 12.8, "W"),
       C31: p("C0805", 67.5, 12.8, "W"),
     }),
