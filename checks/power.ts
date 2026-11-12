@@ -327,6 +327,36 @@ export const copperArea = (b: Copper, net: string, layer: string): number =>
     .filter((s) => s.net === net && s.layer === layer && !inPour(b, s))
     .reduce((sum, s) => sum + segmentLength(s) * s.width, 0);
 
+/**
+ * Copper of `net` joined to the pads of `part` on any layer: pours, and
+ * tracks outside pours, that the net's copper reaches through vias. With two
+ * layers, the heat of a diode spreads into the copper on both sides.
+ */
+export const connectedArea = (b: Copper, net: string, part: string): number => {
+  const g = netGraph(b, net);
+  const seen = new Set<number>();
+  const queue = g.nodes.flatMap((n, i) => (n.pad?.ref === part ? [i] : []));
+  for (const i of queue) seen.add(i);
+  while (queue.length > 0) {
+    const i = queue.pop() as number;
+    for (const j of g.links[i] ?? [])
+      if (!seen.has(j)) {
+        seen.add(j);
+        queue.push(j);
+      }
+  }
+  let area = 0;
+  for (const i of seen) {
+    const n = g.nodes[i] as Node;
+    if (n.pour)
+      area +=
+        polygonArea(n.pour.outer) -
+        n.pour.holes.reduce((s, h) => s + polygonArea(h), 0);
+    if (n.seg && !inPour(b, n.seg)) area += segmentLength(n.seg) * n.seg.width;
+  }
+  return area;
+};
+
 export const diodeCopper = layoutCheck("diodeCopper", (b) => {
   const out: string[] = [];
   const absent = missing(b, [...new Set(COPPER_AREA.map((r) => r.part))]);
@@ -337,10 +367,10 @@ export const diodeCopper = layoutCheck("diodeCopper", (b) => {
       [],
     );
   for (const r of COPPER_AREA) {
-    const area = copperArea(b, r.net, "top");
+    const area = connectedArea(b, r.net, r.part);
     if (area < r.min)
       out.push(
-        `${r.net}: ${area.toFixed(0)} mm2 of copper on top, need ${r.min} (heat of the input diodes)`,
+        `${r.net}: ${area.toFixed(0)} mm2 of copper joined to ${r.part}, need ${r.min} (heat of the input diodes)`,
       );
   }
   return out;
