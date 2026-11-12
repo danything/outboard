@@ -274,7 +274,13 @@ export const BLOCKS = {
     title: "Boost to 12 V",
     origin: { x: 67.5, y: 24.3 },
     rotation: 180,
-    region: [rect(59, 17.2, 72.5, 21.9), rect(59, 21.9, 79, 34.6)],
+    // The strip x 59.6..64.15, y 17.2..17.7 is switch12's: 12 V passes south of JP2.
+    region: [
+      rect(59, 17.2, 59.6, 17.7),
+      rect(64.15, 17.2, 72.5, 17.7),
+      rect(59, 17.7, 72.5, 21.9),
+      rect(59, 21.9, 79, 34.6),
+    ],
     parts: {
       U4: p("SOT23_6_MT3608B", 0, 0, 180),
       L2: p("IND_FXL0630", -3.4, -6.7, "E"),
@@ -301,6 +307,8 @@ export const BLOCKS = {
     rotation: 0,
     region: [
       rect(45.2, 14.1, 83, 17.2),
+      // 12 V (0.8 wide) passes south of JP2, whose holes block the row.
+      rect(59.6, 17.2, 64.15, 17.7),
       rect(72.5, 17.2, 83, 21.9),
       rect(59, 34.6, 79, 38.6),
     ],
@@ -314,9 +322,11 @@ export const BLOCKS = {
       F1: p("F1206", 69, 15.7, "E"),
       JP6: p("SOLDER_JUMPER", 64.4, 15.7, "E"),
       JP2: p("HEADER_1X2", 60, 15.7, "E"),
-      R32: p("R0603", 55, 15.7, "E"),
+      // South of the 12 V line, which passes north of it at y 14.7.
+      R32: p("R0603", 55, 16.2, "E"),
       Q4: p("SOT23", 61.5, 36.6, 180),
-      R35: p("R0603", 66.2, 35.42, "E"),
+      // OVP_Z to the west, next to its hop to D7; OVP_B to the east, next to R36.
+      R35: p("R0603", 66.2, 35.42, "W"),
       // Cathode on the VIN strip.
       D7: p("SOD123", 66.2, 37.4, "E"),
       R36: p("R0603", 70.2, 35.42, "W"),
