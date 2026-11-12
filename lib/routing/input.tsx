@@ -1,4 +1,91 @@
 // Copper of the block "input": input merge (D1, D2, C4, C5).
 // Design coordinates, Track / Via / Pour from ./kit (docs/routing.md).
+//
+// The anodes of D1 and D2 face west (VBUS1, VBUS2), the cathodes sit on the
+// VIN band: one area across the board from D1 to D2 and on along the far
+// edge to the buck. Both diodes get rid of their heat through this copper,
+// and through six vias each to a small VIN area on the bottom.
+//
+// Kept free on purpose:
+// - top, between the pads of each diode (x 50.3 to 52.3): V12_SENSE and LED_STAT
+// - top, south of the VBUS2 area (y 38.2 and more, west of x 52.4): LED_STAT
+// - bottom, the whole band between y 21.5 and 37.1: EN_12V, Q2_G and EN_3V3
+//   cross there, and the ground stays joined from west to east
+import { Pour, Track, VIA, Vias, pad, rect } from "./kit";
 
-export const InputRouting = () => <></>;
+const D1_K = pad("D1", 2);
+const D2_K = pad("D2", 2);
+const GROUND_PADS = [pad("C4", 2), pad("C5", 2)];
+
+// Board edge minus the clearance to the outline.
+const SOUTH = 41.7;
+
+export const InputRouting = () => (
+  <>
+    {/* VBUS1 and VBUS2: the part of each area that lies in this block, up to the anode. */}
+    <Pour net="VBUS1" layer="top" outline={rect(47.5, 17.5, 50.2, 20.6)} />
+    <Pour net="VBUS2" layer="top" outline={rect(47.5, 34.6, 50.2, 38)} />
+    {/* VIN: the band from D1 to D2 and the strip along the far edge to the buck. */}
+    <Pour
+      net="VIN"
+      layer="top"
+      outline={[
+        { x: 52.4, y: 17.5 },
+        { x: 59, y: 17.5 },
+        { x: 59, y: 38.6 },
+        { x: 86.9, y: 38.6 },
+        { x: 86.9, y: SOUTH },
+        { x: 52.4, y: SOUTH },
+        { x: 52.4, y: 34.6 },
+        { x: 53, y: 34.6 },
+        { x: 53, y: 20.6 },
+        { x: 52.4, y: 20.6 },
+      ]}
+    />
+    {/* Heat of D1 to the bottom: six vias east of the cathode. */}
+    <Vias
+      net="VIN"
+      at={[54.9, 56.1].flatMap((x) =>
+        [-1, 0.2, 1.4].map((dy) => ({ x, y: D1_K.y + dy })),
+      )}
+      {...VIA.power}
+    />
+    <Pour net="VIN" layer="bottom" outline={rect(52.5, 17.5, 58.8, 21.3)} />
+    {/* Heat of D2: six vias south of the cathode, and the bottom area under the start of the strip. */}
+    <Vias
+      net="VIN"
+      at={[53.3, 54.5, 55.7].flatMap((x) =>
+        [1.7, 2.9].map((dy) => ({ x, y: D2_K.y + dy })),
+      )}
+      {...VIA.power}
+    />
+    <Pour net="VIN" layer="bottom" outline={rect(52.5, 37.3, 70, SOUTH)} />
+    {/* Ground of C4 and C5: two vias each, in line with the pads so the band stays wide on both sides. */}
+    {GROUND_PADS.map((g) => (
+      <Track
+        key={`${g.x},${g.y}`}
+        net="GND"
+        width={1.2}
+        layer="top"
+        points={[g, { x: g.x, y: g.y + 1.2 }]}
+      />
+    ))}
+    <Vias
+      net="GND"
+      at={GROUND_PADS.flatMap((g) =>
+        [-0.45, 0.45].map((dx) => ({ x: g.x + dx, y: g.y + 1.2 })),
+      )}
+      {...VIA.signal}
+    />
+    {/* Pours join only through a track, a pad or a via: a stitch from the strip into the VIN area of the buck. */}
+    <Track
+      net="VIN"
+      width={1.8}
+      layer="top"
+      points={[
+        { x: 84.8, y: 39.6 },
+        { x: 84.8, y: 37.6 },
+      ]}
+    />
+  </>
+);
