@@ -1,0 +1,72 @@
+name: Build
+
+# 基板をビルドして検査し、製造用のファイルを作る。check.yml (PR と main) と release.yml (タグ) から呼ぶ。
+# 同じ手順で作ったものだけがリリースに載るように、ここ 1 か所にまとめてある。
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  # 二重の検査に使う KiCad。10.0 は 10.0.x の最新を指すタグ
+  KICAD_IMAGE: kicad/kicad:10.0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # 手元と同じイメージで動かす (絵のスナップショットを 1 画素まで揃えるため)。bun fmt は 1.4.4 から
+    container: oven/bun:1.4.4
+    steps:
+      - uses: actions/checkout@v7
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      # circuit.json・絵・KiCad の基板・見るためのページ (dist/)。外の部品検索は切ってある (package.json)
+      - run: bun run build
+      # 型検査 → 検査のテスト → tsci check → 自前の基板の検査
+      - run: bun run check
+      # リポジトリに入っている絵 (__snapshots__) と同じ絵が出ること
+      - run: bun run snapshot
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: snapshot-diff
+          path: __snapshots__
+      # ガーバー・BOM・配置表・回路図の PDF・絵・circuit.json と SHA256SUMS (dist/fab/)
+      - run: bun run fab
+      - run: cp tools/outboard.kicad_dru dist/index/kicad/index.kicad_dru
+      - uses: actions/upload-artifact@v7
+        with:
+          name: fab
+          path: dist/fab
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: site
+          path: dist
+          if-no-files-found: error
+
+  # 二重の検査: tscircuit が書き出した KiCad の基板に、KiCad の DRC をかける。
+  # tscircuit の検査が見逃すもの (小さすぎる穴、細い輪、穴と銅の重なり) を拾う。
+  # 書き出しのせいで出る指摘は、理由を付けて tools/kicad-drc.ts で除外する。
+  kicad-drc:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: site
+          path: dist
+      - run: >-
+          docker run --rm --user 0 -v "$PWD/dist/index/kicad:/w" -w /w "$KICAD_IMAGE"
+          kicad-cli pcb drc --refill-zones --severity-all --format json --units mm -o drc.json index.kicad_pcb
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - run: bun tools/kicad-drc.ts dist/index/kicad/drc.json
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: kicad-drc
+          path: dist/index/kicad/drc.json

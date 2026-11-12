@@ -1,0 +1,20 @@
+{
+  "name": "outboard",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsci build index.circuit.tsx --disable-parts-engine --svgs --pcb-png --3d-png --kicad-project --site",
+    "check": "bun check --no-script && bun test && tsci check index.circuit.tsx && bun checks/run.ts",
+    "snapshot": "bun tools/snapshot.ts",
+    "fab": "bun tools/fab.ts",
+    "lint": "oxlint && bun fmt --check",
+    "format": "oxlint --fix && bun fmt"
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.4",
+    "@types/react": "19.3.0",
+    "circuit-json": "0.0.548",
+    "oxlint": "1.93.0",
+    "tscircuit": "0.0.3161"
+  }
+}
