@@ -1,4 +1,5 @@
-// Netlist equivalence with rev D.
+// Netlist equivalence with rev D, apart from the changes listed in
+// REV_D_CHANGES.
 //
 // fixtures/rev-d-netlist.json is the netlist of the rev D KiCad schematic
 // (branch rev-d, out/netlist.net: every part with its value and LCSC number,
@@ -14,7 +15,7 @@ export interface Netlist {
   nets: string[][];
 }
 
-interface Fixture {
+export interface Fixture {
   components: Record<
     string,
     { value: string; footprint: string; lcsc: string; mpn: string }
@@ -157,6 +158,55 @@ export const compareNetlists = (
   return problems;
 };
 
+/** One pad that is on another net than in rev D, on purpose. Net names are rev D's. */
+export interface Change {
+  pad: string;
+  from: string;
+  to: string;
+}
+
+/**
+ * Every intended difference from the rev D schematic. The fixture stays what
+ * KiCad wrote; fixture + this table is what the board has to be.
+ *
+ * U7: in rev D the sense inputs were all on pins 1 to 6 and the lines to the
+ * converters on pins 13 to 20, each on the far side of the package from where
+ * it goes. The three sense lines that come from the ports move to the ADC
+ * pins of the port side (PC4 = A2, PD2 = A3, PD3 = A4), the three lines to
+ * the converters take their places, and PERST# moves from PC4 to PC3.
+ */
+export const REV_D_CHANGES: Change[] = [
+  { pad: "U7.2", from: "VBUS1_SENSE", to: "EN_12V" },
+  { pad: "U7.3", from: "CC1_SENSE", to: "SW12_ON" },
+  { pad: "U7.5", from: "CC2_SENSE", to: "EN_MCU" },
+  { pad: "U7.13", from: "EN_MCU", to: "PERST_MCU" },
+  { pad: "U7.14", from: "PERST_MCU", to: "CC2_SENSE" },
+  { pad: "U7.19", from: "EN_12V", to: "VBUS1_SENSE" },
+  { pad: "U7.20", from: "SW12_ON", to: "CC1_SENSE" },
+];
+
+/** The fixture with the changes applied. Throws when a change does not fit the fixture. */
+export const applyChanges = (fixture: Fixture, changes: Change[]): Fixture => {
+  const nets = Object.fromEntries(
+    Object.entries(fixture.nets).map(([name, pads]) => [name, [...pads]]),
+  );
+  for (const { pad, from, to } of changes) {
+    const source = nets[from];
+    const target = nets[to];
+    if (!source?.includes(pad))
+      throw new Error(`${pad} is not on ${from} in the reference`);
+    if (!target) throw new Error(`${to} is not a net of the reference`);
+    nets[from] = source.filter((q) => q !== pad);
+    target.push(pad);
+  }
+  for (const [name, pads] of Object.entries(nets))
+    if (pads.length === 0) throw new Error(`${name} is left without pads`);
+  return { ...fixture, nets };
+};
+
 export const loadFixture = async (
   path = "fixtures/rev-d-netlist.json",
-): Promise<Netlist> => fixtureNetlist((await Bun.file(path).json()) as Fixture);
+): Promise<Netlist> =>
+  fixtureNetlist(
+    applyChanges((await Bun.file(path).json()) as Fixture, REV_D_CHANGES),
+  );
