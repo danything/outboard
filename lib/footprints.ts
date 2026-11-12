@@ -353,10 +353,10 @@ export const USBC_TYPE_C_31_M_12: FootprintDef = {
     usbcPower("B1A12", 3.2),
   ],
   platedHoles: [
-    usbcShell("1", 4.33, 1.71, 1.5, 2.0),
-    usbcShell("2", 4.33, -2.47, 1.2, 1.8),
-    usbcShell("3", -4.33, -2.47, 1.2, 1.8),
-    usbcShell("4", -4.33, 1.71, 1.5, 2.0),
+    usbcShell("SH1", 4.33, 1.71, 1.5, 2.0),
+    usbcShell("SH2", 4.33, -2.47, 1.2, 1.8),
+    usbcShell("SH3", -4.33, -2.47, 1.2, 1.8),
+    usbcShell("SH4", -4.33, 1.71, 1.5, 2.0),
   ],
   holes: [
     { x: -2.9, y: 1.21, diameter: 0.6 },

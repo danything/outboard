@@ -73,17 +73,29 @@ test("KiCad DRC drops only the listed export noise", () => {
         severity: "error",
         description: "Hole clearance violation",
       },
-    ],
-    unconnected_items: [
       {
-        type: "unconnected_items",
+        type: "copper_edge_clearance",
         severity: "error",
-        description: "Missing connection",
+        description: "Board edge clearance violation",
+        items: [
+          { description: "Segment on Edge.Cuts" },
+          { description: "Pad 21 [<no net>] of J3 on F.Cu" },
+        ],
+      },
+      {
+        type: "copper_edge_clearance",
+        severity: "error",
+        description: "Board edge clearance violation",
+        items: [
+          { description: "Segment on Edge.Cuts" },
+          { description: "Pad 1 [GND] of C3 on F.Cu" },
+        ],
       },
     ],
   });
   expect(left.map((v) => v.type)).toEqual([
     "hole_clearance",
-    "unconnected_items",
+    "copper_edge_clearance",
   ]);
+  expect(left[1]?.items?.[1]?.description).toContain("C3");
 });

@@ -60,5 +60,5 @@ export const mountingHoles: [Point, Point, Point, Point] = [
   at(84, 4),
   at(84, BOARD_DEPTH - 4),
   at(4, BOARD_DEPTH - 4),
-  at(22, 4),
+  at(30, 4),
 ];
