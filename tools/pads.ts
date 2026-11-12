@@ -16,8 +16,12 @@ for (const part of parts) {
     `${part.ref} ${part.footprint} (${part.x}, ${part.y}) ${part.rotation} deg, block ${part.block}`,
   );
   const sideways = part.rotation % 180 !== 0;
+  const seen = new Map<string, number>();
   for (const p of [...def.pads, ...(def.platedHoles ?? [])]) {
-    const c = pad(part.ref, p.pin);
+    // Pads that share a name (lead and tab of U6) are told apart by their order.
+    const nth = seen.get(p.pin) ?? 0;
+    seen.set(p.pin, nth + 1);
+    const c = pad(part.ref, p.pin, nth);
     const [w, h] = "w" in p ? [p.w, p.h] : [p.padW, p.padH];
     const layer = "layer" in p && p.layer === "bottom" ? " bottom" : "";
     console.log(
