@@ -291,14 +291,19 @@ export const Mcu = () => (
     <C name="C22" value="1uF" nets={["V5", "GND"]} />
     <TestPoint name="TP4" nets={{ pin1: "V5" }} />
     <TestPoint name="TP5" nets={{ pin1: "GND" }} />
+    {/*
+      Analog inputs that come from the ports are on the ADC pins of the port
+      side (PC4 = A2, PD2 = A3, PD3 = A4); the lines to the converters are on
+      the side of the VIN band. This differs from rev D (tools/netlist.ts).
+    */}
     <CH32V003
       name="U7"
       nets={{
         PD4: "VIN_SENSE",
-        PD5: "VBUS1_SENSE",
-        PD6: "CC1_SENSE",
+        PD5: "SW12_ON",
+        PD6: "EN_MCU",
         PD7: NC,
-        PA1: "CC2_SENSE",
+        PA1: "EN_12V",
         PA2: "V12_SENSE",
         VSS: "GND",
         PD0: "LED_STAT",
@@ -306,14 +311,14 @@ export const Mcu = () => (
         PC0: "SW1_IN",
         PC1: "I2C1_SDA",
         PC2: "I2C1_SCL",
-        PC3: "EN_MCU",
-        PC4: "PERST_MCU",
+        PC3: "PERST_MCU",
+        PC4: "CC2_SENSE",
         PC5: "I2C2_SCL",
         PC6: "I2C2_SDA",
         PC7: NC,
         PD1: "SWIO",
-        PD2: "EN_12V",
-        PD3: "SW12_ON",
+        PD2: "CC1_SENSE",
+        PD3: "VBUS1_SENSE",
       }}
     />
     <Header2 name="J5" nets={{ pin1: "SWIO", pin2: "GND" }} />

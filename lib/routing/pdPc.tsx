@@ -18,16 +18,15 @@ import { type Point, Pour, Track, VIA, Via, Vias, handoff, pad } from "./kit";
 
 const EDGE_X = handoff("VBUS1", "pdPc", "usb").x;
 
-// Ends on the east edge, towards usb and mcu. Proposed to the HANDOFFS
-// (they are not in the table yet): replace with handoff() once they are.
+/** Ends on the east edge, towards usb and mcu (HANDOFFS). */
 const EDGE = {
-  USB_DN: { x: EDGE_X, y: pad("U5", 3).y },
-  USB_DP: { x: EDGE_X, y: pad("U5", 1).y },
-  J1_CC2: { x: EDGE_X, y: 24.7 },
-  J1_CC1: { x: EDGE_X, y: 25.1 },
-  SDA: { x: EDGE_X, y: pad("U1", 3).y },
-  SCL: { x: EDGE_X, y: pad("U1", 2).y },
-  VBUS_SENSE: { x: EDGE_X, y: pad("U1", 1).y },
+  USB_DN: handoff("USB_DN", "pdPc", "usb"),
+  USB_DP: handoff("USB_DP", "pdPc", "usb"),
+  J1_CC2: handoff("J1_CC2", "pdPc", "mcu"),
+  J1_CC1: handoff("J1_CC1", "pdPc", "mcu"),
+  SDA: handoff("I2C1_SDA", "pdPc", "mcu"),
+  SCL: handoff("I2C1_SCL", "pdPc", "mcu"),
+  VBUS_SENSE: handoff("VBUS1", "pdPc", "mcu"),
 };
 
 /** Where a track leaves a contact of J1: inside the pad, east of the shell legs. */
@@ -195,7 +194,7 @@ export const PdPcRouting = () => {
         net="VBUS1"
         width={0.3}
         layer="top"
-        points={[{ x: 17.0, y: EDGE.VBUS_SENSE.y }, EDGE.VBUS_SENSE]}
+        points={[{ x: 17.0, y: pad("U1", 1).y }, EDGE.VBUS_SENSE]}
       />
 
       {/* Ground of the contact row: two vias per pad, clear of the shell. */}
@@ -330,13 +329,13 @@ export const PdPcRouting = () => {
         net="I2C1_SDA"
         width={0.2}
         layer="top"
-        points={[{ x: 17.0, y: EDGE.SDA.y }, EDGE.SDA]}
+        points={[{ x: 17.0, y: pad("U1", 3).y }, EDGE.SDA]}
       />
       <Track
         net="I2C1_SCL"
         width={0.2}
         layer="top"
-        points={[{ x: 17.0, y: EDGE.SCL.y }, EDGE.SCL]}
+        points={[{ x: 17.0, y: pad("U1", 2).y }, EDGE.SCL]}
       />
       <Track
         net="CFG1_U1"

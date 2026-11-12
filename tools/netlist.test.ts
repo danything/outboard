@@ -2,6 +2,8 @@
 import { expect, test } from "bun:test";
 import {
   type Netlist,
+  REV_D_CHANGES,
+  applyChanges,
   compareNetlists,
   fixtureNetlist,
   loadFixture,
@@ -93,4 +95,37 @@ test("the rev D fixture has the expected size", async () => {
   // 56 nets and 42 pads left open.
   expect(fixture.nets.filter((n) => n.length > 1)).toHaveLength(56);
   expect(fixture.nets.filter((n) => n.length === 1)).toHaveLength(42);
+});
+
+const small = {
+  components: {},
+  nets: { A: ["R1.1", "U1.1"], B: ["R2.1", "U1.2"], C: ["U1.3"] },
+};
+
+test("a change moves one pad from a net to another", () => {
+  const changed = applyChanges(small, [
+    { pad: "U1.1", from: "A", to: "B" },
+    { pad: "U1.2", from: "B", to: "A" },
+  ]);
+  expect(changed.nets.A).toEqual(["R1.1", "U1.2"]);
+  expect(changed.nets.B).toEqual(["R2.1", "U1.1"]);
+  expect(small.nets.A).toEqual(["R1.1", "U1.1"]);
+});
+
+test("a change that does not fit the reference is an error", () => {
+  expect(() =>
+    applyChanges(small, [{ pad: "U1.1", from: "B", to: "A" }]),
+  ).toThrow();
+  expect(() =>
+    applyChanges(small, [{ pad: "U1.1", from: "A", to: "X" }]),
+  ).toThrow();
+  expect(() =>
+    applyChanges(small, [{ pad: "U1.3", from: "C", to: "A" }]),
+  ).toThrow();
+});
+
+test("the changes from rev D only swap pins of U7 between existing nets", () => {
+  expect(REV_D_CHANGES.every((c) => c.pad.startsWith("U7."))).toBe(true);
+  const count = (key: "from" | "to") => REV_D_CHANGES.map((c) => c[key]).sort();
+  expect(count("from")).toEqual(count("to"));
 });
