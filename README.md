@@ -89,6 +89,7 @@ bun run lint       # oxlint と bun fmt --check。直すときは bun run format
 
 - 版は全部固定してある (tscircuit は 0.0.x が 1 日に何度も出る)。上げるのは Renovate
 - ビルドは外の部品検索に問い合わせない (`--disable-parts-engine`)。設計を tscircuit.com に送らない
+- `tsci dev` には切る指定が無く、部品の品番を外の部品検索に問い合わせることがある (tscircuit 0.0.3161 の `<board>` にも切る指定は無い)
 - `typescript` は入れていない。型検査は `bun check`。`circuit-json` は circuit.json の型のために入れてある
 
 | 場所                          | 中身                                                                                                                                                                                                                              |

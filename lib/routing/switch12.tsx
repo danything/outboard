@@ -54,17 +54,16 @@ const Q2_D_HOP_NORTH: Point = { x: 82.75, y: 16.5 };
 const North = () => (
   <>
     {/*
-      V12_BOOST: from the boost's handoff to the source, short and 0.8 mm (the
-      pad is 0.8). It starts 0.15 mm north of the handoff point, inside the
-      boost's copper there, so that it keeps 0.15 mm from the ground pad of C19.
+      V12_BOOST: from the boost's handoff (y 21.75, clear of the ground pad of
+      C19) to the source, short and 0.8 mm (the pad is 0.8).
     */}
     <Track
       net="V12_BOOST"
       width={POWER_NARROW}
       layer="top"
       points={[
-        { x: V12_BOOST_IN.x, y: V12_BOOST_IN.y - 0.15 },
-        { x: 78.1, y: V12_BOOST_IN.y - 0.15 },
+        V12_BOOST_IN,
+        { x: 78.1, y: V12_BOOST_IN.y },
         { x: Q1.S.x, y: 21.3 },
         Q1.S,
       ]}
