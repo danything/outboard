@@ -134,9 +134,12 @@ export const toObj = (solids: Solid[]): string => {
   const lines = colors.flatMap((c, i) => [`newmtl m${i}`, `Kd ${c}`]);
   let base = 1;
   for (const s of solids) {
-    lines.push(`usemtl m${colors.indexOf(s.color.map(num).join(" "))}`);
+    const color = s.color.map(num).join(" ");
+    lines.push(`usemtl m${colors.indexOf(color)}`);
+    // The colour again on every vertex, for viewers that read colours that
+    // way (three.js's OBJLoader in the 3D tab of the site).
     for (const [x, y, z] of s.vertices)
-      lines.push(`v ${num(x)} ${num(y)} ${num(z)}`);
+      lines.push(`v ${num(x)} ${num(y)} ${num(z)} ${color}`);
     for (const f of s.faces)
       lines.push(`f ${f.map((i) => i + base).join(" ")}`);
     base += s.vertices.length;

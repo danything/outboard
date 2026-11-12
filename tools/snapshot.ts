@@ -13,7 +13,7 @@ const update = Bun.argv.includes("--update");
 
 const fail = (): never => {
   console.error(
-    "Pictures differ from __snapshots__. If the change is intended, run `bun run snapshot --update`.",
+    "Pictures differ from __snapshots__. If the change is intended (a board change, or a tscircuit update that redraws them), run `bun run snapshot --update`.",
   );
   process.exit(1);
 };

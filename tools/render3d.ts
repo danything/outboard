@@ -10,6 +10,11 @@
 // ends up small in a corner. Here the camera is aimed at the middle of what is
 // drawn and backed off until all of it fits.
 import { mkdir } from "node:fs/promises";
+// Both come with tscircuit (its CLI renders 3D with them) and are not listed
+// in package.json on purpose: listing them changes how Bun hoists the
+// packages, and tscircuit's own parts (@tscircuit/footprinter) end up at
+// other versions. They move with tscircuit, so a tscircuit update may redraw
+// the 3D pictures.
 import { convertCircuitJsonToGltf } from "circuit-json-to-gltf";
 import { renderGLTFToPNGFromGLB } from "poppygl";
 import {
