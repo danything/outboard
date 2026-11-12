@@ -10,6 +10,7 @@ export PYTHONIOENCODING=utf-8
 N="${1:-6}"
 i=1
 while [ "$i" -le "$N" ]; do
+  "$PY" scripts/gen_project.py >/dev/null || exit 1   # KiCad を開いたままだと .kicad_pro が古い設定で書き戻されることがある
   "$PY" scripts/make_board.py >/dev/null || exit 1
   "$PY" scripts/export_dsn.py >/dev/null || exit 1
   TAIL=3 sh scripts/route.sh >/dev/null 2>&1
