@@ -220,7 +220,8 @@ export const PdChargerRouting = () => (
       ]}
     />
 
-    {/* Bleeder: R30 / R41 from VBUS2, R31 / R42 to ground, the middle joined below the row. */}
+    {/* Bleeder: R30 / R41 from VBUS2, R31 / R42 to ground. Their middles (BLD2) meet on one
+        track along y 40.95, south of the row: R30 to R42, with R41 and R31 dropping onto it. */}
     <Track
       net="BLD2"
       width={0.3}

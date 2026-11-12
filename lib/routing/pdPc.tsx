@@ -85,7 +85,9 @@ const dnTail: Point[] = [
  */
 const dnPath = (): Point[] => {
   const short = length(dpPath) - length([...dnHead, ...dnTail]);
-  const h = Math.max(0, short / (2 * (Math.SQRT2 - 1)));
+  if (short < 0)
+    throw new Error(`D- is ${-short} mm longer than D+: move the bump to D+`);
+  const h = short / (2 * (Math.SQRT2 - 1));
   const x0 = 11.8;
   return [
     ...dnHead,
