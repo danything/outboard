@@ -211,3 +211,35 @@ test("edgeClearance lets J3 come to 0.2 mm, nothing else", () => {
   expect(edgeClearance([...good, ...pad("J3")])).toEqual([]);
   expect(edgeClearance([...good, ...pad("J7")])).toHaveLength(1);
 });
+
+test("a wire that ends at a via inside a route is still a track", () => {
+  const trace = track("A", 0.1, [
+    [0, -8],
+    [3, -8],
+  ])
+    .map((e) => e as unknown as Record<string, unknown>)
+    .map((e) =>
+      e.type === "pcb_trace"
+        ? {
+            ...e,
+            route: [
+              { route_type: "wire", x: 0, y: -8, width: 0.1, layer: "top" },
+              {
+                route_type: "via",
+                x: 3,
+                y: -8,
+                from_layer: "top",
+                to_layer: "bottom",
+                via_diameter: 0.6,
+                via_hole_diameter: 0.3,
+              },
+              { route_type: "wire", x: 6, y: -8, width: 0.1, layer: "bottom" },
+            ],
+          }
+        : e,
+    ) as unknown as Circuit;
+  // Both stretches are 0.1 mm wide, and the via in the route is drilled.
+  expect(trackWidth([...good.slice(0, 4), ...trace])).toHaveLength(2);
+  expect(viaSize([board(), ...trace, via("A", 9, 9, 0.6, 0.3)])).toEqual([]);
+  expect(holeSpacing([board(), ...trace, via("A", 3.6, -8)])).toHaveLength(1);
+});
