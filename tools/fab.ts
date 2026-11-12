@@ -1,12 +1,14 @@
 // Collects everything a board order needs into dist/fab:
 // Gerbers, BOM and placement list (JLCPCB column names), schematic PDF,
 // board pictures, circuit.json, and a SHA256SUMS file over all of them.
-// Run after `bun run build`.
+// Run after `bun run build`: everything is exported from the built circuit.json,
+// so the files describe exactly the board that was checked.
 import { mkdir, readdir, rm } from "node:fs/promises";
+import { resolve } from "node:path";
 import { REVISION } from "../lib/revision";
 import { CIRCUIT_JSON, type Circuit, elementsOf, loadCircuit } from "./circuit";
+import { builtPads, originOf } from "./origin";
 
-const ENTRY = "index.circuit.tsx";
 const OUT = "dist/fab";
 
 const quote = (cell: string): string =>
@@ -31,11 +33,12 @@ const exportAs = (
 ): Promise<void> =>
   run([
     "export",
-    ENTRY,
+    CIRCUIT_JSON,
     "-f",
     format,
     "-o",
-    `${OUT}/${file}`,
+    // tsci resolves a relative output path against the folder of the input file.
+    resolve(OUT, file),
     "--disable-parts-engine",
     ...extra,
   ]);
@@ -59,19 +62,29 @@ export const assembledParts = (circuit: Circuit): Part[] => {
       s,
     ]),
   );
+  const pads = builtPads(circuit);
   const parts: Part[] = [];
   for (const pcb of elementsOf(circuit, "pcb_component")) {
     const source = sources.get(pcb.source_component_id);
-    const lcsc = source?.supplier_part_numbers?.jlcpcb?.[0];
-    if (!source || !lcsc) continue;
+    if (!source) continue;
+    // The placement list gives the footprint origin, not the centre of the pad
+    // bounding box that circuit.json records. Done for every part, fitted or
+    // not, because it also checks the built pads against the land patterns.
+    const origin = originOf(
+      source.name,
+      pads.get(pcb.pcb_component_id) ?? [],
+      pcb.rotation,
+    );
+    const lcsc = source.supplier_part_numbers?.jlcpcb?.[0];
+    if (!lcsc) continue;
     parts.push({
       designator: source.name,
       comment:
         source.manufacturer_part_number ?? source.display_value ?? source.name,
-      footprint: source.ftype ?? "",
+      footprint: origin.footprint,
       lcsc,
-      x: pcb.center.x,
-      y: pcb.center.y,
+      x: origin.x,
+      y: origin.y,
       layer: pcb.layer === "bottom" ? "Bottom" : "Top",
       rotation: pcb.rotation,
     });

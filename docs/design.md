@@ -237,3 +237,24 @@ TVS は載せていない (JLCPCB の Basic に 20V 級が無い。Preferred の
 
 電源の線の幅と抵抗、USB の D+/D− の長さ、うらの面を通る線の長さは、rev D の基板がまだ無いので**未定 (段階 4 で決める)**。
 基板で守る決まりは [history.md](history.md#基板で守ること)。
+
+## コードの上のブロック
+
+回路は `lib/blocks.tsx` に、ブロックごとの部品 (React のコンポーネント) として書いてある。配置と配線をブロックごとに進めるための境界は次のとおり。
+ネットの名前は `lib/nets.ts` のもの (tscircuit の名前は `+` や数字で始められないので、+3V3 は `V3V3`、+12V は `V12`、PERST# は `PERST_N` と書く)。`GND` はどのブロックにもあるので省く。
+
+| ブロック (`lib/blocks.tsx`) | 部品                                                                                                     | 入ってくるネット                                                   | 出ていくネット                                                     | ブロックの中だけのネット                                                                     |
+| --------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| `PdPortPc`                  | J1、U1、C1・C2、R1・R3、R28・R29・R39・R40、R21・R22、C23・C24                                           | `I2C1_SCL`・`I2C1_SDA` (マイコンと)                                | `VBUS1`、`USB_DP`・`USB_DN`、`CC1_SENSE`・`CC2_SENSE`              | `J1_CC1`・`J1_CC2`、`CFG1_U1`、`BLD1`、`SHIELD1`                                             |
+| `PdPortCharger`             | J2、U2、C3、R4、R30・R31・R41・R42                                                                       | `I2C2_SCL`・`I2C2_SDA` (マイコンと)                                | `VBUS2`                                                            | `J2_CC1`・`J2_CC2`、`CFG1_U2`、`BLD2`                                                        |
+| `InputMerge`                | D1・D2、C4〜C6、TP1                                                                                      | `VBUS1`、`VBUS2`                                                   | `VIN`                                                              |                                                                                              |
+| `Buck3V3`                   | U3、L1、C8〜C15、C27・C28、R6〜R10、R38、D5、JP1・JP5、TP2、LED3                                         | `VIN`、`VBUS1` (EN の分圧)、`V5` (D5 の逃がし先)、`EN_MCU`         | `V3V3`                                                             | `SW_3V3`、`BST_3V3`、`SS_3V3`、`FB_3V3`、`EN_3V3`、`V3V3_BUCK`、`LED3_A`                     |
+| `Boost12V`                  | U4、L2、D4、C16〜C19、R11〜R13                                                                           | `VIN`、`EN_12V`                                                    | `V12_BOOST`                                                        | `SW_12V`、`FB_12V`                                                                           |
+| `Switch12V`                 | Q1〜Q4、F1、D7、R14〜R16、R18、R34〜R36、C20・C29・C30・C32、JP2・JP6、TP3                               | `V12_BOOST`、`VIN` (過電圧の検出)、`V3V3` (Q3 のゲート)、`SW12_ON` | `V12`                                                              | `Q1_G`、`Q2_G`・`Q2_D`・`Q2_S`、`OVP_Z`・`OVP_B`、`V12_SW`、`V12_F`                          |
+| `Mcu`                       | U6、U7、C7・C21・C22、C25・C26・C31・C33、R19・R20、R23〜R27、R32・R33、R37、D6、J5、JP7、LED5、TP4・TP5 | `VIN`、`VBUS1`、`V12`、`V3V3`、`CC1_SENSE`・`CC2_SENSE`            | `V5`、`EN_MCU`、`EN_12V`、`SW12_ON`、`PERST_N`、`I2C1_*`・`I2C2_*` | `VIN_SENSE`、`VBUS1_SENSE`、`V12_SENSE`、`PERST_MCU`、`SW1_IN`、`SWIO`、`LED_STAT`、`LED5_A` |
+| `UsbData`                   | J4、U5、JP3                                                                                              | `USB_DP`・`USB_DN`、`V5`                                           |                                                                    | `USBH_VBUS`                                                                                  |
+| `Slot`                      | J3、JP4                                                                                                  | `V12`、`V3V3`、`PERST_N`                                           |                                                                    | `V3V3AUX`                                                                                    |
+
+- 部品の種類 (品番・ランド・ピンの名前) は `lib/parts.tsx`。ブロックは「どのピンをどのネットへ」だけを書く。
+- つながりは、基板のパッドから起こして rev D の KiCad のネットリスト (`fixtures/rev-d-netlist.json`) と比べている (`tools/netlist.ts`)。ブロックの分け方を変えても、この比べが 0 のままなら回路は変わっていない。
+- 部品の位置は、部品の名前で `lib/placement.ts` の表を引く (`positionOf("U3")`)。座標は基板の全体の座標。
