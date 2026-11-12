@@ -35,7 +35,13 @@ export const EXCLUSIONS: Exclusion[] = [
     type: "unconnected_items",
     temporary: true,
     reason:
-      "The board is not routed yet. Remove this entry when routing lands (stage 4).",
+      "The blocks are routed one by one (docs/routing.md). Remove this entry when the last block is in (stage 4).",
+  },
+  {
+    type: "track_dangling",
+    temporary: true,
+    reason:
+      "A track that ends at a handoff point hangs until the block on the other side is routed. Remove this entry together with the one above.",
   },
 ];
 

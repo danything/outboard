@@ -15,6 +15,7 @@ import {
   boardOutline,
   mountingHoles,
 } from "./lib/geometry";
+import { Routing } from "./lib/routing";
 
 const MountingHole = ({ index }: { index: 0 | 1 | 2 | 3 }) => {
   const p = mountingHoles[index];
@@ -28,12 +29,12 @@ const MountingHole = ({ index }: { index: 0 | 1 | 2 | 3 }) => {
   );
 };
 
-// outboard rev D. The circuit is complete; parts are not placed or routed yet.
+// outboard rev D. The copper is in lib/routing, block by block (docs/routing.md).
 export default () => (
   <board
     outline={boardOutline()}
     thickness={BOARD_THICKNESS}
-    layers={2}
+    layers={4}
     routingDisabled
   >
     <MountingHole index={0} />
@@ -49,5 +50,6 @@ export default () => (
     <Mcu />
     <UsbData />
     <Slot />
+    <Routing />
   </board>
 );

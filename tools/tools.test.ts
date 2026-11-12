@@ -161,7 +161,7 @@ test("the KiCad rules carry the numbers of checks/rules.ts", async () => {
       ),
     ]),
   );
-  const r = FAB[2];
+  const r = FAB[4];
   expect(found).toEqual({
     "track width": { track_width: r.traceWidth.design },
     via: {

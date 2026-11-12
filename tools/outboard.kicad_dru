@@ -1,6 +1,6 @@
 (version 1)
 # Rules for the KiCad DRC that CI runs on the exported board (tools/kicad-drc.ts).
-# The numbers are the `design` column of checks/rules.ts (2 layers); a test in
+# The numbers are the `design` column of checks/rules.ts (4 layers); a test in
 # tools/tools.test.ts fails when the two differ. docs/checks.md says which of
 # the two checkers guards what.
 
