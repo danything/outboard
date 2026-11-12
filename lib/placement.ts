@@ -250,7 +250,8 @@ export const BLOCKS = {
     title: "PCIe slot",
     origin: J3_ORIGIN,
     rotation: 0,
-    region: [rect(38, 0, 74.5, 9.1), rect(45.2, 9.1, 74.5, 14.1)],
+    // The 3.3 V row runs on east of the front ear to the buck (x 83).
+    region: [rect(38, 0, 74.5, 9.1), rect(45.2, 9.1, 83, 14.1)],
     parts: absolute(J3_ORIGIN, {
       J3: p("PCIE_X1_STRADDLE", J3_ORIGIN.x, J3_ORIGIN.y, 0),
       // 12 V, below contacts 1 to 3.
