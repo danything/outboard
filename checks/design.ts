@@ -204,6 +204,58 @@ export const DESIGN_CHECKS: Record<string, DesignCheck> = {
       ? undefined
       : `only ${(total * 1e6).toFixed(0)} uF on the 3.3 V output`;
   },
+  // CH224A: 1 to 10 uF from each VBUS to GND (USB allows 10 uF at the port).
+  vbusCapacitance: (v) => {
+    for (const ref of ["C1", "C3"])
+      if (!within(need(v.c, ref), 1e-6, 10e-6))
+        return `${ref} puts ${(need(v.c, ref) * 1e6).toFixed(1)} uF on VBUS`;
+    return undefined;
+  },
+  // The buck wants 10 uF on its input. Its own capacitors must give 20 uF
+  // nominal, as ceramics lose about half under a 9 V bias (an estimate).
+  buckInputCapacitance: (v) => {
+    const total = ["C8", "C9", "C10"].reduce(
+      (sum, ref) => sum + need(v.c, ref),
+      0,
+    );
+    return total >= 20e-6
+      ? undefined
+      : `only ${(total * 1e6).toFixed(1)} uF at the buck input`;
+  },
+  // Over-voltage cut-off: fully off below 14 V with a transistor gain of 30,
+  // and base current to spare at 15 V. (The low end is set by the Zener alone.)
+  overVoltageWindow: (v) => {
+    const [rs, rbe] = [need(v.r, "R35"), need(v.r, "R36")];
+    const gain = 1 + rs / rbe;
+    const collector = 4.5 / need(v.r, "R34");
+    const off = 12 * 1.02 + 0.7 * gain + (collector / 30) * rs;
+    const base15 = (15 - 12.94) / rs - 0.7 / rbe;
+    if (off >= 14)
+      return `over-voltage cut-off is only sure at ${off.toFixed(1)} V`;
+    if (30 * base15 <= collector)
+      return "over-voltage cut-off has too little base current at 15 V";
+    // Q1's gate just below the cut-off stays within 80 % of its 12 V rating.
+    const vgs =
+      (off * need(v.r, "R14")) / (need(v.r, "R14") + need(v.r, "R15"));
+    return vgs < 9.6
+      ? undefined
+      : `Q1 gate would see ${vgs.toFixed(1)} V just below the cut-off`;
+  },
+  // CC can touch VBUS; the series resistors keep the ADC pin under 4 mA at 15 V across them.
+  ccSeries: (v) => {
+    for (const ref of ["R21", "R22"])
+      if (15 / need(v.r, ref) >= 4e-3)
+        return `${ref} would let ${((15 / need(v.r, ref)) * 1e3).toFixed(1)} mA into the ADC pin`;
+    return undefined;
+  },
+  // PERST# rises to 2.0 V no sooner than 100 ms after 3.3 V (PCIe T_PVPERL).
+  perstDelay: (v) => {
+    const ms =
+      -need(v.r, "R27") * need(v.c, "C31") * Math.log(1 - 2.0 / 3.3) * 1e3;
+    return ms >= 100
+      ? undefined
+      : `PERST# would rise after ${ms.toFixed(0)} ms`;
+  },
 };
 
 export const runDesignChecks = (values: Values): Finding[] =>

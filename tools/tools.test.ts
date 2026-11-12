@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import type { Circuit } from "./circuit";
 import { assembledParts, bomCsv, cplCsv } from "./fab";
+import { EDGE_EXCEPTIONS, FAB } from "../checks/rules";
 import { remaining } from "./kicad-drc";
 
 const circuit: Circuit = [
@@ -93,9 +94,40 @@ test("KiCad DRC drops only the listed export noise", () => {
       },
     ],
   });
+  // The J3 pads are let through by a rule in outboard.kicad_dru, not by an exclusion here.
   expect(left.map((v) => v.type)).toEqual([
     "hole_clearance",
     "copper_edge_clearance",
+    "copper_edge_clearance",
   ]);
-  expect(left[1]?.items?.[1]?.description).toContain("C3");
+});
+
+test("the KiCad rules carry the numbers of checks/rules.ts", async () => {
+  const dru = await Bun.file(
+    new URL("./outboard.kicad_dru", import.meta.url),
+  ).text();
+  const found = Object.fromEntries(
+    [...dru.matchAll(/\(rule "([^"]+)"[\s\S]*?(?=\n\(rule|$)/g)].map((m) => [
+      m[1],
+      Object.fromEntries(
+        [
+          ...(m[0] ?? "").matchAll(/\(constraint (\w+) \(min ([\d.]+)mm\)\)/g),
+        ].map((c) => [c[1], Number(c[2])]),
+      ),
+    ]),
+  );
+  const r = FAB[2];
+  expect(found).toEqual({
+    "track width": { track_width: r.traceWidth.design },
+    via: {
+      hole_size: r.viaHole.design,
+      via_diameter: r.viaDiameter.design,
+      annular_width: r.viaRing.design,
+    },
+    clearance: { clearance: r.clearance.design },
+    "hole to hole": { hole_to_hole: r.holeToHole.design },
+    "hole to copper": { hole_clearance: r.holeToCopper.design },
+    edge: { edge_clearance: r.edge.design },
+    "edge at J3": { edge_clearance: EDGE_EXCEPTIONS.J3 },
+  });
 });

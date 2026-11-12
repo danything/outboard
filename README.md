@@ -24,14 +24,15 @@ outboard はその電源を USB-C (PD 9V) から作り、内部 USB を USB-C �
 | 0    | リポジトリの土台と CI/CD                                    | 済み                                            |
 | 1    | フットプリント (データシートとの突き合わせ)                 | 済み ([docs/footprints.md](docs/footprints.md)) |
 | 2    | 回路 (rev D のネットリストと同じつながり方になることを検査) | 済み (食い違い 0)                               |
-| 3    | 基板の検査 (自前)                                           | 次 (骨組みだけ)                                 |
+| 3    | 基板の検査 (自前)                                           | 済み ([docs/checks.md](docs/checks.md))         |
 | 4    | 配置と配線                                                  |                                                 |
 | 5    | 製造用の出力と文書の仕上げ                                  |                                                 |
 
 **回路は入った**: 部品 111 個・ネット 56 本・未接続のパッド 42 個が、rev D (KiCad) のネットリストと完全に同じつながり方になっている (CI が毎回比べる)。
 **配置と配線はまだ**: 位置が決まっているのはコネクタ (J1〜J4) だけで、ほかの部品は重ならないように格子に並べてあるだけ (`lib/placement.ts`)。線は 1 本も引いていない。基板の大きさ (88 × 56mm) も仮。
 
-配線が入るまでのあいだ、KiCad の DRC の「未接続」は除外してある (`tools/kicad-drc.ts` の TEMPORARY の項目)。**配線を入れる PR で、この除外を消す。**
+配線が入るまでのあいだ、KiCad の DRC の「未接続」は除外してある (`tools/kicad-drc.ts` の `temporary` の項目)。**配線を入れる PR で、この除外を消す。**
+自前の検査のうち配線に頼る 11 個も、いまは「飛ばした」と出して通している。**段階 4 が済んだら飛ばしを 0 にする** (check を `bun checks/run.ts --strict` に替える。飛ばしが残ると落ちる)。
 
 KiCad の版は main から消した。タグ [`kicad-rev-c`](../../tree/kicad-rev-c) (rev C。検査 0) と
 ブランチ [`rev-d`](../../tree/rev-d) (rev D の途中。回路図とライブラリまで) に残っている。
@@ -91,8 +92,8 @@ bun run lint       # oxlint と bun fmt --check。直すときは bun run format
 | タグ `rev-*` の push ([release.yml](.github/workflows/release.yml)) | 同じ手順で作った製造用のファイルを GitHub Release に添付                                                                                                      |
 
 - **二重の検査**: tscircuit が書き出した KiCad の基板に、KiCad 10 の DRC (`--refill-zones`) をかける。
-  tscircuit の検査が見逃すもの (小さい穴、細い輪、穴と銅の重なり) を拾う。
-  書き出しのせいで出る指摘は、理由を付けて [tools/kicad-drc.ts](tools/kicad-drc.ts) で除外する。決まりは [tools/outboard.kicad_dru](tools/outboard.kicad_dru)
+  つながっていない所・短絡・面を塗り直したあとの間隔を見る。自前の検査との役割の分け方は [docs/checks.md](docs/checks.md)。
+  書き出しのせいで出る指摘は、理由を付けて [tools/kicad-drc.ts](tools/kicad-drc.ts) で除外する。決まり ([tools/outboard.kicad_dru](tools/outboard.kicad_dru)) の数字は `checks/rules.ts` と同じ
 - **成果物** (Actions の Artifacts): `fab` (ガーバーの zip・BOM・配置表・回路図の PDF・絵・circuit.json・SHA256SUMS)、`site` (ページ)、`kicad-drc` (DRC の報告)
 - **必須のチェック** (ルールセット `default`): `build / build`・`build / kicad-drc`・`claude-review`。緑になるまで main にマージできない。CI のジョブを足したり名前を変えたりしたら、ルールセットも直す: `gh api repos/danything/outboard/rulesets --jq '.[]|select(.name=="default").id'` で id を引き、`gh api -X PUT repos/danything/outboard/rulesets/<id> --input <直した JSON>`
 - **スナップショット**: 絵が 1 つでも変わると CI が落ちる。Renovate の PR は、絵が変わらないときだけ自分でマージされる
@@ -111,6 +112,7 @@ bun run lint       # oxlint と bun fmt --check。直すときは bun run format
 | [docs/manufacturing.md](docs/manufacturing.md) | JLCPCB への出し方、見積もり                                        |
 | [docs/bringup.md](docs/bringup.md)             | 試作で最初に測ること、試験の一覧                                   |
 | [docs/history.md](docs/history.md)             | rev A〜C のレビューで決めたこと (いまの設計の理由)                 |
+| [docs/checks.md](docs/checks.md)               | 基板の検査の一覧、自前の検査と KiCad の DRC の役割の分け方         |
 
 ## ライセンス
 

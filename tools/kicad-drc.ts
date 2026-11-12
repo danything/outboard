@@ -1,8 +1,8 @@
 // Reads the JSON report of `kicad-cli pcb drc` run on the KiCad board that
 // tscircuit exported, drops the findings that come from the export itself
 // (each with its reason below), and fails on anything left.
-// This is the second opinion on the layout: KiCad catches hole sizes, annular
-// rings and hole-to-copper overlaps that tscircuit's own checks let through.
+// This is the second opinion on the layout. What it guards and what the
+// checks in checks/ guard is laid out in docs/checks.md.
 
 export interface Violation {
   type: string;
@@ -21,6 +21,8 @@ interface Exclusion {
   /** When set, only violations with an item whose description matches are dropped. */
   item?: RegExp;
   reason: string;
+  /** Must be gone before a board is ordered; printed on every run. */
+  temporary?: boolean;
 }
 
 export const EXCLUSIONS: Exclusion[] = [
@@ -30,15 +32,10 @@ export const EXCLUSIONS: Exclusion[] = [
       "The exported board names a footprint library 'tscircuit' that is not a KiCad library; the footprints are embedded in the board.",
   },
   {
-    type: "copper_edge_clearance",
-    item: /^Pad \d+ \[[^\]]*\] of J3 /,
-    reason:
-      "The connector maker's land pattern puts contacts 11 and 12 of the PCIe slot 0.2 mm from the key notch.",
-  },
-  {
     type: "unconnected_items",
+    temporary: true,
     reason:
-      "TEMPORARY: the board is not routed yet. Remove this entry when routing lands (stage 4).",
+      "The board is not routed yet. Remove this entry when routing lands (stage 4).",
   },
 ];
 
@@ -70,6 +67,8 @@ if (import.meta.main) {
       `[${v.type}] ${v.severity}: ${v.description}${where ? ` -- ${where}` : ""}`,
     );
   }
+  for (const x of EXCLUSIONS.filter((e) => e.temporary))
+    console.log(`[temporary exclusion] ${x.type}: ${x.reason}`);
   console.log(
     `KiCad DRC: ${total} reported, ${total - left.length} excluded, ${left.length} left`,
   );

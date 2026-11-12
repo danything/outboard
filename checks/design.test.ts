@@ -10,6 +10,10 @@ const uF = 1e-6;
 /** The values of rev D. */
 const design = (): Values => ({
   r: {
+    R21: 100 * k,
+    R22: 100 * k,
+    R27: 15 * k,
+    R34: 10 * k,
     R1: 6.8 * k,
     R4: 6.8 * k,
     R6: 47 * k,
@@ -39,6 +43,17 @@ const design = (): Values => ({
     R42: 1 * k,
   },
   c: {
+    C1: 1 * uF,
+    C3: 1 * uF,
+    C4: 22 * uF,
+    C5: 22 * uF,
+    C6: 10 * uF,
+    C8: 10 * uF,
+    C9: 10 * uF,
+    C10: 100 * nF,
+    C16: 22 * uF,
+    C17: 100 * nF,
+    C31: 10 * uF,
     C12: 100 * nF,
     C13: 22 * uF,
     C14: 22 * uF,
@@ -95,6 +110,13 @@ const broken: [
   ["senseDividers", "r", "R33", 47 * k],
   ["capacitorRatings", "cVolts", "C29", 16],
   ["buckOutputCapacitance", "c", "C27", 10 * uF],
+  ["vbusCapacitance", "c", "C3", 22 * uF],
+  ["buckInputCapacitance", "c", "C8", 4.7 * uF],
+  ["overVoltageWindow", "r", "R34", 100],
+  ["overVoltageWindow", "r", "R35", 33 * k],
+  ["overVoltageWindow", "r", "R15", 10 * k],
+  ["ccSeries", "r", "R22", 1 * k],
+  ["perstDelay", "c", "C31", 1 * uF],
 ];
 
 test.each(broken)("%s fails with %s.%s = %d", (check, table, ref, value) => {
