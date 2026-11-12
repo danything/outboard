@@ -1,4 +1,15 @@
 import {
+  Boost12V,
+  Buck3V3,
+  InputMerge,
+  Mcu,
+  PdPortCharger,
+  PdPortPc,
+  Slot,
+  Switch12V,
+  UsbData,
+} from "./lib/blocks";
+import {
   BOARD_THICKNESS,
   MOUNTING_HOLE_DIAMETER,
   boardOutline,
@@ -17,7 +28,7 @@ const MountingHole = ({ index }: { index: 0 | 1 | 2 | 3 }) => {
   );
 };
 
-// outboard rev D. Stage 0: outline and mounting holes only.
+// outboard rev D. The circuit is complete; parts are not placed or routed yet.
 export default () => (
   <board
     outline={boardOutline()}
@@ -29,5 +40,14 @@ export default () => (
     <MountingHole index={1} />
     <MountingHole index={2} />
     <MountingHole index={3} />
+    <PdPortPc />
+    <PdPortCharger />
+    <InputMerge />
+    <Buck3V3 />
+    <Boost12V />
+    <Switch12V />
+    <Mcu />
+    <UsbData />
+    <Slot />
   </board>
 );
