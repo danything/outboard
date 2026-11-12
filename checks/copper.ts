@@ -445,7 +445,8 @@ export const copperOf = (circuit: Circuit): Copper => {
       `(trace ${str(t.pcb_trace_id)})`;
     for (let i = 0; i < route.length; i++) {
       const p = route[i] as Raw;
-      if (p.route_type === "via") {
+      const q = route[i + 1];
+      if (p.route_type === "via")
         routeVias.push({
           net,
           x: num(p.x),
@@ -453,18 +454,29 @@ export const copperOf = (circuit: Circuit): Copper => {
           outer: num(p.via_diameter, NaN),
           hole: num(p.via_hole_diameter, NaN),
         });
+      if (!q) continue;
+      // A wire point next to a via is joined to it on the wire's own layer.
+      const wire = p.route_type === "wire" ? p : q;
+      if (wire.route_type !== "wire") continue;
+      if (
+        p.route_type === "wire" &&
+        q.route_type === "wire" &&
+        q.layer !== p.layer
+      )
         continue;
-      }
-      const q = route[i + 1];
-      if (!q || q.route_type !== "wire" || q.layer !== p.layer) continue;
       const a = { x: num(p.x), y: num(p.y) };
       const b = { x: num(q.x), y: num(q.y) };
+      if (
+        distance(a, b) === 0 &&
+        (p.route_type === "via" || q.route_type === "via")
+      )
+        continue;
       segments.push({
         net,
-        layer: str(p.layer),
+        layer: str(wire.layer),
         a,
         b,
-        width: Math.min(num(p.width), num(q.width)),
+        width: Math.min(num(p.width, Infinity), num(q.width, Infinity)),
       });
     }
   }
