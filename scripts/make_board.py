@@ -33,8 +33,8 @@ import pcbnew
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from board_lib import B, F, ROOT, Board, rect  # noqa: E402
 
-W, H, R = 100.0, 44.0, 2.0
-STEP_X, STEP_Y = 1.5, 10.0      # ブラケットをよける段: y < STEP_Y では左の辺が x = STEP_X
+W, H, R = 100.0, 60.0, 2.0
+STEP_X, STEP_Y = 1.5, 11.5      # ブラケットをよける段: y < STEP_Y では左の辺が x = STEP_X
 
 # --- 機構の寸法 (build/REVD_BRIEF.md) -------------------------------------------
 JX = 4.08                       # USB-C の原点の x。基板の端は原点から 4.08mm、口の面は 5.07mm
@@ -66,15 +66,20 @@ D1Y, D2Y = 12.0, 32.8
 BAND_W, BAND_E = 37.8, 46.0     # VIN の帯 (D1・D2 のカソードが乗る) の左と右
 CHAN = 42.0                     # U1 の右では帯の左の辺をここまで下げ、うらへ降りるビアの通り道にする
 YT = 8.0                        # +3V3 の幹の y (スロットのパッドのすぐ下を左へ戻る)
-U3X, U3Y = 64.5, 15.8           # 降圧 IC (入力が左、出力が右)
-U4X, U4Y = 82.0, 31.65          # 昇圧 IC (入力が左下、出力が右上)
-U7X, U7Y = 64.2, 33.4           # マイコン
-ROW = 25.3                      # 12V の戻りの列 (Q1 -> F1 -> JP2/JP6 -> 左へ)
+U3X, U3Y = 78.0, 17.0           # 降圧 IC (入力が右、出力が左 = スロットの 3.3V のパッドの側)
+U4X, U4Y = 76.0, 41.0           # 昇圧 IC (入力が左下、出力が右上)
+U7X, U7Y = 60.0, 36.0           # マイコン
+Q1X, Q1Y = 85.5, 31.15          # 12V の出力スイッチ (列の下、昇圧の右上)
+ROW = 25.3                      # 12V の戻りの列 (Q1 -> F1 -> JP2/JP6 -> 左へ)。降圧のすぐ下
 X12 = 48.0                      # 12V が上がる x (帯のすぐ右)
-YV12 = 16.9                     # 12V がうらへ降りるビアの y (VIN の幹のすぐ下)
-RUNS = dict(EN=50.4, P5=50.4, CC1S=51.1, EN_S=51.8, V33=52.6, PERST=53.4)   # うらを縦に通る線の x
-STRIP = (40.0, 41.6)            # VIN を昇圧へ運ぶ下の帯の y
-BUCK = dict(k=2, old=(47.0, 9.0), new=(U3X, U3Y))        # rev B の降圧のまわりを 180 度回す
+LAND_X = 47.0                   # 帯をうらでくぐった線がおもてへ上がるビアの列 (12V の上がりの線のすぐ下)
+RISER = (95.2, 98.8)            # VIN が右の辺を上がる帯の x
+STRIP = (52.0, 55.4)            # VIN を昇圧と右の辺へ運ぶ下の帯の y
+STRIP_E = 91.4                  # 下の帯の右の端 (取り付け穴 H4 をよける)
+TRUNK_X = 55.7                  # +3V3 の幹の縦の部分の x (幅 2.0)
+PVX, PVY = 52.3, 17.5           # PERST# がうらから上がるビア (遅延の部品の真ん中)
+EN_LAND = (49.4, 23.0)           # EN_3V3 が帯をくぐって上がるビア (列の北)
+BUCK = dict(k=0, old=(47.0, 9.0), new=(U3X, U3Y))        # rev B の降圧のまわりをそのままの向きで
 BOOST = dict(k=2, old=(33.5, 40.65), new=(U4X, U4Y))     # rev B の昇圧のまわりを 180 度回す
 USB1 = dict(k=2, old=(85.92, 13.5), new=(JX, J1Y))       # rev B の USB-C ① のまわりを 180 度回す
 USB2 = dict(k=2, old=(85.92, 32.9), new=(JX, J2Y))
@@ -102,7 +107,7 @@ def outline(bd: Board):
 
 # 取り付け穴 (M3、穴 3.2mm)。H3 は後ろの遠い角が USB-C でふさがるので、2 つの USB-C の間
 HOLES = (("H1", STEP_X + 3.5, 3.5), ("H2", W - 3.5, 3.5), ("H3", 3.5, (J1Y + J2Y) / 2), ("H4", W - 3.5, H - 3.5))
-LEDS = (("LED3", 91.5), ("LED5", 63.8))     # 下の長い辺 (カードと反対の辺) の LED の x
+LEDS = (("LED3", 88.6), ("LED5", 65.4))     # 下の長い辺 (カードと反対の辺) の LED の x
 LED_Y = H - 1.0
 
 
@@ -174,26 +179,27 @@ def build() -> Board:
         bd.place("R6", 49.2, 12.9, pin1="E")
         bd.place("C13", 33.3, 5.2, pin1="S")
         bd.place("C14", 30.9, 5.2, pin1="S")
-    bd.place("JP5", U3X + 19.0, U3Y + 2.8, pin1="W")     # 閉じたはんだジャンパー (3.3V の 3A が通る)
-    bd.place("JP1", U3X + 19.0, U3Y - 0.5, pin1="W")     # JP5 に並列のヘッダ (電流を測るとき用。載せない)
-    bd.place("R9", 54.4, 11.9, pin1="S")      # EN の分圧の下
-    bd.place("C15", 56.9, 11.9, pin1="S")     # EN のコンデンサ
-    bd.place("C27", 59.6, 11.0, pin1="N")     # 3.3V の出口のコンデンサ (幹のすぐ下・すぐ上)
-    bd.place("C28", 61.5, 6.1, pin1="W")
-    bd.place("TP2", 78.0, YT)
+    c14 = bd.G("C14", "1")
+    bd.place("JP5", c14[0] - 4.0, c14[1], pin1="E")      # 閉じたはんだジャンパー (3.3V の 3A が通る)。右が降圧、左がスロット
+    bd.place("JP1", c14[0] - 3.4, c14[1] + 3.45, pin1="E")   # JP5 に並列のヘッダ (電流を測るとき用。載せない)
+    bd.place("R9", 84.0, 20.6, pin1="W")      # EN の分圧の下 (降圧の右下)
+    bd.place("C15", 84.0, 22.4, pin1="W")     # EN のコンデンサ
+    bd.place("C27", 53.6, 11.0, pin1="N")     # 3.3V の出口のコンデンサ (幹のすぐ下)
+    bd.place("C28", 51.2, 10.75, pin1="N")
+    bd.place("TP2", TRUNK_X, 11.6)            # 幹の上
     bd.place("JP4", SLOT[0] - 0.5, 6.9, pin1="S")        # B10 (+3V3AUX) のすぐ下。下のパッドは幹の上
 
     # ---- 5V の LDO (VIN の幹のすぐ下) ------------------------------------------
-    bd.place("U6", 51.9, 19.9, 270)           # 上が 2 VIN (タブ)、左下が 1 GND、右下が 3 VOUT
-    bd.place("C6", 55.6, 18.2, pin1="N")
-    bd.place("C7", 56.6, 21.7, pin1="W")
+    bd.place("U6", 55.0, 49.0, 90)            # 下が 2 VIN (タブ。下の帯のすぐ上)
+    bd.place("C6", 58.0, 50.3, pin1="S")
+    bd.place("C7", 52.2, 47.6, pin1="E")
 
     # ---- 12V: スロットのそば・戻りの列 ------------------------------------------
     bd.place("C29", 48.8, 11.4, pin1="N")
     bd.place("C30", 46.75, 10.9, pin1="N")
     bd.place("TP3", X12, 22.6)
     bd.place("R18", 46.75, 18.5, pin1="N")
-    bd.place("R32", 48.9, 26.65, pin1="N")     # +12V を読む分圧の上の抵抗
+    bd.place("R32", 50.6, 26.65, pin1="N")     # +12V を読む分圧の上の抵抗
     bd.place("JP6", 52.9, ROW, pin1="E")      # 右が +12V_F、左が +12V
     bd.place("JP2", 58.5, ROW, pin1="E")      # JP6 に並列のヘッダ (載せない)
     bd.place("F1", 64.0, ROW, pin1="E")
@@ -209,14 +215,14 @@ def build() -> Board:
         bd.place("C19", 24.2, 41.9, pin1="E")
         bd.place("R12", 33.4, 43.87, pin1="W")
         bd.place("R11", 30.2, 43.87, pin1="W")
-    bd.place("R13", U4X - 4.0, 28.6, pin1="E")
-    bd.place("Q1", 91.5, 21.8, 0)             # 左が 3 D、右上が 2 S、右下が 1 G
-    bd.place("R14", 94.3, 21.6, pin1="S")
-    bd.place("C20", 96.1, 21.55, pin1="S")
-    bd.place("C32", 90.9, 24.42, pin1="E")
-    bd.place("R15", 94.3, 25.0, pin1="N")
-    bd.place("Q3", 97.0, 25.3, 0)             # 左が 3 D、右上が 2 S、右下が 1 G
-    bd.place("Q2", 97.0, 29.2, 0)
+    bd.place("R13", U4X - 4.0, U4Y - 3.05, pin1="E")
+    bd.place("Q1", Q1X, Q1Y, 0)             # 左が 3 D、右上が 2 S、右下が 1 G
+    bd.place("R14", Q1X + 2.8, Q1Y - 0.2, pin1="S")
+    bd.place("C20", Q1X + 4.6, Q1Y - 0.25, pin1="S")
+    bd.place("C32", Q1X - 0.6, Q1Y + 2.62, pin1="E")
+    bd.place("R15", Q1X + 2.8, Q1Y + 3.2, pin1="N")
+    bd.place("Q3", Q1X + 5.5, Q1Y + 3.5, 0)             # 左が 3 D、右上が 2 S、右下が 1 G
+    bd.place("Q2", Q1X + 5.5, Q1Y + 7.4, 0)
 
     # ---- マイコン -----------------------------------------------------------
     with bd.frame(**MCU):
@@ -225,28 +231,29 @@ def build() -> Board:
         bd.place("C22", 51.3, 34.5, pin1="W")
     # ADC の入力のコンデンサはマイコンの左に縦に並べる (右が信号、左が GND)
     for i, ref in enumerate(("C25", "C26", "C23", "C24", "C33")):
-        bd.place(ref, U7X - 5.55, 30.4 + 1.9 * i, pin1="E")
-    bd.place("R25", 47.0, 32.3, pin1="N")     # VBUS1 を読む分圧 (帯のすぐ右に縦に)
-    bd.place("R26", 47.0, 35.6, pin1="N")
-    bd.place("R23", 49.6, 38.7, pin1="S")     # VIN を読む分圧 (上の抵抗は下の帯から)
-    bd.place("R24", 51.4, 38.3, pin1="S")
-    bd.place("R27", 53.3, 31.6, pin1="N")     # PERST# の遅延
-    bd.place("D6", 55.3, 31.6, pin1="N")      # カソード (パッド 1、帯) が上 = +3V3
-    bd.place("C31", 54.3, 35.6, pin1="E")
-    bd.place("R37", 54.6, 37.7, pin1="W")
-    bd.place("R38", 50.9, 31.5, pin1="S")
-    bd.place("R34", U7X + 5.4, 28.6, pin1="W")
-    bd.place("R16", U7X + 8.8, 28.6, pin1="W")
-    bd.place("D5", U7X + 4.9, 32.0, pin1="N")      # カソード (パッド 1、帯) が上 = +5V
-    bd.place("R19", U7X + 7.0, 31.0, pin1="N")
-    bd.place("JP7", U7X + 9.2, 31.2, pin1="S")     # 12V の強制オン (はんだでつなぐ)
-    bd.place("TP4", U7X + 5.7, 36.2)
-    bd.place("J5", U7X + 9.2, 36.6, pin1="N")
-    bd.place("R33", U7X - 2.0, 39.0, pin1="W")
+        bd.place(ref, U7X - 5.55, U7Y - 3.0 + 1.9 * i, pin1="E")
+    bd.place("R25", 49.8, 29.8, pin1="W")     # VBUS1 を読む分圧 (帯をくぐって上がったビアのすぐ右)
+    bd.place("R26", 52.6, 29.8, pin1="W")
+    bd.place("R23", 48.0, 50.4, pin1="S")     # VIN を読む分圧 (上の抵抗は下の帯から)
+    bd.place("R24", 49.8, 50.0, pin1="S")
+    # PERST# の遅延。スロットのすぐ下 (+3V3 の幹の左) に置く。PERST# はうらのパッド A11 から来る
+    bd.place("R27", PVX - 1.0, PVY - 2.3, pin1="N")
+    bd.place("D6", PVX + 1.0, PVY - 2.3, pin1="N")       # カソード (パッド 1、帯) が上 = +3V3
+    bd.place("C31", PVX, PVY + 1.7, pin1="E")
+    bd.place("R37", PVX + 0.3, PVY + 3.8, pin1="W")
+    bd.place("R38", U7X + 4.6, U7Y - 7.6, pin1="W")
+    bd.place("R34", U7X + 5.4, U7Y - 4.8, pin1="W")
+    bd.place("R16", U7X + 8.8, U7Y - 4.8, pin1="W")
+    bd.place("D5", U7X + 11.0, U7Y - 6.9, pin1="S")     # アノード (EN_3V3) が上、カソード (パッド 1、帯) が下 = +5V
+    bd.place("R19", U7X + 7.0, U7Y - 2.4, pin1="N")
+    bd.place("JP7", U7X + 9.2, U7Y - 2.2, pin1="S")     # 12V の強制オン (はんだでつなぐ)
+    bd.place("TP4", U7X + 5.7, U7Y + 2.8)
+    bd.place("J5", U7X + 9.2, U7Y + 3.2, pin1="N")
+    bd.place("R33", U7X - 2.0, U7Y + 5.6, pin1="W")
     bd.place("TP5", 86.5, 4.5)
     # LED (下の長い辺。辺から 1mm 以内)。直列の抵抗はすぐ左
-    bd.place("R10", W - 4.5, 35.6, pin1="E")         # LED3 (3.3V) の直列抵抗。+3V3 は Q3 のゲートの線から
-    bd.place("R20", 60.5, LED_Y + 0.1, pin1="W")
+    bd.place("R10", Q1X + 4.5, Q1Y + 14.05, pin1="E")    # LED3 (3.3V) の直列抵抗。+3V3 は Q3 のゲートの線から
+    bd.place("R20", LEDS[1][1] - 3.3, LED_Y + 0.1, pin1="W")
     for ref, x in LEDS:
         bd.place(ref, x, LED_Y, pin1="W")
     return bd
@@ -285,20 +292,31 @@ def route(bd: Board):
     # U5 から J4 へ: D- は上の列のすぐ上を、D+ は 2 列の間を通り、3 番・5 番のピンへ。長さは D+ の寄り道でそろえる
     io1, io2 = bd.G("U5", "1"), bd.G("U5", "3")          # D+ (下)、D- (上)
     j5, j3 = bd.G("J4", "5"), bd.G("J4", "3")
-    yl_n, yl_p = j3[1] - 1.25, j5[1] + 1.27
-    dn_c = [io2, (io2[0] + 0.65, io2[1]), (io2[0] + 0.95, yl_n), (j3[0] - 0.25, yl_n), (j3[0], yl_n + 0.25), j3]
-    T("USB_DN", w0, dn_c)
+    # rev D: 2 本を並べて (間 0.2mm) 奇数の列のすぐ上を通し、D+ は 5 番へ、D- はその先の 3 番へ上から降りる。
+    # 並んでいないのは最後の 2.54mm (ピンの間隔) だけ。長さは、足りない側の出だしの寄り道でそろえる
+    yl_p, yl_n = j5[1] - 1.2, j5[1] - 1.6
+    xr_ = io1[0] + 1.0                                   # D+ が上の段へ上がる x (U5 のパッドと J4 の 9 番の間)
+
+    def dn_tail(d):
+        return [io2, (io2[0] + 0.65, io2[1]), (io2[0] + 0.65 + d, io2[1] - d), (io2[0] + 0.65 + 2 * d, io2[1]),
+                (io2[0] + 1.25 + 2 * d, yl_n), (j3[0] - 0.25, yl_n), (j3[0], yl_n + 0.25), j3]
 
     def dp_tail(d):
-        return [io1, (io1[0] + 0.6, io1[1]), (io1[0] + 1.05, io1[1] + d), (io1[0] + 1.7, yl_p), (j5[0], yl_p), j5]
-    lo, hi = 0.0, 2.4
+        return [io1, (xr_ - 0.3, io1[1]), (xr_ - 0.3 + d, io1[1] + d), (xr_ + d, io1[1] + d), (xr_ + d, io1[1] - 0.3),
+                (xr_, io1[1] - 0.3 - d), (xr_, yl_p + 0.8), (xr_ + 0.8, yl_p), (j5[0] - 0.25, yl_p), (j5[0], yl_p + 0.25), j5]
+    short_p = len_p + plen(dp_tail(0)) < len_n + plen(dn_tail(0))
+    lo, hi = 0.0, 0.6
     for _ in range(40):                                  # 寄り道の深さを二分法で決める
         mid = (lo + hi) / 2
-        if len_p + plen(dp_tail(mid)) < len_n + plen(dn_c):
+        dp_, dn_ = (dp_tail(mid), dn_tail(0)) if short_p else (dp_tail(0), dn_tail(mid))
+        if (len_p + plen(dp_) < len_n + plen(dn_)) == short_p:
             lo = mid
         else:
             hi = mid
-    T("USB_DP", w0, dp_tail(lo))
+    T("USB_DP", w0, dp_tail(lo if short_p else 0))
+    T("USB_DN", w0, dn_tail(0 if short_p else lo))
+    print("USB tail: D+ %.2f D- %.2f detour %.2f on %s" % (len_p + plen(dp_tail(lo if short_p else 0)),
+                                                         len_n + plen(dn_tail(0 if short_p else lo)), lo, "D+" if short_p else "D-"))
     # J4 の電源と GND。7・8 番 (GND) はスルーホールなので、うらのベタにそのままつながる
     j41, j42 = bd.G("J4", "1"), bd.G("J4", "2")
     T("USBH_VBUS", 0.5, [j41, j42])
@@ -330,37 +348,42 @@ def route(bd: Board):
     ycs = r21b[1] + 0.5
     T("CC1_SENSE", 0.2, [r21b, (xv2 - 0.5, r21b[1]), (xv2, ycs)])
     bd.via("CC1_SENSE", xv2, ycs)
-    T("CC1_SENSE", 0.25, [(xv2, ycs), (xv2 + 0.6, ycs), (xv2 + 0.9, ycs + 0.3), (RUNS["CC1S"], ycs + 0.3),
-                          (RUNS["CC1S"], 29.3)], layer=B)
-    bd.via("CC1_SENSE", RUNS["CC1S"], 29.3)
+    # うらでは、北の線ほど東の縦の列を通り、LAND_X の縦のビアの列 (12V の上がりの線の終わりのすぐ下) でおもてへ戻る。
+    # EN だけは列の北 (降圧の側) へ上がる
+    LY = dict(CC1=26.4, P5=27.25, SDA=28.1, SCL=28.95, VB=29.8, CC2=30.65)
+    T("CC1_SENSE", 0.25, [(xv2, ycs), (xv2 + 0.6, ycs), (xv2 + 0.9, ycs + 0.3), (46.2, ycs + 0.3 + 46.2 - xv2 - 0.9),
+                          (46.2, LY["CC1"] - 0.3), (46.5, LY["CC1"]), (LAND_X, LY["CC1"])], layer=B)
+    bd.via("CC1_SENSE", LAND_X, LY["CC1"])
     T("EN_3V3", 0.2, [r8b, (r8b[0] + 0.55, r8b[1] + 0.55), (xv1, r8b[1] + 0.55)])
     yen = r8b[1] + 0.55
     bd.via("EN_3V3", xv1, yen)
-    T("EN_3V3", 0.25, [(xv1, yen), (xv1 + 0.6, yen), (xv1 + 0.9, yen + 0.3), (RUNS["EN_S"], yen + 0.3), (RUNS["EN_S"], 27.9)],
-      layer=B)
-    bd.via("EN_3V3", RUNS["EN_S"], 27.9)
-    T("EN_3V3", 0.25, [(RUNS["EN"], yen + 0.3), (RUNS["EN"], 13.2)], layer=B)     # 降圧の EN へ (VIN の幹をくぐる)
-    bd.via("EN_3V3", RUNS["EN"], 13.2)
+    T("EN_3V3", 0.25, [(xv1, yen), (xv1 + 0.6, yen), (xv1 + 0.9, yen + 0.3), (EN_LAND[0] - (EN_LAND[1] - yen - 0.3), yen + 0.3),
+                       EN_LAND], layer=B)
+    bd.via("EN_3V3", *EN_LAND)
     jp3 = P("JP3", "1")
     T("+5V", 0.4, [jp3, (xv1, jp3[1])])
     bd.via("+5V", xv1, jp3[1])
-    T("+5V", 0.4, [(xv1, jp3[1]), (xv1 + 0.6, jp3[1]), (xv1 + 1.8, jp3[1] + 1.2), (RUNS["P5"], jp3[1] + 1.2),
-                   (RUNS["P5"], 27.9)], layer=B)
-    bd.via("+5V", RUNS["P5"], 27.9)
-    bd.via("+5V", 49.3, jp3[1] + 1.2)                 # LDO の出口の側
-    # U1 の右の列: I2C1 と VHV (VBUS1)。ビアから斜めに降りて、帯の右のビア (x = 47) まで
-    for net, pin, ye, xe in (("I2C1_SDA", "3", 27.9, 47.0), ("I2C1_SCL", "2", 28.8, 48.2), ("VBUS1", "1", 29.7, 47.0)):
+    T("+5V", 0.4, [(xv1, jp3[1]), (xv1 + 0.6, jp3[1]), (45.5, jp3[1] + 45.5 - xv1 - 0.6), (45.5, LY["P5"] - 0.3),
+                   (45.8, LY["P5"]), (LAND_X, LY["P5"])], layer=B)
+    bd.via("+5V", LAND_X, LY["P5"])
+    # U1 の右の列: I2C1 と VHV (VBUS1)。ビアから斜めに降りる
+    for net, pin, ye in (("I2C1_SDA", "3", LY["SDA"]), ("I2C1_SCL", "2", LY["SCL"]), ("VBUS1", "1", LY["VB"])):
         p = u1[pin]
         T(net, 0.25 if net != "VBUS1" else 0.4, [p, (xv1, p[1])])
         bd.via(net, xv1, p[1])
-        T(net, 0.25 if net != "VBUS1" else 0.3, [(xv1, p[1]), (xv1 + 0.6, p[1]), (xv1 + 0.6 + ye - p[1], ye), (xe, ye)], layer=B)
-        bd.via(net, xe, ye)
+        T(net, 0.25 if net != "VBUS1" else 0.3, [(xv1, p[1]), (xv1 + 0.6, p[1]), (xv1 + 0.6 + ye - p[1], ye), (LAND_X, ye)], layer=B)
+        bd.via(net, LAND_X, ye)
     vc = (r22b[0] + 1.2, r22b[1] + 0.15)
     T("CC2_SENSE", 0.2, [r22b, vc])
     bd.via("CC2_SENSE", *vc)
     yc = u1["1"][1] + 1.0
-    T("CC2_SENSE", 0.25, [vc, (vc[0] + yc - vc[1], yc), (xv1 + 0.6, yc), (xv1 + 0.6 + 30.6 - yc, 30.6), (48.2, 30.6)], layer=B)
-    bd.via("CC2_SENSE", 48.2, 30.6)
+    T("CC2_SENSE", 0.25, [vc, (vc[0] + yc - vc[1], yc), (xv1 + 0.6, yc), (xv1 + 0.6 + LY["CC2"] - yc, LY["CC2"]), (LAND_X, LY["CC2"])],
+      layer=B)
+    bd.via("CC2_SENSE", LAND_X, LY["CC2"])
+    T("VBUS1", 0.3, [(LAND_X, LY["VB"]), P("R25", "1")])
+    T("VBUS1_SENSE", 0.25, [P("R25", "2"), P("R26", "1")])
+    g = P("R26", "2")
+    bd.gnd_via(g[0] + 1.15, g[1], frm=g)
     # U1 のまわり
     T("CFG1_U1", 0.2, [u1["9"], (u1["9"][0] + 1.1, u1["9"][1]), (u1["9"][0] + 1.35, u1["9"][1] + 0.25),
                        (u1["9"][0] + 1.35, P("R1", "1")[1] - 0.5), P("R1", "1")])
@@ -480,7 +503,10 @@ def route(bd: Board):
     # ======== VIN の帯と、D1・D2 のカソード ====================================
     for i, r_ in enumerate((rect(BAND_W, 0.5, BAND_E - 0.6, 15.6), rect(BAND_E - 0.8, 6.2, BAND_E, 15.6),
                             rect(CHAN, 15.4, BAND_E, 30.4), rect(BAND_W, 30.2, BAND_E, STRIP[1]),
-                            rect(BAND_E - 0.2, STRIP[0], U4X - 2.0, STRIP[1]), rect(U4X - 5.4, 34.2, U4X - 2.0, STRIP[0] + 0.2))):
+                            rect(BAND_E - 0.2, STRIP[0], STRIP_E, STRIP[1]), rect(U4X - 5.4, U4Y + 2.55, U4X - 2.0, STRIP[0] + 0.2),
+                            # 右の辺を上がって降圧の入口へ (取り付け穴 H4 をよけて、角を内側に取る)
+                            rect(STRIP_E - 3.4, 49.0, STRIP_E, STRIP[1]), rect(STRIP_E - 3.4, 49.0, RISER[1], 52.6),
+                            rect(RISER[0], 16.6, RISER[1], 52.6))):
         bd.zone("VIN", F, r_, clearance=0.2, thermal=False, name="VIN-top-%d" % (i + 1), priority=2 + i)
     bd.zone("VIN", B, rect(BAND_W, 6.0, BAND_E, 17.2), clearance=0.3, thermal=False, name="VIN-bottom-D1")
     bd.zone("VIN", B, rect(BAND_W, 31.05, BAND_E, 39.0), clearance=0.3, thermal=False, name="VIN-bottom-D2")
@@ -496,8 +522,6 @@ def route(bd: Board):
     r23 = P("R23", "1")
     T("VIN", 0.4, [r23, (r23[0], STRIP[0] + 0.3)])
     T("VIN_SENSE", 0.25, [P("R23", "2"), (P("R23", "2")[0] + 0.9, P("R23", "2")[1]), (P("R23", "2")[0] + 0.9, P("R24", "1")[1]), P("R24", "1")])
-    T("VBUS1", 0.3, [(47.0, 29.7), P("R25", "1")])
-    T("VBUS1_SENSE", 0.25, [P("R25", "2"), P("R26", "1")])
 
     # ======== 3.3V の降圧 (rev B の形のまま) ==================================
     with bd.frame(**BUCK):
