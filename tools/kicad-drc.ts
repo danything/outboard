@@ -3,7 +3,6 @@
 // (each with its reason below), and fails on anything left.
 // This is the second opinion on the layout. What it guards and what the
 // checks in checks/ guard is laid out in docs/checks.md.
-import { BLOCKS, HANDOFFS } from "../lib/placement";
 
 export interface Item {
   description: string;
@@ -31,48 +30,11 @@ interface Exclusion {
   temporary?: boolean;
 }
 
-/** The exported board sits 100 mm right and down of the design coordinates. */
-const KICAD_OFFSET = 100;
-const MCU_PARTS = new Set(Object.keys(BLOCKS.mcu.parts));
-const MCU_POINTS = HANDOFFS.filter((h) => h.from === "mcu" || h.to === "mcu");
-/** A dangling end this close to a handoff point of the microcontroller waits for it. */
-const NEAR_HANDOFF = 1;
-
-/** True for an item that is a pad of the microcontroller block, or copper ending at one of its handoff points. */
-export const waitsForMcu = (item: Item): boolean => {
-  const ref = /\bof (\S+)/.exec(item.description)?.[1];
-  if (ref && MCU_PARTS.has(ref)) return true;
-  const p = item.pos;
-  if (p === undefined) return false;
-  // KiCad gives one end of a track and its length: the other end may be the handoff point.
-  const track = /^Track \[(\S+)\] .*length ([\d.]+) mm/.exec(item.description);
-  const reach = track ? Number(track[2]) + NEAR_HANDOFF : NEAR_HANDOFF;
-  return MCU_POINTS.some(
-    (h) =>
-      (!track || h.net === track[1]) &&
-      Math.hypot(p.x - KICAD_OFFSET - h.x, p.y - KICAD_OFFSET - h.y) <= reach,
-  );
-};
-
 export const EXCLUSIONS: Exclusion[] = [
   {
     type: "lib_footprint_issues",
     reason:
       "The exported board names a footprint library 'tscircuit' that is not a KiCad library; the footprints are embedded in the board.",
-  },
-  {
-    type: "unconnected_items",
-    item: waitsForMcu,
-    temporary: true,
-    reason:
-      "Only what waits for the microcontroller block (its pads, and copper at its handoff points): the last block being routed. Remove this entry when it is in.",
-  },
-  {
-    type: "track_dangling",
-    item: waitsForMcu,
-    temporary: true,
-    reason:
-      "Tracks that end at a handoff point of the microcontroller block. Remove this entry together with the one above.",
   },
 ];
 

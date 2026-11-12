@@ -19,23 +19,19 @@ outboard はその電源を USB-C (PD 9V) から作り、内部 USB を USB-C �
 
 **rev D・試作前。実機では未検証。** KiCad + Python のスクリプトから [tscircuit](https://tscircuit.com) (TypeScript) へ作り直している途中。
 
-| 段階 | 中身                                                        | 状態                                                         |
-| ---- | ----------------------------------------------------------- | ------------------------------------------------------------ |
-| 0    | リポジトリの土台と CI/CD                                    | 済み                                                         |
-| 1    | フットプリント (データシートとの突き合わせ)                 | 済み ([docs/footprints.md](docs/footprints.md))              |
-| 2    | 回路 (rev D のネットリストと同じつながり方になることを検査) | 済み (食い違い 0)                                            |
-| 3    | 基板の検査 (自前)                                           | 済み ([docs/checks.md](docs/checks.md))                      |
-| 4    | 配置と配線                                                  | 途中 (配置は済み。配線は [docs/routing.md](docs/routing.md)) |
-| 5    | 製造用の出力と文書の仕上げ                                  |                                                              |
+| 段階 | 中身                                                        | 状態                                            |
+| ---- | ----------------------------------------------------------- | ----------------------------------------------- |
+| 0    | リポジトリの土台と CI/CD                                    | 済み                                            |
+| 1    | フットプリント (データシートとの突き合わせ)                 | 済み ([docs/footprints.md](docs/footprints.md)) |
+| 2    | 回路 (rev D のネットリストと同じつながり方になることを検査) | 済み (食い違い 0)                               |
+| 3    | 基板の検査 (自前)                                           | 済み ([docs/checks.md](docs/checks.md))         |
+| 4    | 配置と配線                                                  | 済み ([docs/routing.md](docs/routing.md))       |
+| 5    | 製造用の出力と文書の仕上げ                                  |                                                 |
 
 **回路は入った**: 部品 111 個・ネット 56 本・未接続のパッド 42 個が、rev D (KiCad) のネットリストと完全に同じつながり方になっている (CI が毎回比べる)。
-**配線は途中**: 部品は全部置いてある (`lib/placement.ts`。ブロックごとの配置と、ブロックをまたぐネットの受け渡しの点。配置だけの絵は [`placement.circuit-pcb.snap.svg`](__snapshots__/placement.circuit-pcb.snap.svg))。基板は 100 × 42mm ([docs/mechanical.md](docs/mechanical.md#寸法))・2 層。
-銅は `lib/routing/` にブロックごとの別ファイルで書く ([docs/routing.md](docs/routing.md))。**mcu (マイコン) のほかは全部入った** (pdPc・pdCharger・usb・input・boost・switch12・buck・slot と幹線 `trunks`)。mcu は置き直しから担当が進めている。
-残り: mcu の配線と、mcu が片側の受け渡しの点 (PERST# は幹線のビア (38.9, 16.4) から先を mcu に合わせて動かしてよい)。いまの (open) は mcu 待ちだけ (17 件)。ブロックをつなぐ所は検査 `handoffs`、うらの GND は `groundPlane` が見る。
-**発注はまだできない** (2026-11-12 のレビュー): 致命的・重大のうち、Q4 の GND・3.3V の首・検査の見逃しは #35 で直した。シルクの部品番号は、うらに刷った (`lib/refdes.tsx`)。残りは mcu。D1・D2 の放熱は、このまま試作して温度を測る (持ち主の判断)。結果しだいで rev E で理想ダイオード (TPS2121 など) に替える案がある。製造の注意は [docs/manufacturing.md](docs/manufacturing.md#見積もりの画面で見る所)。
-
-KiCad の DRC の「未接続」と「ぶら下がり」は、**mcu が関わるものだけ**一時的に除外してある (`tools/kicad-drc.ts` の `waitsForMcu`。ほかの未接続は落ちる)。**mcu が入ったら、統合役がこの除外を消し、`package.json` の check を `bun checks/run.ts --strict` にする** (release も build.yml の同じ check を通る)。KiCad の DRC・自前の検査・ネットリストの同値が全部 0 で通ることを確かめる。
-自前の検査のうち配線に頼るものの指摘は、いまは `(open)` と出して通している。**段階 4 が済んだら 0 にする** (check を `bun checks/run.ts --strict` に替える。`(open)` か飛ばしが残ると落ちる)。
+**配線は完了。発注前の最終レビュー待ち。** 部品は `lib/placement.ts` に置き (ブロックごとの配置と、ブロックをまたぐネットの受け渡しの点。配置だけの絵は [`placement.circuit-pcb.snap.svg`](__snapshots__/placement.circuit-pcb.snap.svg))、銅は `lib/routing/` にブロックごとの別ファイルで書いてある ([docs/routing.md](docs/routing.md))。基板は 100 × 42mm ([docs/mechanical.md](docs/mechanical.md#寸法))・2 層。部品番号はうらのシルク (`lib/refdes.tsx`)。
+**検査は全部 0** (CI とリリースが毎回): 自前の検査は `bun checks/run.ts --strict` で指摘 0・飛ばし 0、回路の値 0、rev D とのネットリストの食い違い 0、KiCad の DRC は `lib_footprint_issues` (書き出しの名前の都合) のほか 0。ブロックをつなぐ所は検査 `handoffs`、うらの GND は `groundPlane` が見る。
+D1・D2 の放熱は、このまま試作して温度を測る (持ち主の判断)。結果しだいで rev E で理想ダイオード (TPS2121 など) に替える案がある。製造で確かめることと、余裕の小さい所は [docs/manufacturing.md](docs/manufacturing.md#見積もりの画面で見る所)。
 
 KiCad の版は main から消した。タグ [`kicad-rev-c`](../../tree/kicad-rev-c) (rev C。検査 0) と
 ブランチ [`rev-d`](../../tree/rev-d) (rev D の途中。回路図とライブラリまで) に残っている。

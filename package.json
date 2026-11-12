@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "tsci build --disable-parts-engine --all-images --svgs --pcb-png --3d-png --kicad-project --site && bun tools/kicad-nettie.ts",
-    "check": "bun check --no-script && bun test && bun checks/run.ts",
+    "check": "bun check --no-script && bun test && bun checks/run.ts --strict",
     "snapshot": "bun tools/snapshot.ts",
     "fab": "bun tools/fab.ts",
     "lint": "oxlint && bun fmt --check",

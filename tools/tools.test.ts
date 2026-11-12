@@ -207,7 +207,7 @@ test("closed jumpers become net ties in the KiCad board", () => {
   ).toThrow();
 });
 
-test("KiCad DRC lets through only the unconnected items that wait for the microcontroller", () => {
+test("KiCad DRC fails on every unconnected item (no block is left to route)", () => {
   const unconnected = (a: string, b: string) => ({
     type: "unconnected_items",
     severity: "error",
@@ -226,7 +226,10 @@ test("KiCad DRC lets through only the unconnected items that wait for the microc
     "Pad 2 [GND] of C24 on F.Cu",
     "PTH pad 8 [GND] of J4",
   );
-  expect(remaining({ unconnected_items: [ground, mcu] })).toEqual([ground]);
+  expect(remaining({ unconnected_items: [ground, mcu] })).toEqual([
+    ground,
+    mcu,
+  ]);
 });
 
 test("filterZip drops entries and keeps the rest readable", async () => {

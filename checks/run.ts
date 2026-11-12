@@ -4,9 +4,9 @@ import { builtNetlist, compareNetlists, loadFixture } from "../tools/netlist";
 import { CHECKS, runChecks, skippedChecks } from "./board";
 import { DESIGN_CHECKS, runDesignChecks, valuesOf } from "./design";
 
-// --strict: a skipped check and an open layout finding are failures. Without
-// it, the checks that depend on routing only report, because the blocks are
-// routed one by one (docs/routing.md). Stage 4 ends by turning --strict on.
+// --strict (what `bun run check`, CI and the release run): a skipped check
+// and a layout finding are failures. Without it, layout findings are only
+// reported as (open), for trying out a change while routing.
 const strict = Bun.argv.includes("--strict");
 const circuit = await loadCircuit(
   Bun.argv.slice(2).find((a) => !a.startsWith("--")),
