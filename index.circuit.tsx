@@ -34,7 +34,7 @@ export default () => (
   <board
     outline={boardOutline()}
     thickness={BOARD_THICKNESS}
-    layers={4}
+    layers={2}
     routingDisabled
   >
     <MountingHole index={0} />
