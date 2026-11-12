@@ -61,7 +61,7 @@ const V12 = () => (
         { x: 50.9, y: 9.8 },
         { x: 50.9, y: 13.3 },
         // A leg 1.6 mm wide down to the handoff, leaving room east of it for
-        // PERST#, which comes up from the bottom at x 49.15 (fix/handoffs).
+        // PERST#, which comes up from the bottom at x 49.15 (the note of the PERST_N handoff).
         { x: V12_IN.x + 0.6, y: 13.3 },
         { x: V12_IN.x + 0.6, y: V12_IN.y },
         { x: V12_IN.x - 1, y: V12_IN.y },
@@ -316,7 +316,7 @@ const Perst = () => (
         pad("C31", 1),
       ]}
     />
-    {/* West along the same line to where the line from the microcontroller comes up (fix/handoffs). */}
+    {/* West along the same line to where the line from the microcontroller comes up. */}
     <Track
       net="PERST_N"
       width={0.2}
