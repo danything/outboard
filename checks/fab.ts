@@ -385,10 +385,11 @@ export function solderPaste(
   const out: Finding[] = [];
   const n = (e: Record<string, unknown>, k: string) => Number(e[k] ?? 0);
   const smtpads = raw.filter((e) => e.type === "pcb_smtpad");
-  // Holes inside a pad (vias, plated holes in an exposed pad). The plated
-  // holes of through-hole leads (USB-C shells) are not inside an SMD pad
-  // and get paste on purpose.
-  const holesInPads = raw.filter(
+  // Holes that paste must keep away from: every via (wherever it is, as one
+  // next to a pad would draw the paste down too) and the plated holes inside
+  // an SMD pad (U8's exposed pad). The plated holes of through-hole leads
+  // (USB-C shells) are not inside an SMD pad and get paste on purpose.
+  const pasteHoles = raw.filter(
     (h) =>
       h.type === "pcb_via" ||
       (h.type === "pcb_plated_hole" &&
@@ -422,7 +423,7 @@ export function solderPaste(
         message: `paste opening of ${where} has an area ratio of ${ratio.toFixed(2)}, below ${MIN_AREA_RATIO}`,
       });
     const [w, h] = pasteSize(e);
-    for (const hole of holesInPads) {
+    for (const hole of pasteHoles) {
       const drill =
         n(hole, "hole_diameter") ||
         Math.min(n(hole, "hole_width"), n(hole, "hole_height"));
