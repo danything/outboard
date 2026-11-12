@@ -6,8 +6,9 @@
 // along the far edge) -> boost and buck -> back along the card side to J3.
 // The microcontroller and every signal that comes from the two ports sit in
 // the pocket enclosed by VBUS1, VBUS2 and the VIN band, so none of them
-// crosses a power path. Only the lines from the microcontroller to the
-// converters cross the band (HANDOFFS, layer "bottom").
+// crosses a power path. The board has two layers: the lines from the
+// microcontroller to the converters cross under the band, and PERST# and two
+// lines of the 12 V switch hop under power copper (HANDOFFS, layer "bottom").
 //
 // A block has an origin and a rotation; its parts are placed in block-local
 // coordinates (x right, y away from the card, like the design coordinates).
@@ -478,12 +479,23 @@ const h = (
 
 /**
  * Where a net crosses from one block into another. Each block can be routed
- * on its own up to these points.
+ * on its own up to these points. The board has two layers: "bottom" marks the
+ * few lines that cross a power path underneath; the rest stay on top. A note
+ * says how the line goes on where it is not obvious.
  */
 export const HANDOFFS: Handoff[] = [
   // --- Power, in the order the current flows -------------------------------
-  h("VBUS1", "pdPc", "usb", 17.6, 17.4, 3, "top", "between R40 and U5"),
-  h("VBUS1", "usb", "input", 34.2, 19, 3, "top", "strip y 17.4..20.6 to D1"),
+  h("VBUS1", "pdPc", "usb", 17.6, 17.4, 3, "top", "north of the data pair"),
+  h(
+    "VBUS1",
+    "usb",
+    "input",
+    34.2,
+    18.4,
+    3,
+    "top",
+    "west of x 24.6 the copper stays north of y 19.15 (USB_DP runs at y 19.4)",
+  ),
   h(
     "VBUS2",
     "pdCharger",
@@ -492,11 +504,20 @@ export const HANDOFFS: Handoff[] = [
     36.2,
     3,
     "top",
-    "strip y 34.4..38 to D2",
+    "strip y 34.7..37.7 to D2",
   ),
-  h("VIN", "input", "boost", 59, 24.9, 4),
+  h(
+    "VIN",
+    "input",
+    "boost",
+    59,
+    26.3,
+    2.4,
+    "top",
+    "y 25.1..27.5, clear of the ground pads of C16 and C17",
+  ),
   h("VIN", "input", "buck", 86.9, 40, 3, "top", "end of the strip, up to C9"),
-  h("VIN", "input", "switch12", 66.2, 38.6, 0.3, "top", "D7"),
+  h("VIN", "input", "switch12", 67.84, 38.6, 0.3, "top", "cathode of D7"),
   h(
     "VIN",
     "input",
@@ -505,44 +526,157 @@ export const HANDOFFS: Handoff[] = [
     32.7,
     0.3,
     "top",
-    "R23; U6 is fed below the top",
+    "R23, then west along y 34.1 and north between the pads of D5 to U6",
   ),
-  h("V12_BOOST", "boost", "switch12", 79, 23.05, 1, "top", "C19 to Q1 source"),
+  h(
+    "V12_BOOST",
+    "boost",
+    "switch12",
+    77.2,
+    21.9,
+    0.8,
+    "top",
+    "from C19 north to y 21.8, east to the source of Q1 from below",
+  ),
   h("V12", "switch12", "slot", 48, 14.1, 1.5, "top", "up to contacts B1..B3"),
   h("V3V3", "buck", "slot", 83, 10.4, 3, "top", "row y 9.2..11.6 to B8"),
-  h("V3V3", "buck", "switch12", 79, 37.6, 0.2, "top", "gate of Q3"),
+  h(
+    "V3V3",
+    "buck",
+    "switch12",
+    79,
+    37.6,
+    0.2,
+    "top",
+    "gate of Q3, after a short hop under the VIN strip (lib/routing/buck.tsx)",
+  ),
   // --- From the ports into the pocket (no power path crossed) ---------------
-  h("USB_DP", "pdPc", "usb", 17.6, 20.6),
-  h("USB_DN", "pdPc", "usb", 17.6, 21),
+  h("USB_DP", "pdPc", "usb", 17.6, 19.4, 0.2, "top", "north of U5 and of J4"),
+  h(
+    "USB_DN",
+    "pdPc",
+    "usb",
+    17.6,
+    22.3,
+    0.2,
+    "top",
+    "south of U5's pads, then between the two rows of J4 to pin 3",
+  ),
   h("VBUS1", "pdPc", "mcu", 17.6, 29.4, 0.3, "top", "R25, R8"),
   h("J1_CC1", "pdPc", "mcu", 17.6, 25.8),
   h("J1_CC2", "pdPc", "mcu", 17.6, 27.6),
-  h("I2C1_SDA", "pdPc", "mcu", 17.6, 30.6),
-  h("I2C1_SCL", "pdPc", "mcu", 17.6, 31),
-  h("I2C2_SDA", "pdCharger", "mcu", 19, 34.3),
+  h(
+    "I2C1_SDA",
+    "pdPc",
+    "mcu",
+    17.6,
+    28.33,
+    0.15,
+    "top",
+    "between the rows of R22 and R25, north in x 28.1..29.2, east along y 25",
+  ),
+  h("I2C1_SCL", "pdPc", "mcu", 17.6, 28.68, 0.15, "top", "beside I2C1_SDA"),
+  h(
+    "I2C2_SDA",
+    "pdCharger",
+    "mcu",
+    19,
+    34.3,
+    0.2,
+    "top",
+    "VBUS2 reaches its strip south of U2, so nothing is crossed here",
+  ),
   h("I2C2_SCL", "pdCharger", "mcu", 19.4, 34.3),
   h("V5", "mcu", "usb", 33, 24.7, 0.5, "top", "JP3"),
   // --- Through the gap between the pads of a diode ---------------------------
   h("V12_SENSE", "switch12", "input", 51.3, 17.2, 0.2, "top", "under D1"),
-  h("V12_SENSE", "input", "mcu", 51.3, 20.6, 0.2, "top", "under D1"),
+  h("V12_SENSE", "input", "mcu", 51.3, 20.6, 0.2, "top", "to R33 and C33"),
   h("LED_STAT", "mcu", "input", 51.3, 34.3, 0.2, "top", "under D2"),
-  // --- Under the VIN band, on the bottom side ---------------------------------
-  h("EN_12V", "mcu", "input", 53, 27.6, 0.2, "bottom"),
-  h("EN_12V", "input", "boost", 59, 22, 0.2, "bottom"),
-  h("Q2_G", "mcu", "input", 53, 30.9, 0.2, "bottom"),
-  h("Q2_G", "input", "switch12", 59, 36.6, 0.2, "bottom"),
-  h("EN_3V3", "mcu", "input", 53, 29.1, 0.2, "bottom"),
+  h("LED_STAT", "input", "mcu", 47.5, 39.5, 0.2, "top", "west to R20"),
+  // --- Under the VIN band on the bottom; vias just outside it, no crossings ---
+  h(
+    "EN_12V",
+    "mcu",
+    "input",
+    53,
+    27.6,
+    0.2,
+    "bottom",
+    "via at (52.4, 28.2) between C22 and R38",
+  ),
+  h(
+    "EN_12V",
+    "input",
+    "boost",
+    59,
+    22,
+    0.2,
+    "bottom",
+    "via at (59.6, 22), on top along y 22 to R13 and U4",
+  ),
+  h(
+    "EN_3V3",
+    "mcu",
+    "input",
+    53,
+    29.1,
+    0.2,
+    "bottom",
+    "via at (52.4, 29.5) east of R38",
+  ),
   h(
     "EN_3V3",
     "input",
-    "switch12",
+    "boost",
     59,
-    35,
+    33.9,
     0.2,
     "bottom",
-    "on to R9 along y 34.8",
+    "via at (59.4, 34), then on top along y 34.2: clear of R35 and R36",
   ),
+  h("EN_3V3", "boost", "switch12", 78.6, 34.6, 0.2, "top", "on to (79, 35)"),
   h("EN_3V3", "switch12", "buck", 79, 35, 0.2),
+  h(
+    "Q2_G",
+    "mcu",
+    "input",
+    53,
+    30.9,
+    0.2,
+    "bottom",
+    "via at (52.4, 31.1) east of R34",
+  ),
+  h(
+    "Q2_G",
+    "input",
+    "switch12",
+    59,
+    36.6,
+    0.2,
+    "bottom",
+    "via at (59.4, 36.6), on top between the B and E pads of Q4 to its collector, then y 36.3 to R16 and Q2",
+  ),
+  // --- Lines inside switch12 that cross the boost (bottom hops) ---------------
+  h(
+    "Q2_D",
+    "switch12",
+    "boost",
+    76.2,
+    34.6,
+    0.2,
+    "bottom",
+    "out of Q2 north to y 34.95, east to a via at (76.2, 34.95); hop under EN_3V3 outside L2, then on top north at x 76.2 and x 78.85 past D4 and C19",
+  ),
+  h(
+    "Q2_D",
+    "boost",
+    "switch12",
+    79,
+    22.3,
+    0.2,
+    "bottom",
+    "via at (79.45, 22.3), hop under V12_BOOST and Q1_G to a via at (82.75, 16.5), up to R15",
+  ),
   // --- PERST#: contact A11 is on the bottom side -------------------------------
   h(
     "PERST_N",
@@ -552,7 +686,6 @@ export const HANDOFFS: Handoff[] = [
     20.6,
     0.2,
     "bottom",
-    "via beside R37, then under VBUS1 and the 12 V row to A11",
+    "via at (38.9, 21) beside R37; bottom under VBUS1 and the 12 V row to a via at (49.15, 13.6) east of the V12 leg; top along y 13.65 to D6, R27 and C31; a via at (56, 13.65) and bottom north to A11 under the 3.3 V row (about 21 mm of bottom in all)",
   ),
-  h("Q2_D", "switch12", "switch12", 79, 36.6, 0.2, "top", "up x 79..80 to R15"),
 ];
