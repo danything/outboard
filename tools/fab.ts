@@ -1,12 +1,12 @@
 // Collects everything a board order needs into dist/fab:
 // Gerbers, BOM and placement list (JLCPCB column names), schematic PDF,
 // board pictures, circuit.json, and a SHA256SUMS file over all of them.
-// Run after `bun run build`.
+// Run after `bun run build`: everything is exported from the built circuit.json,
+// so the files describe exactly the board that was checked.
 import { mkdir, readdir, rm } from "node:fs/promises";
 import { REVISION } from "../lib/revision";
 import { CIRCUIT_JSON, type Circuit, elementsOf, loadCircuit } from "./circuit";
 
-const ENTRY = "index.circuit.tsx";
 const OUT = "dist/fab";
 
 const quote = (cell: string): string =>
@@ -31,7 +31,7 @@ const exportAs = (
 ): Promise<void> =>
   run([
     "export",
-    ENTRY,
+    CIRCUIT_JSON,
     "-f",
     format,
     "-o",
