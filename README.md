@@ -57,11 +57,27 @@ KiCad の版は main から消した。タグ [`kicad-rev-c`](../../tree/kicad-r
 
 ## 作り方
 
-道具は [Bun](https://bun.sh) だけ。CI と同じコンテナ (`oven/bun:1.4.4`) の中で動かす。
+道具はコンテナだけ (ホストに Bun も Node も入れない)。CI と同じイメージの中で動かす。中身は [compose.yml](compose.yml)。
 
 ```sh
-docker run --rm -it -v "$PWD:/work" -w /work oven/bun:1.4.4 bash
-bun install --frozen-lockfile
+docker compose up dev               # 起動。http://localhost:3020 に基板・回路図・3D (保存すると描き直す)
+docker compose run --rm check       # 検査。CI の build と同じ一式 (下の script を全部)
+docker compose run --rm snapshots   # 絵の更新 (__snapshots__ を描き直す)
+docker compose run --rm kicad-drc   # KiCad の DRC。check に続けて KiCad の DRC と判定 (CI の全部)
+```
+
+- Zed で書くとき: コードは Zed、動く画面は横のブラウザで <http://localhost:3020> (main の最新でよければ [Pages](https://danything.github.io/outboard/))。
+  絵だけ見るなら `__snapshots__/`。変えたら `snapshots` で描き直して、差分ごとコミットする
+- wslc には compose が無い (3.0)。同じ中身を `run` で動かす。起動は下の 1 行。ほかは `-p` と `-e` を外し、`sh -c` の中身を compose.yml の `command` に替える
+  (KiCad の DRC は `check` のあと、`--user 0 -w /work/dist/index/kicad kicad/kicad:10.0` で `kicad-cli`、続けて Bun で判定)。Git Bash では前に `MSYS_NO_PATHCONV=1` を付ける
+
+```sh
+wslc run --rm -it -p 127.0.0.1:3020:3020 -e CHOKIDAR_USEPOLLING=true -v .:/work -v outboard_node_modules:/work/node_modules -w /work oven/bun:1.4.4 sh -c "bun install --frozen-lockfile && bunx tsci dev"
+```
+
+script を 1 つずつ動かすときは、中に入る (`docker compose run --rm check bash`)。
+
+```sh
 bun run build      # dist/ に circuit.json・絵・KiCad の基板・見るためのページ
 bun run check      # 型検査 (bun check)・テスト (bun test)・自前の検査 (基板・回路の値・rev D とのネットリストの比べ)
 bun run snapshot   # __snapshots__ の絵と同じか。変えたときは bun run snapshot --update
