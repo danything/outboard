@@ -548,7 +548,7 @@ export const HANDOFFS: Handoff[] = [
     "from C19 north to y 21.8, east to the source of Q1 from below",
   ),
   h("V12", "switch12", "slot", 48, 14.1, 1.5, "top", "up to contacts B1..B3"),
-  h("V3V3", "buck", "slot", 83, 10.4, 3, "top", "row y 9.2..11.6 to B8"),
+  h("V3V3", "buck", "slot", 83, 10.4, 2.4, "top", "row y 9.2..11.6 to B8"),
   h(
     "V3V3",
     "buck",
