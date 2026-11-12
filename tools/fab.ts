@@ -7,6 +7,7 @@ import { mkdir, readdir, rm } from "node:fs/promises";
 import { resolve } from "node:path";
 import { REVISION } from "../lib/revision";
 import { CIRCUIT_JSON, type Circuit, elementsOf, loadCircuit } from "./circuit";
+import { builtPads, originOf } from "./origin";
 
 const OUT = "dist/fab";
 
@@ -61,19 +62,29 @@ export const assembledParts = (circuit: Circuit): Part[] => {
       s,
     ]),
   );
+  const pads = builtPads(circuit);
   const parts: Part[] = [];
   for (const pcb of elementsOf(circuit, "pcb_component")) {
     const source = sources.get(pcb.source_component_id);
-    const lcsc = source?.supplier_part_numbers?.jlcpcb?.[0];
-    if (!source || !lcsc) continue;
+    if (!source) continue;
+    // The placement list gives the footprint origin, not the centre of the pad
+    // bounding box that circuit.json records. Done for every part, fitted or
+    // not, because it also checks the built pads against the land patterns.
+    const origin = originOf(
+      source.name,
+      pads.get(pcb.pcb_component_id) ?? [],
+      pcb.rotation,
+    );
+    const lcsc = source.supplier_part_numbers?.jlcpcb?.[0];
+    if (!lcsc) continue;
     parts.push({
       designator: source.name,
       comment:
         source.manufacturer_part_number ?? source.display_value ?? source.name,
-      footprint: source.ftype ?? "",
+      footprint: origin.footprint,
       lcsc,
-      x: pcb.center.x,
-      y: pcb.center.y,
+      x: origin.x,
+      y: origin.y,
       layer: pcb.layer === "bottom" ? "Bottom" : "Top",
       rotation: pcb.rotation,
     });
