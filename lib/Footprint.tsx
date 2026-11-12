@@ -4,9 +4,10 @@ const SILK_WIDTH = 0.15;
 // Silkscreen stays this far from copper so it is not clipped by the mask opening.
 const SILK_TO_PAD = 0.2;
 
-const SmtPad = ({ pad }: { pad: Pad }) => {
+const SmtPad = ({ pad, noPaste }: { pad: Pad; noPaste?: boolean }) => {
   const common = {
     portHints: [pad.pin] as string[],
+    noSolderPaste: noPaste,
     pcbX: pad.x,
     pcbY: pad.y,
     layer: pad.layer ?? "top",
@@ -157,7 +158,7 @@ export const footprintOf = (def: FootprintDef) => {
   return (
     <footprint>
       {def.pads.map((pad, i) => (
-        <SmtPad key={`pad${i}`} pad={pad} />
+        <SmtPad key={`pad${i}`} pad={pad} noPaste={def.noPaste} />
       ))}
       {(def.platedHoles ?? []).map((hole, i) => (
         <Plated key={`plated${i}`} hole={hole} />
