@@ -189,6 +189,8 @@ export const BLOCKS = {
       C36: p("C0805", 35.7, 15.2, "E"),
       // Closed jumper from the regulator to the sockets' VBUS.
       JP3: p("SOLDER_JUMPER", 36.7, 11.3, "S"),
+      // The card VBUS fuse, between JP3 and J6's VBUS pad (which feeds J4).
+      F2: p("F0603", 34.1, 11.0, "W"),
       // The card's 5 V regulator: tab north on the VBUS1 band.
       U9: p("SOT89", 29.5, 22.0, 270),
       C37: p("C0603", 25.4, 21.2, "W"),

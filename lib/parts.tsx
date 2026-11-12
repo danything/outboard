@@ -397,7 +397,9 @@ export const CH334P = numbered(
 
 /** 12 MHz crystal of the hub. Pins 2 and 4 are the lid (ground). */
 export const Crystal12M = numbered(
-  { footprint: fp.XTAL3225, lcsc: "C9002", mpn: "X322512MSB4SI" },
+  // 12 pF load: the hub has about 16 pF on each pin inside (in series
+  // about 8 pF, plus the board's stray capacitance).
+  { footprint: fp.XTAL3225, lcsc: "C70565", mpn: "X322512MOB4SI" },
   ["X1", "GND", "X2", "GND2"],
 );
 
@@ -498,6 +500,12 @@ export const Ptc = numbered(
   ["pin1", "pin2"],
 );
 
+/** Resettable fuse, 0.1 A hold, 0.3 A trip, 24 V (the card's USB VBUS). */
+export const PtcSmall = numbered(
+  { footprint: fp.F0603, lcsc: "C70048", mpn: "SMD0603-010-24V" },
+  ["pin1", "pin2"],
+);
+
 /** USB-C receptacle. SH1..SH4 are the shell legs (pads 1..4 of the KiCad footprint). */
 export const UsbC = usbCPart(
   { footprint: fp.USBC_TYPE_C_31_M_12, lcsc: "C165948", mpn: "TYPE-C-31-M-12" },
@@ -583,7 +591,7 @@ export const CardUsbSocket = ({
   dn: Net;
 }) => {
   const nets: Record<(typeof CARD_USB_PIN_NAMES)[number], Net> = {
-    VBUS: "USBH_VBUS",
+    VBUS: "CARD_VBUS",
     DN: dn,
     DP: dp,
     GND: "GND",

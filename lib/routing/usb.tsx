@@ -14,8 +14,9 @@
 //   +3V3 comes up from the bottom at the east end (lib/routing/trunks.tsx)
 //   and runs west along the north side of the band past C36, C34 and C35.
 // - USBH_VBUS: U9 sits south of the band with its tab on it; its output
-//   hops under the band to JP3, which feeds a line under the bodies of J6
-//   and J4 that enters their VBUS pads from the north.
+//   hops under the band to JP3, then west through the fuse F2 into J6's
+//   VBUS pad from the south; from that pad a line under the bodies of J6
+//   and J4 enters J4's VBUS pad from the north (CARD_VBUS).
 // - Each pair is matched in length within its own route (checks/rules.ts
 //   USB_PAIR): the shorter line gets a bump.
 //
@@ -220,8 +221,10 @@ const C36_GND_VIA = P(pad("C36", 2).x, 14.0);
 
 // --- VBUS of the card -------------------------------------------------------------------
 
-/** USBH_VBUS under the bodies of the sockets, into their VBUS pads from the north. */
+/** The card VBUS under the bodies of the sockets: from J6's VBUS pad west to J4's, both from the north. */
 const VBUS_BUS_Y = 5.0;
+/** F2 is south-west of J6's VBUS pad: north from it, east under the pads of J6, north into the VBUS pad. */
+const F2_TO_J6_Y = 10.0;
 const JP3_COLUMN_X = pad("JP3", 2).x;
 const V5_USB_NORTH = P(JP3_COLUMN_X, 13.2);
 const V5_USB_SOUTH = P(32.0, pad("U9", 3).y);
@@ -346,22 +349,34 @@ export const USB_COPPER: { tracks: TrackSpec[]; vias: ViaSpec[] } = {
       layer: "top",
       points: [V5_USB_NORTH, pad("JP3", 1)],
     },
+    // JP3 -> F2 -> J6 from the south; on under the sockets to J4.
     {
       net: "USBH_VBUS",
+      width: 0.5,
+      layer: "top",
+      points: [pad("JP3", 2), pad("F2", 2)],
+    },
+    {
+      net: "CARD_VBUS",
       width: 0.5,
       layer: "top",
       points: [
-        pad("JP3", 2),
-        P(JP3_COLUMN_X, VBUS_BUS_Y),
-        P(socket("J4", "VBUS").x, VBUS_BUS_Y),
-        socket("J4", "VBUS"),
+        pad("F2", 1),
+        P(pad("F2", 1).x, F2_TO_J6_Y),
+        P(socket("J6", "VBUS").x, F2_TO_J6_Y),
+        socket("J6", "VBUS"),
       ],
     },
     {
-      net: "USBH_VBUS",
+      net: "CARD_VBUS",
       width: 0.5,
       layer: "top",
-      points: [P(socket("J6", "VBUS").x, VBUS_BUS_Y), socket("J6", "VBUS")],
+      points: [
+        socket("J6", "VBUS"),
+        P(socket("J6", "VBUS").x, VBUS_BUS_Y),
+        P(socket("J4", "VBUS").x, VBUS_BUS_Y),
+        socket("J4", "VBUS"),
+      ],
     },
     // U9: input capacitor from the band, ground pins to vias.
     {

@@ -3,7 +3,8 @@
 // Units are millimetres; x to the right, y up (tscircuit's convention), origin
 // at the part centre. Orientation follows the EasyEDA/JLCPCB library footprint
 // of the same LCSC part, so the placement list rotations mean the same thing
-// as in JLCPCB's library. Pad sizes and positions follow the manufacturer's
+// as in JLCPCB's library. Exception: the PH sockets (PH4_SIDE_ENTRY) follow
+// the KiCad footprint; see there. Pad sizes and positions follow the manufacturer's
 // recommended land pattern wherever one exists; docs/footprints.md lists what
 // was compared against which drawing, and what was not.
 
@@ -184,6 +185,16 @@ export const F1206: FootprintDef = {
   height: 1.4,
 };
 
+/**
+ * F2: SMD0603-010-24V, 0603 PTC. The land is the 0603 chip land of the
+ * resistors (0.8 x 0.9 pads, 1.4 apart).
+ */
+export const F0603: FootprintDef = {
+  pads: twoPads(1.4, 0.8, 0.9),
+  courtyard: centredBox(3.08, 1.62),
+  height: 1.0,
+};
+
 /** LED3, LED5: 0603 LED. Pin 1 (right) is the anode. */
 export const LED0603: FootprintDef = {
   pads: twoPads(1.5, 0.8, 0.8, true),
@@ -349,19 +360,20 @@ export const QFN16_3X3: FootprintDef = {
     { pin: "17", x: 0, y: 0, w: 1.7, h: 1.7 },
   ],
   // The exposed pad is the hub's only ground and is closed in on four sides
-  // by the leads: four plated holes in it take it to the ground on the bottom
-  // (a via cannot be placed in a pad).
-  platedHoles: [-0.45, 0.45].flatMap((x) =>
-    [-0.45, 0.45].map((y) => ({
-      pin: "17",
-      x,
-      y,
-      holeW: 0.3,
-      holeH: 0.3,
-      padW: 0.7,
-      padH: 0.7,
-    })),
-  ),
+  // by the leads: plated holes in it take it to the ground on the bottom
+  // (a via cannot be placed in a pad). Two, on the centre line, so that the
+  // stencil can open four windows beside them (tools/paste.ts); four on the
+  // diagonals would sit where the windows go, and holes on both centre
+  // lines would be closer than the 0.5 between holes.
+  platedHoles: [-0.5, 0.5].map((y) => ({
+    pin: "17",
+    x: 0,
+    y,
+    holeW: 0.3,
+    holeH: 0.3,
+    padW: 0.7,
+    padH: 0.7,
+  })),
   courtyard: centredBox(4.1, 4.1),
   pin1Mark: { x: -1.6, y: -1.6 },
   height: 0.8,
@@ -505,6 +517,11 @@ const header = (
  * The plug goes in at +y; pin 1 is at +x with the face up (the KiCad
  * footprint JST_PH_S4B-PH-SM4-TB turned half round, same origin). The
  * nails are pads 5 and 6 and carry nothing.
+ *
+ * An exception to the orientation rule at the top of this file: this land
+ * comes from KiCad, not from the EasyEDA footprint of the LCSC part, so
+ * JLCPCB's placement may be turned against it (half round would put the
+ * mouths inwards). Look at it in JLCPCB's DFM view (docs/manufacturing.md).
  */
 export const PH4_SIDE_ENTRY: FootprintDef = {
   pads: [

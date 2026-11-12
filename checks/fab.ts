@@ -20,8 +20,10 @@ import {
 import {
   EDGE_EXCEPTIONS,
   EPSILON,
+  MIN_AREA_RATIO,
   MOUNTING_HOLE_KEEPOUT,
   OFF_BOARD_PARTS,
+  STENCIL_THICKNESS,
   fabRulesFor,
 } from "./rules";
 import { MOUNTING_HOLE_DIAMETER } from "../lib/geometry";
@@ -335,10 +337,35 @@ export const HAND_SOLDERED = ["J3"];
 /** Connectors that are surface mount and go through reflow: paste on every pad. */
 export const REFLOWED_CONNECTORS = ["J4", "J6"];
 
+/** Paste openings keep this far from the drill of a hole in a pad (tools/paste.ts). */
+export const PASTE_TO_HOLE = 0.1;
+
+/** Size along x and y of a pad or a paste opening, turned by its rotation. */
+const pasteSize = (e: Record<string, unknown>): [number, number] => {
+  if (e.shape === "circle") {
+    const d = 2 * Number(e.radius ?? 0);
+    return [d, d];
+  }
+  const [w, h] = [Number(e.width ?? 0), Number(e.height ?? 0)];
+  return Math.round(Number(e.ccw_rotation ?? 0) / 90) % 2 ? [h, w] : [w, h];
+};
+
+/** Opening area / area of the stencil walls around it. */
+export const pasteAreaRatio = (e: Record<string, unknown>): number => {
+  const [w, h] = pasteSize(e);
+  if (e.shape === "circle") return w / (4 * STENCIL_THICKNESS);
+  const pill = String(e.shape).includes("pill");
+  const r = pill ? Math.min(w, h) / 2 : 0;
+  const area = w * h - (4 - Math.PI) * r * r;
+  const perimeter = 2 * (w + h) - (8 - 2 * Math.PI) * r;
+  return area / (perimeter * STENCIL_THICKNESS);
+};
+
 /**
  * Paste only on top (one-sided assembly, no bottom stencil), none on the
- * parts soldered by hand, and on every pad of the reflowed connectors, which
- * have to be on the board.
+ * parts soldered by hand, on every pad of the reflowed connectors, which
+ * have to be on the board, every opening with an area ratio of at least
+ * MIN_AREA_RATIO, and none over a hole in a pad.
  */
 export function solderPaste(
   circuit: Circuit,
@@ -356,18 +383,57 @@ export function solderPaste(
       .map((e) => [e.pcb_component_id, names.get(e.source_component_id)]),
   );
   const out: Finding[] = [];
+  const n = (e: Record<string, unknown>, k: string) => Number(e[k] ?? 0);
+  const smtpads = raw.filter((e) => e.type === "pcb_smtpad");
+  // Holes inside a pad (vias, plated holes in an exposed pad). The plated
+  // holes of through-hole leads (USB-C shells) are not inside an SMD pad
+  // and get paste on purpose.
+  const holesInPads = raw.filter(
+    (h) =>
+      h.type === "pcb_via" ||
+      (h.type === "pcb_plated_hole" &&
+        smtpads.some(
+          (p) =>
+            Math.abs(n(h, "x") - n(p, "x")) < pasteSize(p)[0] / 2 &&
+            Math.abs(n(h, "y") - n(p, "y")) < pasteSize(p)[1] / 2,
+        )),
+  );
   for (const e of raw.filter((x) => x.type === "pcb_solder_paste")) {
     const ref = String(refs.get(e.pcb_component_id) ?? "?");
-    if (e.layer === "bottom")
+    const where = `${ref} ${at(n(e, "x"), -n(e, "y"))}`;
+    if (e.layer === "bottom") {
       out.push({
         check: "solderPaste",
         message: `paste on the bottom at ${ref}: the board has no bottom stencil`,
       });
-    else if (HAND_SOLDERED.includes(ref))
+      continue;
+    }
+    if (HAND_SOLDERED.includes(ref)) {
       out.push({
         check: "solderPaste",
         message: `paste on ${ref}, which is soldered by hand`,
       });
+      continue;
+    }
+    const ratio = pasteAreaRatio(e);
+    if (ratio < MIN_AREA_RATIO)
+      out.push({
+        check: "solderPaste",
+        message: `paste opening of ${where} has an area ratio of ${ratio.toFixed(2)}, below ${MIN_AREA_RATIO}`,
+      });
+    const [w, h] = pasteSize(e);
+    for (const hole of holesInPads) {
+      const drill =
+        n(hole, "hole_diameter") ||
+        Math.min(n(hole, "hole_width"), n(hole, "hole_height"));
+      const dx = Math.max(Math.abs(n(hole, "x") - n(e, "x")) - w / 2, 0);
+      const dy = Math.max(Math.abs(n(hole, "y") - n(e, "y")) - h / 2, 0);
+      if (Math.hypot(dx, dy) < drill / 2 + PASTE_TO_HOLE)
+        out.push({
+          check: "solderPaste",
+          message: `paste opening of ${where} comes within ${PASTE_TO_HOLE} of a hole in a pad`,
+        });
+    }
   }
   // The sockets for the card are surface mount and reflowed with the rest:
   // every pad of theirs needs its stencil opening.

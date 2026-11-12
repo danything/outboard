@@ -92,11 +92,11 @@ test("a different part number is reported", () => {
 test("the reference (rev D and the changes) has the expected size", async () => {
   const fixture = await loadFixture();
   // 115 parts in KiCad, 4 of them mounting holes; the 2x5 header J4 gone,
-  // the hub and its parts and two sockets (J4 again, J6) added.
-  expect(Object.keys(fixture.components)).toHaveLength(111 - 1 + 10);
-  // 56 nets of rev D and 7 new ones; 42 open pads, less the 4 of the
+  // the hub and its parts, two sockets (J4 again, J6) and the fuse F2 added.
+  expect(Object.keys(fixture.components)).toHaveLength(111 - 1 + 11);
+  // 56 nets of rev D and 8 new ones; 42 open pads, less the 4 of the
   // header, plus 6 of the hub and the 4 fitting nails of the sockets.
-  expect(fixture.nets.filter((n) => n.length > 1)).toHaveLength(56 + 7);
+  expect(fixture.nets.filter((n) => n.length > 1)).toHaveLength(56 + 8);
   expect(fixture.nets.filter((n) => n.length === 1)).toHaveLength(
     42 - 4 + 6 + 4,
   );

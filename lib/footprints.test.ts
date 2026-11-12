@@ -192,7 +192,7 @@ test("USB-C: A and B contacts mirror each other about the centre", () => {
 });
 
 test("the list of land patterns is not empty by accident", () => {
-  expect(defs.length).toBe(28);
+  expect(defs.length).toBe(29);
 });
 
 const plated = (def: FootprintDef, pin: string) => {

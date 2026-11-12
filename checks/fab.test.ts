@@ -10,6 +10,7 @@ import {
   holeToCopper,
   mountingHoleKeepout,
   padRing,
+  pasteAreaRatio,
   solderPaste,
   trackWidth,
   viaSize,
@@ -344,4 +345,88 @@ test("solderPaste fails when a reflowed socket is not on the board", () => {
   ]);
   // A board with no parts at all (the other tests' fixtures) is skipped.
   expect(solderPaste([], ["J4"]).every((f) => f.skipped)).toBe(true);
+});
+
+test("solderPaste fails on an opening too small for the stencil", () => {
+  const opening = (width: number, height: number) => [
+    { type: "source_component", source_component_id: "s_U8", name: "U8" },
+    {
+      type: "pcb_component",
+      pcb_component_id: "p_U8",
+      source_component_id: "s_U8",
+    },
+    {
+      type: "pcb_solder_paste",
+      pcb_solder_paste_id: "paste",
+      pcb_component_id: "p_U8",
+      layer: "top",
+      shape: "rect",
+      x: 1,
+      y: -2,
+      width,
+      height,
+    },
+  ];
+  const check = (parts: Record<string, unknown>[]) =>
+    solderPaste(parts as unknown as Circuit, []).map((f) => f.message);
+  // The lead of U8 at 90 % (0.82 at 1:1) passes; tscircuit's 70 % does not.
+  expect(
+    pasteAreaRatio({ shape: "rect", width: 0.252, height: 0.599 }),
+  ).toBeCloseTo(0.74, 2);
+  expect(check(opening(0.252, 0.599))).toEqual([]);
+  expect(check(opening(0.196, 0.4655))).toEqual([
+    "paste opening of U8 (1.00, 2.00) has an area ratio of 0.57, below 0.66",
+  ]);
+});
+
+test("solderPaste fails on paste over a hole in a pad, not over a lead's hole", () => {
+  const board = (holeX: number, inPad: boolean) => [
+    { type: "source_component", source_component_id: "s_U8", name: "U8" },
+    {
+      type: "pcb_component",
+      pcb_component_id: "p_U8",
+      source_component_id: "s_U8",
+    },
+    {
+      type: "pcb_smtpad",
+      pcb_smtpad_id: "ep",
+      pcb_component_id: "p_U8",
+      layer: "top",
+      shape: "rect",
+      x: inPad ? 0 : 10,
+      y: 0,
+      width: 1.7,
+      height: 1.7,
+    },
+    {
+      type: "pcb_plated_hole",
+      pcb_plated_hole_id: "h",
+      pcb_component_id: "p_U8",
+      shape: "circle",
+      x: holeX,
+      y: 0,
+      hole_diameter: 0.3,
+      outer_diameter: 0.7,
+    },
+    {
+      type: "pcb_solder_paste",
+      pcb_solder_paste_id: "paste",
+      pcb_component_id: "p_U8",
+      layer: "top",
+      shape: "rect",
+      x: 0.575,
+      y: 0,
+      width: 0.55,
+      height: 0.75,
+    },
+  ];
+  const check = (parts: Record<string, unknown>[]) =>
+    solderPaste(parts as unknown as Circuit, []).map((f) => f.message);
+  // The window starts 0.3 from the hole's centre: 0.15 clear of the drill.
+  expect(check(board(0, true))).toEqual([]);
+  expect(check(board(0.1, true))).toEqual([
+    "paste opening of U8 (0.57, 0.00) comes within 0.1 of a hole in a pad",
+  ]);
+  // A hole that is not in a pad (a lead goes through it) may be pasted over.
+  expect(check(board(0.5, false))).toEqual([]);
 });

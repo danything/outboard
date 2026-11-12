@@ -22,6 +22,7 @@ import {
   N2N7002,
   PcieSlot,
   Ptc,
+  PtcSmall,
   R,
   RBleed,
   SRV05,
@@ -386,8 +387,9 @@ export const UsbData = () => (
       name="Y1"
       nets={{ X1: "HUB_XI", GND: "GND", X2: "HUB_XO", GND2: "GND" }}
     />
-    <C name="C34" value="1uF" nets={["V3V3", "GND"]} />
-    <C name="C35" value="100nF" nets={["V3V3", "GND"]} />
+    {/* 1 uF right under the supply pins (C35), 100 nF further along the band. */}
+    <C name="C34" value="100nF" nets={["V3V3", "GND"]} />
+    <C name="C35" value="1uF" nets={["V3V3", "GND"]} />
     {/* Holds the hub's supply up when a device is plugged in. */}
     <C name="C36" value="10uF" nets={["V3V3", "GND"]} />
     <HT7550 name="U9" nets={{ GND: "GND", VIN: "VBUS1", VOUT: "V5_USB" }} />
@@ -407,6 +409,8 @@ export const UsbData = () => (
       }}
     />
     <ClosedJumper name="JP3" nets={{ pin1: "V5_USB", pin2: "USBH_VBUS" }} />
+    {/* Against a short on the cable: U9 has no current limit of its own. */}
+    <PtcSmall name="F2" nets={{ pin1: "CARD_VBUS", pin2: "USBH_VBUS" }} />
   </>
 );
 
