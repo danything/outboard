@@ -3,6 +3,7 @@
 import { BOARD_THICKNESS, MOUNTING_HOLE_DIAMETER } from "../lib/geometry";
 import { type Circuit, elementsOf } from "../tools/circuit";
 import { FAB_CHECKS } from "./fab";
+import { GROUND_CHECKS } from "./ground";
 import { HANDOFF_CHECKS } from "./handoffs";
 import { MECHANICAL_CHECKS } from "./mechanical";
 import { POWER_CHECKS } from "./power";
@@ -74,6 +75,7 @@ export const CHECKS: Check[] = [
   ...SIGNAL_CHECKS,
   ...MECHANICAL_CHECKS,
   ...HANDOFF_CHECKS,
+  ...GROUND_CHECKS,
 ];
 
 const runAll = (circuit: Circuit): Finding[] =>

@@ -290,8 +290,10 @@ export const BLOCKS = {
       D4: p("SMA_SS34", -5.6, -1.5, "W"),
       C16: p("C0805", 4.05, -0.6, "N"),
       C17: p("C0603", 6.2, -0.6, "N"),
-      C18: p("C0805", -5, 1.25, "W"),
-      C19: p("C0805", -9.3, 1.25, "E"),
+      // C18 and C19 0.15 west of rev B, and C19 0.1 south, so the 12 V
+      // output can pass north of the ground pad of C19, under the gate of Q1.
+      C18: p("C0805", -4.85, 1.25, "W"),
+      C19: p("C0805", -9.15, 1.15, "E"),
       R12: p("R0603", -0.1, 3.22, "W"),
       R11: p("R0603", -3.3, 3.22, "W"),
       R13: p("R0603", 4, 3.05, "W"),
@@ -531,7 +533,16 @@ export const HANDOFFS: Handoff[] = [
     "top",
     "y 25.1..27.5, clear of the ground pads of C16 and C17",
   ),
-  h("VIN", "input", "buck", 86.9, 40, 3, "top", "end of the strip, up to C9"),
+  h(
+    "VIN",
+    "input",
+    "buck",
+    84.8,
+    38.6,
+    1.8,
+    "top",
+    "the stitch at x 84.8 from the strip into the buck's VIN area (the buck's 3.3 V line runs at x 87.2)",
+  ),
   h("VIN", "input", "switch12", 67.84, 38.6, 0.3, "top", "cathode of D7"),
   h(
     "VIN",

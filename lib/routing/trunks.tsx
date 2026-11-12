@@ -4,7 +4,7 @@
 // Design coordinates, Track / Via / Pour from ./kit (docs/routing.md).
 //
 // Between the blocks:
-// - VBUS1 from the usb block (x 34.2) to the anode area of D1 (input, x 47.5)
+// - VBUS1 from pdPc (x 17.6) across the usb block to the anode area of D1 (input, x 47.5)
 // - VBUS2 from the pdCharger block (x 38) to the anode area of D2 (input, x 47.5)
 // - PERST# from the microcontroller (bottom, x 38.9) to the slot's line at
 //   y 13.65: it has to cross VBUS1 and the 12 V row, so it hops under each
@@ -17,77 +17,95 @@ const POUR_GAP = 0.3;
 const INPUT_WEST = 47.5;
 
 // --- VBUS1 and VBUS2 -------------------------------------------------------------
+//
+// Both anode areas have to reach 150 mm2 (checks/rules.ts COPPER_AREA) with
+// what pdPc / pdCharger and input draw. The VBUS1 area also covers the usb
+// block, which draws only the data pair and J4's own 5 V (lib/routing/usb.tsx),
+// and the free ground north of the band (x 34.2 to 38.3, y 9.1 to 16.9).
 
-const VBUS1_IN = handoff("VBUS1", "usb", "input");
+const VBUS1_FROM_PC = handoff("VBUS1", "pdPc", "usb");
 const VBUS2_IN = handoff("VBUS2", "pdCharger", "input");
 
-/** VBUS1 runs y 16.9 to 19.9 (the handoff); the anode area of D1 is y 17.5 to 20.6. */
-const VBUS1 = {
-  x0: VBUS1_IN.x + POUR_GAP,
-  x1: INPUT_WEST - POUR_GAP,
-  y0: VBUS1_IN.y - VBUS1_IN.width / 2,
-  y1: VBUS1_IN.y + VBUS1_IN.width / 2,
-};
-/** The joint into the anode area: the y range both areas share. */
-const VBUS1_JOINT = { y0: 17.5, y1: VBUS1.y1 };
+/** USB_DN runs west to east at y 19.4 up to x 25.87, then south to J4.3 (usb.tsx). */
+const DN_CLEAR = { y: 19.1, x: 26.2 };
+/** The VBUS1 band from the usb block to D1 (the handoff: y 16.9 to 19.9). */
+const BAND1 = { y0: 16.9, y1: 19.9 };
+/** North edge of the area: the slot's region starts at y 9.1 east of x 38. */
+const NORTH1 = 9.1;
+/** East edge of the north part: west of the PERST# via at (38.9, 16.4). */
+const NORTH1_EAST = 38.3;
 
-/** VBUS2 runs y 34.7 to 37.7 (the handoff), clear of the microcontroller (y < 34.3, y > 38.2). */
+const VBUS1_OUTLINE: Point[] = [
+  { x: VBUS1_FROM_PC.x + POUR_GAP, y: NORTH1 },
+  { x: NORTH1_EAST, y: NORTH1 },
+  { x: NORTH1_EAST, y: BAND1.y0 },
+  { x: INPUT_WEST - POUR_GAP, y: BAND1.y0 },
+  { x: INPUT_WEST - POUR_GAP, y: BAND1.y1 },
+  { x: DN_CLEAR.x, y: BAND1.y1 },
+  { x: DN_CLEAR.x, y: DN_CLEAR.y },
+  { x: VBUS1_FROM_PC.x + POUR_GAP, y: DN_CLEAR.y },
+];
+/** The joint into the anode area of D1: the y range both areas share. */
+const VBUS1_JOINT = { y0: 17.5, y1: BAND1.y1 };
+
+/** VBUS2 from pdCharger to D2, y 34.6 to 37.95: the free ground between the microcontroller's parts (y < 34.3 and y > 38.2). */
 const VBUS2 = {
   x0: VBUS2_IN.x + POUR_GAP,
   x1: INPUT_WEST - POUR_GAP,
-  y0: VBUS2_IN.y - VBUS2_IN.width / 2,
-  y1: VBUS2_IN.y + VBUS2_IN.width / 2,
+  y0: 34.6,
+  y1: 37.95,
 };
 
 /** A wide track across a gap of POUR_GAP at `x`, overlapping both sides. */
 const Joint = ({
   net,
   x,
-  y0,
-  y1,
+  y,
+  width,
 }: {
   net: "VBUS1" | "VBUS2";
   x: number;
-  y0: number;
-  y1: number;
+  y: number;
+  width: number;
 }) => (
   <Track
     net={net}
-    width={y1 - y0}
+    width={width}
     layer="top"
     points={[
-      { x: x - 0.4, y: (y0 + y1) / 2 },
-      { x: x + 0.4, y: (y0 + y1) / 2 },
+      { x: x - 0.3, y },
+      { x: x + 0.3, y },
     ]}
   />
 );
 
 const Vbus = () => (
   <>
-    <Pour
+    <Pour net="VBUS1" layer="top" outline={VBUS1_OUTLINE} />
+    {/* From the area of pdPc at its handoff, and into the anode area of D1. */}
+    <Joint
       net="VBUS1"
-      layer="top"
-      outline={rect(VBUS1.x0, VBUS1.y0, VBUS1.x1, VBUS1.y1)}
+      x={VBUS1_FROM_PC.x}
+      y={VBUS1_FROM_PC.y}
+      width={VBUS1_FROM_PC.width}
     />
-    {/* Into the usb block's area at the handoff, and into the anode area of D1. */}
-    <Joint net="VBUS1" x={VBUS1_IN.x} y0={VBUS1.y0} y1={VBUS1.y1} />
     <Joint
       net="VBUS1"
       x={INPUT_WEST - POUR_GAP / 2}
-      y0={VBUS1_JOINT.y0}
-      y1={VBUS1_JOINT.y1}
+      y={(VBUS1_JOINT.y0 + VBUS1_JOINT.y1) / 2}
+      width={VBUS1_JOINT.y1 - VBUS1_JOINT.y0}
     />
     <Pour
       net="VBUS2"
       layer="top"
       outline={rect(VBUS2.x0, VBUS2.y0, VBUS2.x1, VBUS2.y1)}
     />
-    <Joint net="VBUS2" x={VBUS2_IN.x} y0={VBUS2.y0} y1={VBUS2.y1} />
+    <Joint net="VBUS2" x={VBUS2_IN.x} y={VBUS2_IN.y} width={VBUS2_IN.width} />
     <Joint
       net="VBUS2"
       x={INPUT_WEST - POUR_GAP / 2}
-      y0={VBUS2.y0}
-      y1={VBUS2.y1}
+      y={VBUS2_IN.y}
+      width={VBUS2_IN.width}
     />
   </>
 );
