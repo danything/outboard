@@ -58,6 +58,7 @@ const build = (options: CaseOptions): Built => {
 const VARIANTS: CaseOptions[] = [
   DEFAULT_OPTIONS,
   { ...DEFAULT_OPTIONS, latch: "snap", fastener: "nut" },
+  { ...DEFAULT_OPTIONS, wall: 1.5 },
 ];
 const built = new Map<CaseOptions, Built>();
 const get = (o: CaseOptions): Built => {
@@ -97,7 +98,7 @@ const probe = (shape: Shape3D, [x, y, z]: V3): boolean => {
 };
 
 for (const options of VARIANTS) {
-  const label = `${options.latch}, ${options.fastener}`;
+  const label = `${options.latch}, ${options.fastener}, wall ${options.wall}`;
   describe(label, () => {
     test("nothing inside runs into the case", () => {
       const { parts } = get(options);

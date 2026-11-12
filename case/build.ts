@@ -32,6 +32,16 @@ const choice = <T extends string>(
   return v as T;
 };
 
+/** A wall thickness in mm: 1.2 (thinner breaks easily in SLA resin) to 4. */
+const thickness = (name: string, fallback: number): number => {
+  const i = Bun.argv.indexOf(`--${name}`);
+  if (i < 0) return fallback;
+  const v = Number(Bun.argv[i + 1]);
+  if (!Number.isFinite(v) || v < 1.2 || v > 4)
+    throw new Error(`--${name} ${Bun.argv[i + 1]}: give mm from 1.2 to 4`);
+  return v;
+};
+
 const options: CaseOptions = {
   latch: choice("latch", ["magnet", "snap"] as const, DEFAULT_OPTIONS.latch),
   fastener: choice(
@@ -39,7 +49,7 @@ const options: CaseOptions = {
     ["insert", "nut"] as const,
     DEFAULT_OPTIONS.fastener,
   ),
-  wall: Number(option("wall") ?? DEFAULT_OPTIONS.wall),
+  wall: thickness("wall", DEFAULT_OPTIONS.wall),
 };
 
 await initCad();
