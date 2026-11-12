@@ -35,7 +35,8 @@ const Wire = ({
   net: Net;
 }) => (
   <trace
-    name={`${part}_${port}`}
+    // "wire_" keeps the name apart from nets such as Q1_G (part Q1, port G).
+    name={`wire_${part}_${port}`}
     from={`.${part} > .${port}`}
     to={`net.${net}`}
   />
