@@ -314,6 +314,75 @@ export const SOT89: FootprintDef = {
   pin1Mark: { x: 2.3, y: -2.2 },
 };
 
+/**
+ * Four rows of leads around a square body, pin 1 at the left of the bottom
+ * row, counting counter-clockwise (the EasyEDA "BL" orientation of QFNs).
+ */
+const quadBottomLeft = (
+  perSide: number,
+  pitch: number,
+  rowY: number,
+  along: number,
+  across: number,
+): Pad[] => {
+  const pads: Pad[] = [];
+  const first = (-(perSide - 1) * pitch) / 2;
+  for (let i = 0; i < perSide; i++) {
+    const t = first + i * pitch;
+    const n = (side: number) => String(side * perSide + i + 1);
+    pads.push({ pin: n(0), x: t, y: -rowY, w: along, h: across });
+    pads.push({ pin: n(1), x: rowY, y: t, w: across, h: along });
+    pads.push({ pin: n(2), x: -t, y: rowY, w: along, h: across });
+    pads.push({ pin: n(3), x: -rowY, y: -t, w: across, h: along });
+  }
+  return pads.sort((a, b) => Number(a.pin) - Number(b.pin));
+};
+
+/**
+ * U8: CH334P, QFN-16 3 x 3, 0.5 pitch, exposed pad (pin 17, GND). WCH gives
+ * the package (leads 0.25 x 0.35, pad 1.75) but no land pattern; the land is
+ * the EasyEDA one: 0.28 x 0.665 centred 1.45 out, exposed pad 1.70.
+ */
+export const QFN16_3X3: FootprintDef = {
+  pads: [
+    ...quadBottomLeft(4, 0.5, 1.45, 0.28, 0.665),
+    { pin: "17", x: 0, y: 0, w: 1.7, h: 1.7 },
+  ],
+  // The exposed pad is the hub's only ground and is closed in on four sides
+  // by the leads: four plated holes in it take it to the ground on the bottom
+  // (a via cannot be placed in a pad).
+  platedHoles: [-0.45, 0.45].flatMap((x) =>
+    [-0.45, 0.45].map((y) => ({
+      pin: "17",
+      x,
+      y,
+      holeW: 0.3,
+      holeH: 0.3,
+      padW: 0.7,
+      padH: 0.7,
+    })),
+  ),
+  courtyard: centredBox(4.1, 4.1),
+  pin1Mark: { x: -1.6, y: -1.6 },
+  height: 0.8,
+};
+
+/**
+ * Y1: 12 MHz crystal, 3.2 x 2.5, four pads. 1 and 3 are the crystal, 2 and 4
+ * ground (the EasyEDA land and pin names: 1.4 x 1.2 at +-1.1, +-0.85).
+ */
+export const XTAL3225: FootprintDef = {
+  pads: [
+    { pin: "1", x: -1.1, y: -0.85, w: 1.4, h: 1.2 },
+    { pin: "2", x: 1.1, y: -0.85, w: 1.4, h: 1.2 },
+    { pin: "3", x: 1.1, y: 0.85, w: 1.4, h: 1.2 },
+    { pin: "4", x: -1.1, y: 0.85, w: 1.4, h: 1.2 },
+  ],
+  courtyard: centredBox(4.1, 3.4),
+  pin1Mark: { x: -2.0, y: -1.5 },
+  height: 0.8,
+};
+
 /** U7: CH32V003F4P6, TSSOP-20. */
 export const TSSOP20: FootprintDef = {
   pads: bottomRightTopLeft(10, 0.65, 2.87, 0.364, 1.742, "pill"),

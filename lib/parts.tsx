@@ -300,7 +300,37 @@ export const SRV05 = numbered(
   ["IO1", "GND", "IO2", "IO3", "REF", "IO4"],
 );
 
-/** 5 V LDO for the microcontroller. */
+/** USB 2.0 hub, four ports (two used). Pin 17 is the exposed pad. */
+export const CH334P = numbered(
+  { footprint: fp.QFN16_3X3, lcsc: "C5373042", mpn: "CH334P" },
+  [
+    "XO",
+    "XI",
+    "DM4",
+    "DP4",
+    "DM3",
+    "DP3",
+    "DM2",
+    "DP2",
+    "DM1",
+    "DP1",
+    "DMU",
+    "DPU",
+    "RESET",
+    "PGANG",
+    "V5",
+    "VDD33",
+    "EP",
+  ],
+);
+
+/** 12 MHz crystal of the hub. Pins 2 and 4 are the lid (ground). */
+export const Crystal12M = numbered(
+  { footprint: fp.XTAL3225, lcsc: "C9002", mpn: "X322512MSB4SI" },
+  ["X1", "GND", "X2", "GND2"],
+);
+
+/** 5 V LDO (the microcontroller's, and the card's USB VBUS). */
 export const HT7550 = numbered(
   {
     footprint: fp.SOT89,
