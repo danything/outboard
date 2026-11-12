@@ -59,8 +59,14 @@ const V12 = () => (
         { x: 49.9, y: 11.6 },
         { x: 49.9, y: 9.8 },
         { x: 50.9, y: 9.8 },
-        { x: 50.9, y: V12_IN.y },
-        { x: 45.8, y: V12_IN.y },
+        { x: 50.9, y: 13.3 },
+        // A leg 1.6 mm wide down to the handoff, leaving room east of it for
+        // PERST#, which comes up from the bottom at x 49.15 (fix/handoffs).
+        { x: V12_IN.x + 0.6, y: 13.3 },
+        { x: V12_IN.x + 0.6, y: V12_IN.y },
+        { x: V12_IN.x - 1, y: V12_IN.y },
+        { x: V12_IN.x - 1, y: 13.3 },
+        { x: 45.8, y: 13.3 },
         { x: 45.8, y: 8.4 },
         { x: 46.2, y: 8.4 },
       ]}
@@ -277,6 +283,11 @@ const Ground = () => (
 const PERST_VIA: Point = { x: J3("A11").x, y: 13.2 };
 /** The line that joins D6, R27 and C31, south of their pads. */
 const PERST_Y = 13.65;
+/**
+ * The line from the microcontroller comes up from the bottom here, east of
+ * the 12 V leg (the note of the PERST_N handoff). Its via is the trunk's.
+ */
+const PERST_FROM_MCU_X = 49.15;
 
 /**
  * Bottom only as far as the 3.3 V copper forces it (10 mm, 0.45 mm from the
@@ -303,6 +314,16 @@ const Perst = () => (
         { x: pad("R27", 2).x, y: PERST_Y },
         pad("R27", 2),
         pad("C31", 1),
+      ]}
+    />
+    {/* West along the same line to where the line from the microcontroller comes up (fix/handoffs). */}
+    <Track
+      net="PERST_N"
+      width={0.2}
+      layer="top"
+      points={[
+        { x: pad("D6", 2).x, y: PERST_Y },
+        { x: PERST_FROM_MCU_X, y: PERST_Y },
       ]}
     />
     <Via net="GND" at={{ x: 70.5, y: 12.8 }} {...VIA.signal} />
