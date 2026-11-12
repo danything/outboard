@@ -130,3 +130,22 @@ test("every check has a case that breaks it", () => {
     new Set(Object.keys(DESIGN_CHECKS)),
   );
 });
+
+test("bleeders reports both ports, not only the first", () => {
+  const values = design();
+  values.r.R28 = 100;
+  values.r.R30 = 100;
+  const found = runDesignChecks(values).filter((f) => f.check === "bleeders");
+  // A low top resistor overloads the bottom pair of its port.
+  const text = found.map((f) => f.message).join(" ");
+  expect(text).toContain("R29");
+  expect(text).toContain("R31");
+});
+
+test("a missing part fails its own checks and leaves the others running", () => {
+  const values = design();
+  delete values.r.R7;
+  const found = runDesignChecks(values);
+  expect(found.map((f) => f.check)).toEqual(["buckOutput"]);
+  expect(found[0]?.message).toContain("R7");
+});

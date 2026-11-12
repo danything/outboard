@@ -38,7 +38,8 @@ const need = (table: Record<string, number>, ref: string): number => {
 const within = (value: number, low: number, high: number): boolean =>
   value >= low && value <= high;
 
-type DesignCheck = (v: Values) => string | undefined;
+/** A check returns nothing when the intent holds, or one sentence per broken rule. */
+type DesignCheck = (v: Values) => string | string[] | undefined;
 
 /** Name -> check. A check returns a sentence when the design intent is broken. */
 export const DESIGN_CHECKS: Record<string, DesignCheck> = {
@@ -101,6 +102,7 @@ export const DESIGN_CHECKS: Record<string, DesignCheck> = {
   // VBUS bleeders: two 1 k in series, twice in parallel = 1 k. Each must stay
   // within 125 mW even at 21 V (the top of a 20 V PD contract).
   bleeders: (v) => {
+    const out: string[] = [];
     for (const [a, b, c, d] of [
       ["R28", "R39", "R29", "R40"],
       ["R30", "R41", "R31", "R42"],
@@ -111,7 +113,8 @@ export const DESIGN_CHECKS: Record<string, DesignCheck> = {
         par(need(v.r, c), need(v.r, d)),
       ];
       const total = top + bottom;
-      if (total > 1000) return `bleeder ${a}.. is ${total} ohm, more than 1 k`;
+      if (total > 1000)
+        out.push(`bleeder ${a}.. is ${total} ohm, more than 1 k`);
       for (const [ref, share] of [
         [a, top],
         [b, top],
@@ -121,10 +124,10 @@ export const DESIGN_CHECKS: Record<string, DesignCheck> = {
         const volts = (21 * share) / total;
         const mw = (volts ** 2 / need(v.r, ref)) * 1e3;
         if (mw > 125)
-          return `${ref} would dissipate ${mw.toFixed(0)} mW at 21 V`;
+          out.push(`${ref} would dissipate ${mw.toFixed(0)} mW at 21 V`);
       }
     }
-    return undefined;
+    return out;
   },
   // Q1 (AO3401A, Vgs max +-12 V): on, Vgs = -V x R14 / (R14 + R15). It must be
   // at least 4.5 V at the nominal boost output and at most 12 V even if 20 V
@@ -258,8 +261,15 @@ export const DESIGN_CHECKS: Record<string, DesignCheck> = {
   },
 };
 
+/** Every broken rule. A check that needs a part the circuit lacks fails on its own, not the whole run. */
 export const runDesignChecks = (values: Values): Finding[] =>
   Object.entries(DESIGN_CHECKS).flatMap(([check, run]) => {
-    const message = run(values);
-    return message ? [{ check, message }] : [];
+    let result: string | string[] | undefined;
+    try {
+      result = run(values);
+    } catch (e) {
+      result = e instanceof Error ? e.message : String(e);
+    }
+    const messages = result === undefined ? [] : [result].flat();
+    return messages.map((message) => ({ check, message }));
   });
