@@ -1,6 +1,25 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["github>5ym/repo-config"],
+  "customManagers": [
+    {
+      "description": "The KiCad image is named in compose.yml (which Renovate reads on its own) and in the workflow's env, and the README repeats both images in the wslc command. These keep the copies moving together with compose.yml and the workflow's container.",
+      "customType": "regex",
+      "managerFilePatterns": ["/^\\.github/workflows/build\\.yml$/"],
+      "matchStrings": [
+        "KICAD_IMAGE: (?<depName>[^\\s:]+):(?<currentValue>\\S+)"
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^README\\.md$/"],
+      "matchStrings": [
+        "(?<depName>oven/bun|kicad/kicad):(?<currentValue>[\\w.-]+)"
+      ],
+      "datasourceTemplate": "docker"
+    }
+  ],
   "packageRules": [
     {
       "description": "tscircuit and its packages publish several versions a day (0.0.x, each pinned exactly here because any of them can move a pad or redraw a picture). One PR a week is enough to stay current without a PR and a CI run for every publish. They get their own group so that a tscircuit update that changes the board pictures -- which fails the snapshot step in CI and therefore does not merge itself -- does not hold back the other dependencies.",

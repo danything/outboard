@@ -1,0 +1,64 @@
+# 手元で動かすための環境。ホストに要るのは compose の使えるコンテナの道具だけ (Bun も Node も入れない)。
+#   docker compose up dev                 http://localhost:3020 で基板・回路図・3D を見る (保存すると描き直す)
+#   docker compose run --rm check         CI の build と同じ検査一式
+#   docker compose run --rm snapshots     __snapshots__ の絵を描き直す
+#   docker compose run --rm kicad-drc     check → KiCad の DRC → 判定 (CI の全部)
+# イメージの版は CI (.github/workflows/build.yml) と同じにしておく。上げるのは Renovate (両方を 1 つの PR で上げる)。
+name: outboard
+
+x-bun: &bun
+  image: oven/bun:1.4.4
+  working_dir: /work
+  volumes:
+    - .:/work
+    # Windows のフォルダの上に置くと遅い (install 54 秒 → 6 秒、build 41 秒 → 16 秒) ので、ボリュームに入れる
+    - node_modules:/work/node_modules
+
+services:
+  dev:
+    <<: *bun
+    command: sh -c "bun install --frozen-lockfile && exec bunx tsci dev"
+    ports:
+      - 127.0.0.1:3020:3020
+    environment:
+      # 版は固定してあるので、新しい版を探しに行かない
+      TSCI_SKIP_CLI_UPDATE: "true"
+      # Windows のフォルダをマウントすると、変更の通知 (inotify) が届かない。ポーリングで見る
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "1000"
+
+  # build.yml の build ジョブと同じ手順。外の部品検索は package.json の script で切ってある
+  check:
+    <<: *bun
+    profiles: [tools]
+    command: >-
+      sh -c "bun install --frozen-lockfile && bun run lint && bun run build && bun run check
+      && bun run snapshot && bun run fab && cp tools/outboard.kicad_dru dist/index/kicad/index.kicad_dru"
+
+  snapshots:
+    <<: *bun
+    profiles: [tools]
+    command: sh -c "bun install --frozen-lockfile && bun run snapshot --update"
+
+  # build.yml の kicad-drc ジョブと同じ。check が作った KiCad の基板に DRC をかけ (kicad-cli)、報告を判定する (kicad-drc)
+  kicad-cli:
+    <<: *bun
+    profiles: [tools]
+    image: kicad/kicad:10.0
+    user: "0"
+    working_dir: /work/dist/index/kicad
+    command: kicad-cli pcb drc --refill-zones --severity-all --format json --units mm -o drc.json index.kicad_pcb
+    depends_on:
+      check:
+        condition: service_completed_successfully
+
+  kicad-drc:
+    <<: *bun
+    profiles: [tools]
+    command: bun tools/kicad-drc.ts dist/index/kicad/drc.json
+    depends_on:
+      kicad-cli:
+        condition: service_completed_successfully
+
+volumes:
+  node_modules:
