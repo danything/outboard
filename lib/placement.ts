@@ -224,9 +224,10 @@ export const BLOCKS = {
       R33: p("R0603", 49.7, 23.45, "W"),
       // North: PERST# leaves under the body to the north; SWIO goes down to
       // the bottom under the body and comes up at J5.
+      // TP4 before R37: bottom labels are placed in this order, a test point right under it.
+      TP4: p("TESTPOINT_1V5", 35.4, 22.4),
       R37: p("R0603", 37.4, 22.75, "S"),
       J5: p("HEADER_1X2", 41.0, 22.02, "W"),
-      TP4: p("TESTPOINT_1V5", 35.4, 22.4),
       // 5 V regulator in the south-west corner, under the lines to the ports.
       U6: p("SOT89", 24.855, 31.82, 0),
       C7: p("C0805", 28.515, 31.6, "N"),
