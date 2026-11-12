@@ -29,8 +29,8 @@ outboard はその電源を USB-C (PD 9V) から作り、内部 USB を USB-C �
 | 5    | 製造用の出力と文書の仕上げ                                  |                                                              |
 
 **回路は入った**: 部品 111 個・ネット 56 本・未接続のパッド 42 個が、rev D (KiCad) のネットリストと完全に同じつながり方になっている (CI が毎回比べる)。
-**配線は途中**: 部品は全部置いてある (`lib/placement.ts`。ブロックごとの配置と、ブロックをまたぐネットの受け渡しの点。配置だけの絵は [`placement.circuit-pcb.snap.svg`](__snapshots__/placement.circuit-pcb.snap.svg))。基板は 100 × 42mm ([docs/mechanical.md](docs/mechanical.md#寸法))・4 層。
-銅は `lib/routing/` にブロックごとの別ファイルで書く ([docs/routing.md](docs/routing.md))。入っているのは降圧 (`buck`) と基板全体の面 (内層の GND・+3V3、うらの GND) だけ。
+**配線は途中**: 部品は全部置いてある (`lib/placement.ts`。ブロックごとの配置と、ブロックをまたぐネットの受け渡しの点。配置だけの絵は [`placement.circuit-pcb.snap.svg`](__snapshots__/placement.circuit-pcb.snap.svg))。基板は 100 × 42mm ([docs/mechanical.md](docs/mechanical.md#寸法))・2 層。
+銅は `lib/routing/` にブロックごとの別ファイルで書く ([docs/routing.md](docs/routing.md))。入っているのは降圧 (`buck`) とうらの GND の面だけ。
 
 全部のブロックの配線が入るまでのあいだ、KiCad の DRC の「未接続」は除外してある (`tools/kicad-drc.ts` の `temporary` の項目)。**配線を入れ終える PR で、この除外を消す。**
 自前の検査のうち配線に頼るものの指摘は、いまは `(open)` と出して通している。**段階 4 が済んだら 0 にする** (check を `bun checks/run.ts --strict` に替える。`(open)` か飛ばしが残ると落ちる)。
@@ -45,7 +45,7 @@ KiCad の版は main から消した。タグ [`kicad-rev-c`](../../tree/kicad-r
 | 入力               | USB-C ×2、USB PD 9V (CH224A ×2)。2 口を SS54 で合流                                     |
 | 出力               | 3.3V・3A (TPS62933)、12V・0.5A (MT3608B)。12V は AO3401A + PTC で入り切り、過電圧で遮断 |
 | マイコン           | CH32V003 (電源の順序・監視・LED)                                                        |
-| 基板               | 4 層・厚み 1.6mm (J3 のため)。100 × 42mm                                                |
+| 基板               | 2 層・厚み 1.6mm (J3 のため)。100 × 42mm                                                |
 | ケースの厚みの内寸 | 約 20〜21.6mm ([docs/mechanical.md](docs/mechanical.md))                                |
 
 ## 見方
