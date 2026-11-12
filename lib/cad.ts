@@ -15,6 +15,13 @@
 import * as fp from "./footprints";
 import type { Box, FootprintDef, Pad } from "./footprints";
 import {
+  BOARD_THICKNESS,
+  CARD_TONGUE,
+  J3_BODY,
+  J3_MOUTH_Y,
+  J3_ORIGIN,
+} from "./geometry";
+import {
   type Rgb,
   type Solid,
   block,
@@ -246,33 +253,62 @@ const usbC = (def: FootprintDef): Solid[] => {
 };
 
 /**
- * PCIe x1 straddle-mount slot X1613WS-36D-9TV01. The housing stands beyond
- * the board edge (y = +3.2) up to the card's mouth (y = +11.3, J3_MOUTH_Y in
- * lib/geometry.ts) and reaches 4.5 above the top and 3.78 below the bottom
- * surface; the ears clamp the board around the two holes. The contact tails
- * lie on the pads on both sides.
+ * PCIe x1 straddle-mount slot X1613WS-36D-9TV01, T-shaped seen from the top
+ * (J3_BODY and J3_MOUTH_Y in lib/geometry.ts, from the datasheet): the body
+ * stands beyond the board edge (y = +3.2) up to the card's mouth, with a lip
+ * on the component side next to the mouth; the ears at its ends clamp the
+ * board around the two holes and stand a little beyond the edge. The contact
+ * tails lie on the pads on both sides.
  */
-const pcieSlot = (def: FootprintDef): Solid[] => {
-  const edge = 3.2;
-  const mouth = 11.3;
-  const top = def.height ?? 4.5;
-  const bottom = -1.6 - 3.78;
-  const half = 17.65;
-  const ear = 6.7;
-  const tails = def.pads.map((p) =>
+const pcieSlot = (): Solid[] => {
+  const edge = J3_ORIGIN.y;
+  // Design y (away from the card) to land-pattern y (towards the card).
+  const fy = (y: number) => edge - y;
+  const mouth = fy(J3_MOUTH_Y);
+  const mid = -BOARD_THICKNESS / 2;
+  const b = J3_BODY;
+  const tails = fp.PCIE_X1_STRADDLE.pads.map((p) =>
     p.layer === "bottom"
       ? block(GOLD, [p.x - 0.2, -1.6, -1.75], [p.x + 0.2, edge, -1.6])
       : block(GOLD, [p.x - 0.2, -1.6, 0], [p.x + 0.2, edge, 0.15]),
   );
   return [
-    block(BLACK, [-half, edge, bottom], [half, mouth, top]),
-    // Ears over and under the board.
+    block(
+      BLACK,
+      [-b.bodyHalf, edge, mid - b.bodyHalfZ],
+      [b.bodyHalf, mouth, mid + b.bodyHalfZ],
+    ),
+    // The lip on the component side, next to the mouth.
+    block(
+      BLACK,
+      [-b.bodyHalf, mouth - b.lipLength, mid + b.bodyHalfZ],
+      [b.bodyHalf, mouth, mid + b.lipZ],
+    ),
+    // Ears over and under the board (the board runs through their slot).
     ...[-1, 1].flatMap((s) => [
-      block(BLACK, [s * half, -5.8, 0], [s * (half - ear), edge, top]),
-      block(BLACK, [s * half, -5.8, bottom], [s * (half - ear), edge, -1.6]),
+      block(
+        BLACK,
+        [s * b.earHalf, fy(b.earY1), 0],
+        [s * b.bodyHalf, fy(b.earY0), mid + b.earHalfZ],
+      ),
+      block(
+        BLACK,
+        [s * b.earHalf, fy(b.earY1), mid - b.earHalfZ],
+        [s * b.bodyHalf, fy(b.earY0), -BOARD_THICKNESS],
+      ),
+      // Beyond the board edge, the ear is whole.
+      block(
+        BLACK,
+        [s * b.earHalf, edge, -BOARD_THICKNESS],
+        [s * b.bodyHalf, fy(b.earY0), 0],
+      ),
     ]),
     // The slot the card's edge enters, centred on the board's mid-plane.
-    block(MOULD, [-11, mouth, -0.8 - 0.9], [11, mouth + 0.02, -0.8 + 0.9]),
+    block(
+      MOULD,
+      [CARD_TONGUE.x0 - J3_ORIGIN.x - 0.3, mouth, mid - 0.9],
+      [CARD_TONGUE.x1 - J3_ORIGIN.x + 0.3, mouth + 0.02, mid + 0.9],
+    ),
     ...tails,
   ];
 };

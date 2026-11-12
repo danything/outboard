@@ -25,14 +25,18 @@ export const CARD = {
   /** Size of the screws in those holes (M3 assumed; PCIe brackets also use 4-40). */
   screwDiameter: 3,
 
-  /** The board runs below the shoulder near the bracket: up to this far from the bracket ... */
-  tabEnd: 17,
+  // [CEM] R4.0 Fig 61 (Detail F) and Fig 37. The card's rear end is 1.89 from
+  // the bracket (57.15 from datum X, the key, which is 59.04 from the
+  // bracket). Both tabs reach 8.25 below the shoulder (4.50 above datum W).
+  // The photo read 17, 8.7 and 35.1 to 42.9, 8.5.
+  /** The board runs below the shoulder near the bracket: up to this far from the bracket (15.00 from the card's rear end) ... */
+  tabEnd: 16.89,
   /** ... and this far below the shoulder. */
-  tabDrop: 8.7,
-  /** A second tab between the bracket and the contacts: from, to (from the bracket) and its drop. */
-  tab2From: 35.1,
-  tab2To: 42.9,
-  tab2Drop: 8.5,
+  tabDrop: 8.25,
+  /** A second tab between the bracket and the contacts (23.80 to 15.80 from the key; a 3.65 slot with a full radius parts it from the contacts): from, to (from the bracket) and its drop. */
+  tab2From: 35.24,
+  tab2To: 43.24,
+  tab2Drop: 8.25,
 
   /** F connectors: axis from the shoulder, the one near the contacts and the far one. */
   fNear: 24.5,
