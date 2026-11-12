@@ -330,7 +330,9 @@ export const copperArea = (b: Copper, net: string, layer: string): number =>
 /**
  * Copper of `net` joined to the pads of `part` on any layer: pours, and
  * tracks outside pours, that the net's copper reaches through vias. With two
- * layers, the heat of a diode spreads into the copper on both sides.
+ * layers, the heat of a diode spreads into the copper on both sides. The walk
+ * stops at the pads of other parts: copper beyond another part (the buck's
+ * input past its capacitors, say) is too far to carry the diode's heat.
  */
 export const connectedArea = (b: Copper, net: string, part: string): number => {
   const g = netGraph(b, net);
@@ -339,6 +341,8 @@ export const connectedArea = (b: Copper, net: string, part: string): number => {
   for (const i of queue) seen.add(i);
   while (queue.length > 0) {
     const i = queue.pop() as number;
+    const node = g.nodes[i] as Node;
+    if (node.pad && node.pad.ref !== part) continue;
     for (const j of g.links[i] ?? [])
       if (!seen.has(j)) {
         seen.add(j);
