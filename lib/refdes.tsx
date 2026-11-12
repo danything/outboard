@@ -3,7 +3,14 @@
 // through the board), moved aside only where a bottom pad, a hole, the edge or
 // another label is in the way.
 import * as fp from "./footprints";
-import { MOUNTING_HOLE_POSITIONS, type Point, type Rect, at } from "./geometry";
+import {
+  BOARD_DEPTH,
+  BOARD_WIDTH,
+  MOUNTING_HOLE_POSITIONS,
+  type Point,
+  type Rect,
+  at,
+} from "./geometry";
 import { PLACEMENT, placedBox } from "./placement";
 
 /** Text height and stroke, mm: JLCPCB asks for 1.0 and 0.15 at least. */
@@ -89,7 +96,12 @@ const obstacles = (): Rect[] => {
 /** Ground via of U5 between its two rows (lib/routing/pdPc.tsx). */
 const VIAS_UNDER_LABELS: Point[] = [{ x: 15.4, y: 20.35 }];
 
-const INSIDE: Rect = { x0: 0.5, y0: 0.5, x1: 99.5, y1: 41.5 };
+const INSIDE: Rect = {
+  x0: 0.5,
+  y0: 0.5,
+  x1: BOARD_WIDTH - 0.5,
+  y1: BOARD_DEPTH - 0.5,
+};
 
 /** Where each label goes, in design coordinates. */
 export const refdesPlaces = (): { ref: string; at: Point }[] => {

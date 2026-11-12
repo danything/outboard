@@ -8,8 +8,9 @@
 // under them (KiCad flags a via joined on one side only).
 //
 // The lines that pass through the block:
-// - top, between the pads of each diode: V12_SENSE under D1, LED_STAT under
-//   D2 and on west, south of the VBUS2 area
+// - top, between the pads of each diode: V12_SENSE under D1, the hub's +3V3
+//   under D2 (trunks.tsx)
+// - bottom, VIN for the two 5 V regulators (mcu.tsx) from the south of the band
 // - bottom, under the band from the microcontroller to the boost and the
 //   switch: EN_12V north, EN_3V3 and Q2_G south, side by side and never
 //   crossing, clear of the ground vias of C4 and C5
@@ -35,20 +36,20 @@ const Q2G_IN = p(handoff("Q2_G", "mcu", "input"));
 const Q2G_OUT = p(handoff("Q2_G", "input", "switch12"));
 const SENSE_IN = p(handoff("V12_SENSE", "switch12", "input"));
 const SENSE_OUT = p(handoff("V12_SENSE", "input", "mcu"));
-const LED_IN = p(handoff("LED_STAT", "mcu", "input"));
-const LED_OUT = p(handoff("LED_STAT", "input", "mcu"));
 
 // Where the VIN area of the buck (buck.tsx) meets the strip, widened by 0.2.
 const BUCK_VIN = { x0: 83.7, x1: 85.9 };
 
-// Board edge minus the clearance to the outline.
+/** South edge of the strip along the far side (the old board edge). */
 const SOUTH = 41.7;
+/** The band goes on south of D2, to feed the 5 V regulators on the bottom. */
+const BAND_SOUTH = 47.5;
 
 export const InputRouting = () => (
   <>
     {/* VBUS1 and VBUS2: the part of each area that lies in this block, up to the anode. */}
     <Pour net="VBUS1" layer="top" outline={rect(47.5, 17.5, 50.2, 20.6)} />
-    <Pour net="VBUS2" layer="top" outline={rect(47.5, 34.6, 50.2, 38)} />
+    <Pour net="VBUS2" layer="top" outline={rect(47.5, 34.6, 50.2, 41.8)} />
     {/* VIN: the band from D1 to D2 and the strip along the far edge to the buck. */}
     <Pour
       net="VIN"
@@ -65,7 +66,9 @@ export const InputRouting = () => (
         { x: BUCK_VIN.x1, y: 38.6 },
         { x: 86.9, y: 38.6 },
         { x: 86.9, y: SOUTH },
-        { x: 52.4, y: SOUTH },
+        { x: 59, y: SOUTH },
+        { x: 59, y: BAND_SOUTH },
+        { x: 52.4, y: BAND_SOUTH },
         { x: 52.4, y: 34.6 },
         { x: 53, y: 34.6 },
         { x: 53, y: 20.6 },
@@ -124,13 +127,6 @@ export const InputRouting = () => (
       width={0.2}
       layer="top"
       points={[SENSE_IN, SENSE_OUT]}
-    />
-    {/* Status LED: between the pads of D2, then west south of the VBUS2 area. */}
-    <Track
-      net="LED_STAT"
-      width={0.2}
-      layer="top"
-      points={[LED_IN, { x: LED_IN.x, y: LED_OUT.y }, LED_OUT]}
     />
     {/* Under the band, on the bottom: the vias at both ends belong to the blocks on either side. */}
     <Track

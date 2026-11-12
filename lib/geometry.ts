@@ -32,12 +32,13 @@ export const at = (x: number, y: number): Point => ({ x, y: -y });
 
 // [LAY] The card lies in the same plane, so the depth (y) adds directly to
 // the width of the case, while the length (x) runs along the card and is
-// free. Depth is therefore as small as the two USB-C ports allow:
-//   tongue clearance 15.53 + shell 8.94 + gap 7.26 (mounting hole H3)
-//   + shell 8.94 + 1.33 to the edge = 42.
+// free. The two USB-C ports alone would need 42:
+//   tongue clearance 15.53 + shell 8.94 + gap 7.26 + shell 8.94 + 1.33 = 42.
+// The second internal USB header J6, the hub between J4 and J6, and the
+// microcontroller that had to make room for them take 18 more (rev D was 42).
 // The length is JLCPCB's 100 mm price limit.
 export const BOARD_WIDTH = 100;
-export const BOARD_DEPTH = 42;
+export const BOARD_DEPTH = 60;
 // [DS] J3 is made for a 1.57 mm board.
 export const BOARD_THICKNESS = 1.6;
 
@@ -113,17 +114,26 @@ const REFERENCE_DRAWN_HEIGHT = 12;
 
 // --- Internal USB header J4 -------------------------------------------------
 
-// [LAY] Below the VBUS1 copper, pins pointing at the card: the plug lies over
-// copper only, and the data pair reaches it without crossing VBUS1.
-export const J4_ORIGIN: Point = { x: 24.6, y: 22.3 };
+// [LAY] Pins pointing at the card: the plug lies over copper only (VBUS1).
+// As close to the card side as the plug allows (it starts 0.17 from the
+// edge), so that the hub's upstream pair passes south of the pins.
+export const J4_ORIGIN: Point = { x: 24.6, y: 19.8 };
 // [DS] Plastic 3.09 to 5.63 from the origin. [EST] Plug 14 long, 13.2 wide,
 // 0.2 above the board: no parts under it.
-export const J4_PLUG: Rect = {
-  x0: J4_ORIGIN.x - 6.6,
-  y0: J4_ORIGIN.y - 5.63 - 14,
-  x1: J4_ORIGIN.x + 6.6,
-  y1: J4_ORIGIN.y - 5.63,
-};
+const plugOf = (origin: Point): Rect => ({
+  x0: origin.x - 6.6,
+  y0: origin.y - 5.63 - 14,
+  x1: origin.x + 6.6,
+  y1: origin.y - 5.63,
+});
+export const J4_PLUG: Rect = plugOf(J4_ORIGIN);
+
+// --- Second internal USB header J6 --------------------------------------------
+
+// [LAY] The same header, east of J4. Its plug starts at y 9.1, south of the
+// rear ear of J3 and of H5, and lies over the copper north of the hub.
+export const J6_ORIGIN: Point = { x: 40, y: 28.73 };
+export const J6_PLUG: Rect = plugOf(J6_ORIGIN);
 
 // --- LEDs ---------------------------------------------------------------------
 
@@ -171,9 +181,8 @@ export const boardOutline = (): Point[] => {
 
 // --- Mounting holes ---------------------------------------------------------------
 
-// [LAY] M3, not plated. Three sit in corners, 4 in from the edges (H1 from
-// the stepped rear edge). The rear far corner is taken by J2, so H3 sits
-// between the two USB-C shells. H5 and H6 flank J3, so that pushing the card
+// [LAY] M3, not plated. H1 to H4 sit in the corners, 4 in from the edges (H1
+// from the stepped rear edge). H5 and H6 flank J3, so that pushing the card
 // in and pulling it out does not bend the board around the slot.
 export const MOUNTING_HOLE_DIAMETER = 3.2;
 const HOLE_INSET = 4;
@@ -181,7 +190,7 @@ const HOLE_INSET = 4;
 export const MOUNTING_HOLE_POSITIONS: Point[] = [
   { x: REAR_STEP + HOLE_INSET, y: HOLE_INSET },
   { x: BOARD_WIDTH - HOLE_INSET, y: HOLE_INSET },
-  { x: 3.5, y: (J1_Y + J2_Y) / 2 },
+  { x: HOLE_INSET, y: BOARD_DEPTH - HOLE_INSET },
   { x: BOARD_WIDTH - HOLE_INSET, y: BOARD_DEPTH - HOLE_INSET },
   // Between the J4 plug (x <= 31.2) and the rear ear of J3 (x >= 38.4).
   { x: 35.3, y: 5 },
@@ -252,6 +261,7 @@ export const referenceShapes = (): ReferenceShape[] => [
     }),
   },
   { label: "J4 plug", points: rectPoints(J4_PLUG) },
+  { label: "J6 plug", points: rectPoints(J6_PLUG) },
   usbcPlug("USB-C plug (PC)", J1_Y),
   usbcPlug("USB-C plug (charger)", J2_Y),
   ...J3_EAR_KEEPOUTS.map((r) => ({ label: "J3 ear", points: rectPoints(r) })),

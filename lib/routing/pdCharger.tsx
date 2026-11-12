@@ -4,9 +4,9 @@
 // J2 carries no data, so only CC1, CC2 and the two VBUS contacts leave its
 // row (east). The north VBUS contact joins the south one through a bridge on
 // the bottom under the contact row; from the south contact VBUS2 runs as one
-// area under U2, R4 and C3, rises east of the I2C lines and runs east above
-// the bleeder to the input block. U2's I2C therefore leaves north on the top
-// without crossing VBUS2, and the area is not cut.
+// area under U2, R4 and C3 and down the west of the bleeder to the far side,
+// where the trunk takes it east (trunks.tsx). U2's I2C leaves east on the
+// top without crossing VBUS2.
 import { type Point, Pour, Track, VIA, Vias, handoff, pad } from "./kit";
 
 const OUT = 7.1;
@@ -15,6 +15,12 @@ const row = (pin: string) => pad("J2", pin).y;
 const SDA = handoff("I2C2_SDA", "pdCharger", "mcu");
 const SCL = handoff("I2C2_SCL", "pdCharger", "mcu");
 const VBUS2_END = handoff("VBUS2", "pdCharger", "input");
+/** Where VBUS2 comes down to the far side, west of the bleeder. */
+const DOWN_EAST = 11.6;
+const STRIP = {
+  y0: VBUS2_END.y - VBUS2_END.width / 2,
+  y1: VBUS2_END.y + VBUS2_END.width / 2,
+};
 
 const NORTH_VIAS: Point[] = [
   { x: 7.75, y: row("A4B9") },
@@ -28,14 +34,10 @@ const BRIDGE_X = 6.3;
 /** West of U2: CC2 goes up to pin 7, the VBUS feed to pin 8 east of it. */
 const CC2_X = 8.95;
 const FEED_X = 9.45;
-/** Riser of VBUS2 east of the I2C lines, and the strip to the input block. */
-const RISER_X = SCL.x + 0.32;
-const STRIP_TOP = 34.6;
-const STRIP_BOTTOM = 38.1;
 
 export const PdChargerRouting = () => (
   <>
-    {/* VBUS2: south contact -> under U2 (VHV, C3) -> east of the I2C lines -> strip to D2. */}
+    {/* VBUS2: south contact -> under U2 (VHV, C3) -> R30 and R41 -> down to the far side. */}
     <Pour
       net="VBUS2"
       layer="top"
@@ -45,18 +47,14 @@ export const PdChargerRouting = () => (
         { x: 10.6, y: 39.82 },
         { x: 15.52, y: 39.82 },
         { x: 15.52, y: 37.75 },
-        { x: RISER_X, y: 37.75 },
-        { x: RISER_X, y: STRIP_TOP },
-        { x: VBUS2_END.x, y: STRIP_TOP },
-        { x: VBUS2_END.x, y: STRIP_BOTTOM },
-        // Tongue down to R41.
-        { x: 27.0, y: STRIP_BOTTOM },
-        { x: 27.0, y: 39.4 },
-        { x: 26.0, y: 39.4 },
-        { x: 26.0, y: STRIP_BOTTOM },
-        { x: 23.7, y: STRIP_BOTTOM },
-        { x: 23.7, y: 41.65 },
-        { x: 8.15, y: 41.65 },
+        { x: VBUS2_END.x - 0.3, y: 37.75 },
+        // Over the top pads of R30 and R41.
+        { x: VBUS2_END.x - 0.3, y: 41.0 },
+        { x: DOWN_EAST, y: 41.0 },
+        { x: DOWN_EAST, y: STRIP.y0 },
+        { x: VBUS2_END.x - 0.3, y: STRIP.y0 },
+        { x: VBUS2_END.x - 0.3, y: STRIP.y1 },
+        { x: 8.15, y: STRIP.y1 },
         { x: 8.15, y: 38.88 },
         { x: 7.0, y: 38.88 },
       ]}
@@ -155,26 +153,18 @@ export const PdChargerRouting = () => (
       ]}
     />
 
-    {/* I2C: east, then north to the microcontroller. */}
+    {/* I2C: east to the microcontroller. */}
     <Track
       net="I2C2_SDA"
       width={0.2}
       layer="top"
-      points={[
-        { x: 17.35, y: pad("U2", 3).y },
-        { x: SDA.x, y: pad("U2", 3).y },
-        SDA,
-      ]}
+      points={[{ x: 17.35, y: pad("U2", 3).y }, SDA]}
     />
     <Track
       net="I2C2_SCL"
       width={0.2}
       layer="top"
-      points={[
-        { x: 17.35, y: pad("U2", 2).y },
-        { x: SCL.x, y: pad("U2", 2).y },
-        SCL,
-      ]}
+      points={[{ x: 17.35, y: pad("U2", 2).y }, SCL]}
     />
 
     {/* CFG1 down the inside of the west row to R4; R4 and C3 to ground through the EP. */}
@@ -220,30 +210,24 @@ export const PdChargerRouting = () => (
       ]}
     />
 
-    {/* Bleeder: R30 / R41 from VBUS2, R31 / R42 to ground. Their middles (BLD2) meet on one
-        track along y 40.95, south of the row: R30 to R42, with R41 and R31 dropping onto it. */}
+    {/* Bleeder: R30 / R41 from VBUS2 (the area covers their north pads), R31 / R42 to ground. */}
+    {[
+      ["R30", "R31"],
+      ["R41", "R42"],
+    ].map(([top, bottom]) => (
+      <Track
+        key={top}
+        net="BLD2"
+        width={0.3}
+        layer="top"
+        points={[pad(top as string, 2), pad(bottom as string, 1)]}
+      />
+    ))}
     <Track
       net="BLD2"
       width={0.3}
       layer="top"
-      points={[
-        pad("R30", 2),
-        { x: pad("R30", 2).x, y: 40.95 },
-        { x: pad("R42", 1).x, y: 40.95 },
-        pad("R42", 1),
-      ]}
-    />
-    <Track
-      net="BLD2"
-      width={0.3}
-      layer="top"
-      points={[pad("R41", 2), { x: pad("R41", 2).x, y: 40.95 }]}
-    />
-    <Track
-      net="BLD2"
-      width={0.3}
-      layer="top"
-      points={[pad("R31", 1), { x: pad("R31", 1).x, y: 40.95 }]}
+      points={[pad("R30", 2), pad("R41", 2)]}
     />
     {[pad("R31", 2), pad("R42", 2)].map((p) => (
       <Track
@@ -251,12 +235,12 @@ export const PdChargerRouting = () => (
         net="GND"
         width={0.3}
         layer="top"
-        points={[p, { x: p.x, y: 38.65 }]}
+        points={[p, { x: p.x, y: 48.2 }]}
       />
     ))}
     <Vias
       net="GND"
-      at={[pad("R31", 2), pad("R42", 2)].map((p) => ({ x: p.x, y: 38.65 }))}
+      at={[pad("R31", 2), pad("R42", 2)].map((p) => ({ x: p.x, y: 48.2 }))}
       {...VIA.signal}
     />
   </>

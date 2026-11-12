@@ -256,12 +256,12 @@ export const BuckRouting = () => (
         pad("LED3", 1),
       ]}
     />
-    <Via net="GND" at={{ x: 89.15, y: 41.05 }} {...VIA.signal} />
+    <Via net="GND" at={{ x: 89.15, y: pad("LED3", 2).y }} {...VIA.signal} />
     <Track
       net="GND"
       width={0.3}
       layer="top"
-      points={[pad("LED3", 2), { x: 89.15, y: 41.05 }]}
+      points={[pad("LED3", 2), { x: 89.15, y: pad("LED3", 2).y }]}
     />
   </>
 );

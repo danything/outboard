@@ -158,12 +158,111 @@ export const compareNetlists = (
   return problems;
 };
 
-/** One pad that is on another net than in rev D, on purpose. Net names are rev D's. */
+/**
+ * One pad that is on another net than in rev D, on purpose. Net names are
+ * rev D's, or one of REV_D_NEW_NETS. `from: null` is a pad of a part added
+ * since rev D (REV_D_ADDED_PARTS); `to: null` leaves the pad unconnected.
+ */
 export interface Change {
   pad: string;
-  from: string;
-  to: string;
+  from: string | null;
+  to: string | null;
 }
+
+type Part = Fixture["components"][string];
+
+const part = (
+  value: string,
+  footprint: string,
+  lcsc: string,
+  mpn: string,
+): Part => ({ value, footprint, lcsc, mpn });
+
+/** Parts added since rev D: the USB hub, the second header, the card's 5 V regulator. */
+export const REV_D_ADDED_PARTS: Record<string, Part> = {
+  U8: part("CH334P", "QFN16_3X3", "C5373042", "CH334P"),
+  Y1: part("12MHz", "XTAL3225", "C9002", "X322512MSB4SI"),
+  C34: part("1uF 50V", "C0603", "C15849", "CL10A105KB8NNNC"),
+  C35: part("100nF 50V", "C0603", "C14663", "CC0603KRX7R9BB104"),
+  C36: part("10uF 25V", "C0805", "C15850", "CL21A106KAYNNNE"),
+  J6: part("J6 USB header", "HEADER_2X5_RIGHT_ANGLE", "C492433", "PZ254R-12-10P"),
+  U9: part("HT7550-1", "SOT89", "C16106", "HT7550-1"),
+  C37: part("10uF 25V", "C0805", "C15850", "CL21A106KAYNNNE"),
+  C38: part("10uF 25V", "C0805", "C15850", "CL21A106KAYNNNE"),
+};
+
+/** Nets that rev D does not have. */
+export const REV_D_NEW_NETS = [
+  "USB1_DP",
+  "USB1_DN",
+  "USB2_DP",
+  "USB2_DN",
+  "HUB_XI",
+  "HUB_XO",
+  "V5_USB",
+];
+
+const pins = (
+  ref: string,
+  nets: Record<number, string | null>,
+): Change[] =>
+  Object.entries(nets).map(([pin, to]) => ({
+    pad: `${ref}.${pin}`,
+    from: null,
+    to,
+  }));
+
+/**
+ * The USB hub (rev E of the data path). J1 no longer goes straight to J4:
+ * J1 -> U5 -> U8 (CH334P) upstream, port 1 -> J4, port 2 -> J6. Ports 3 and
+ * 4, RESET# and PGANG stay open. V5 and VDD33 of the hub are both on +3V3
+ * (CH334 datasheet 6.4, a hub on a board with 3.3 V). J4 and J6 take VBUS
+ * from their own 5 V regulator U9 (from VIN) through JP3, which used to come
+ * from the microcontroller's +5V.
+ */
+const HUB_CHANGES: Change[] = [
+  { pad: "J4.3", from: "USB_DN", to: "USB1_DN" },
+  { pad: "J4.5", from: "USB_DP", to: "USB1_DP" },
+  { pad: "JP3.1", from: "+5V", to: "V5_USB" },
+  ...pins("U8", {
+    1: "HUB_XO",
+    2: "HUB_XI",
+    3: null,
+    4: null,
+    5: null,
+    6: null,
+    7: "USB2_DN",
+    8: "USB2_DP",
+    9: "USB1_DN",
+    10: "USB1_DP",
+    11: "USB_DN",
+    12: "USB_DP",
+    13: null,
+    14: null,
+    15: "+3V3",
+    16: "+3V3",
+    17: "GND",
+  }),
+  ...pins("Y1", { 1: "HUB_XI", 2: "GND", 3: "HUB_XO", 4: "GND" }),
+  ...pins("C34", { 1: "+3V3", 2: "GND" }),
+  ...pins("C35", { 1: "+3V3", 2: "GND" }),
+  ...pins("C36", { 1: "+3V3", 2: "GND" }),
+  ...pins("J6", {
+    1: "USBH_VBUS",
+    2: "USBH_VBUS",
+    3: "USB2_DN",
+    4: null,
+    5: "USB2_DP",
+    6: null,
+    7: "GND",
+    8: "GND",
+    9: null,
+    10: null,
+  }),
+  ...pins("U9", { 1: "GND", 2: "VIN", 3: "V5_USB" }),
+  ...pins("C37", { 1: "VIN", 2: "GND" }),
+  ...pins("C38", { 1: "V5_USB", 2: "GND" }),
+];
 
 /**
  * Every intended difference from the rev D schematic. The fixture stays what
@@ -183,30 +282,61 @@ export const REV_D_CHANGES: Change[] = [
   { pad: "U7.14", from: "PERST_MCU", to: "CC2_SENSE" },
   { pad: "U7.19", from: "EN_12V", to: "CC1_SENSE" },
   { pad: "U7.20", from: "SW12_ON", to: "VBUS1_SENSE" },
+  ...HUB_CHANGES,
 ];
 
-/** The fixture with the changes applied. Throws when a change does not fit the fixture. */
-export const applyChanges = (fixture: Fixture, changes: Change[]): Fixture => {
+/**
+ * The fixture with the changes applied. Throws when a change does not fit
+ * the fixture: a pad that is not where it says, a net that exists in neither
+ * the fixture nor `newNets`, a new pad of a part that `added` lacks, or a
+ * net left without pads.
+ */
+export const applyChanges = (
+  fixture: Fixture,
+  changes: Change[],
+  added: Record<string, Part> = {},
+  newNets: string[] = [],
+): Fixture => {
   const nets = Object.fromEntries(
     Object.entries(fixture.nets).map(([name, pads]) => [name, [...pads]]),
   );
+  for (const name of newNets) {
+    if (nets[name]) throw new Error(`${name} is already a net of the reference`);
+    nets[name] = [];
+  }
+  const components = { ...fixture.components, ...added };
   for (const { pad, from, to } of changes) {
-    const source = nets[from];
-    const target = nets[to];
-    if (!source?.includes(pad))
-      throw new Error(`${pad} is not on ${from} in the reference`);
-    if (!target) throw new Error(`${to} is not a net of the reference`);
-    nets[from] = source.filter((q) => q !== pad);
-    target.push(pad);
+    const ref = pad.split(".")[0] ?? "";
+    if (from === null) {
+      if (!added[ref]) throw new Error(`${pad}: ${ref} is not an added part`);
+      if (Object.values(nets).some((n) => n.includes(pad)))
+        throw new Error(`${pad} is already in the reference`);
+    } else {
+      const source = nets[from];
+      if (!source?.includes(pad))
+        throw new Error(`${pad} is not on ${from} in the reference`);
+      nets[from] = source.filter((q) => q !== pad);
+    }
+    if (to === null) nets[`unconnected:${pad}`] = [pad];
+    else {
+      const target = nets[to];
+      if (!target) throw new Error(`${to} is not a net of the reference`);
+      target.push(pad);
+    }
   }
   for (const [name, pads] of Object.entries(nets))
     if (pads.length === 0) throw new Error(`${name} is left without pads`);
-  return { ...fixture, nets };
+  return { ...fixture, components, nets };
 };
 
 export const loadFixture = async (
   path = "fixtures/rev-d-netlist.json",
 ): Promise<Netlist> =>
   fixtureNetlist(
-    applyChanges((await Bun.file(path).json()) as Fixture, REV_D_CHANGES),
+    applyChanges(
+      (await Bun.file(path).json()) as Fixture,
+      REV_D_CHANGES,
+      REV_D_ADDED_PARTS,
+      REV_D_NEW_NETS,
+    ),
   );

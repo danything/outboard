@@ -329,8 +329,8 @@ export const FAB_CHECKS: Check[] = [
   solderPaste,
 ];
 
-/** Parts soldered by hand on both sides: no stencil opening on them (docs/manufacturing.md). */
-export const HAND_SOLDERED = ["J3"];
+/** Parts soldered by hand (J3 on both sides, the through-hole headers J4 and J6): no stencil opening on them (docs/manufacturing.md). */
+export const HAND_SOLDERED = ["J3", "J4", "J6"];
 
 /**
  * Paste only on top (one-sided assembly, no bottom stencil) and none on the
