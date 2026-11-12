@@ -28,7 +28,7 @@ import type { Check } from "./finding";
 
 type Run = (circuit: Circuit) => { type: string; message?: string }[];
 
-const RUNS: [name: string, run: Run][] = [
+export const RUNS: [name: string, run: Run][] = [
   ["copperToBoardEdge", checkCopperToBoardEdgeClearance],
   ["viasInPads", checkViasInPads],
   ["componentsOutOfBoard", checkPcbComponentsOutOfBoard],
@@ -53,7 +53,7 @@ const RUNS: [name: string, run: Run][] = [
   ["missingCourtyard", checkPcbComponentsMissingCourtyard],
   ["padPadClearance", checkPadPadClearance],
   ["testPointAccessibility", checkTestPointAccessibility],
-] as [string, Run][];
+];
 
 export const tscircuitPlacement: Check = (circuit) =>
   RUNS.flatMap(([name, run]) =>

@@ -187,8 +187,10 @@ export const connectorFacing = withParts("connectorFacing", (b) => {
 /**
  * tscircuit's own warning that a connector faces away from the board edge
  * stays away: it is shown over the board on the site, and its idea of the
- * edges is wrong on this board (lib/Footprint.tsx). connectorFacing checks
- * the directions instead.
+ * edges is wrong on this board (index.circuit.tsx). connectorFacing checks
+ * the directions instead. The build turns the check off, so this finds
+ * nothing today; it stays as the guard for a tscircuit update that brings
+ * the warning back by another way.
  */
 export const noConnectorWarnings: Check = (circuit) =>
   circuit

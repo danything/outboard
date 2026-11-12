@@ -405,7 +405,8 @@ export const KEEP_OUT: {
 
 /**
  * Which way a connector (a land pattern with a side in lib/footprints.ts) may
- * face on the board, in board coordinates. Cables leave the case through the
+ * face on the board, in board coordinates, after the part's rotation (J4's
+ * land pattern takes its plug from -y and is placed turned half round). Cables leave the case through the
  * bracket at the rear edge (x-: J1, J2), and the card and its internal USB
  * cable are on the card side (y+: J3, J4).
  */

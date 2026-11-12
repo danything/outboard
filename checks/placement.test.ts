@@ -1,7 +1,7 @@
 // tscircuit's placement checks, run from checks/: quiet on a clean board,
 // and they do report (a part off the board).
 import { expect, test } from "bun:test";
-import { tscircuitPlacement } from "./placement";
+import { RUNS, tscircuitPlacement } from "./placement";
 import { board, part } from "./testboard";
 
 test("tscircuitPlacement passes a part on the board", () => {
@@ -21,4 +21,13 @@ test("tscircuitPlacement reports a part off the board", () => {
   expect(found.some((f) => f.message.startsWith("componentsOutOfBoard"))).toBe(
     true,
   );
+});
+
+test("every check taken from @tscircuit/checks is there", () => {
+  // It comes with tscircuit; an update that drops or renames one shows here.
+  const missing = RUNS.filter(([, run]) => typeof run !== "function").map(
+    ([name]) => name,
+  );
+  expect(missing).toEqual([]);
+  expect(RUNS.length).toBe(13);
 });
