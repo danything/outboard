@@ -5,7 +5,15 @@
 // row. VIN and GND leave south as two areas side by side over C10, C8 and C9
 // (the hot loop); SW leaves north to L1; the output runs north from L1 over
 // C13 and C14 to JP5 and JP1. The small signals stay west of U3.
-import { Pour, Track, VIA, Via, Vias, pad } from "./kit";
+import { Pour, Track, VIA, Via, Vias, handoff, pad } from "./kit";
+
+// Where the lines to the neighbours leave the block.
+const EN_IN = handoff("EN_3V3", "switch12", "buck");
+const V3V3_TO_Q3 = handoff("V3V3", "buck", "switch12");
+
+// The two vias of the hop of 3.3 V under the VIN area.
+const Q3_HOP_EAST = { x: 87.2, y: 38.65 };
+const Q3_HOP_WEST = { x: 83.3, y: 38.25 };
 
 const U3 = {
   EN: pad("U3", 2),
@@ -32,7 +40,7 @@ export const BuckRouting = () => (
         { x: 85.4, y: 31.75 },
       ]}
     />
-    {/* GND of the hot loop, next to VIN, with its vias to the ground layer. */}
+    {/* GND of the hot loop, next to VIN, with its vias to the ground on the bottom. */}
     <Pour
       net="GND"
       layer="top"
@@ -41,8 +49,8 @@ export const BuckRouting = () => (
         { x: 86.2, y: 30.45 },
         { x: 86.2, y: 31.2 },
         { x: 88.6, y: 31.2 },
-        { x: 88.6, y: 38.3 },
-        { x: 85.95, y: 38.3 },
+        { x: 88.6, y: 38 },
+        { x: 85.95, y: 38 },
       ]}
     />
     <Vias
@@ -120,16 +128,10 @@ export const BuckRouting = () => (
         { x: 83, y: 11.6 },
       ]}
     />
-    {/* The 3.3 V layer (inner 2) is fed here. */}
-    <Vias
-      net="V3V3"
-      at={[84, 85.2, 86.4].map((x) => ({ x, y: 10 }))}
-      {...VIA.power}
-    />
     {/* Feedback: sensed at the output capacitors, away from SW and L1. */}
     <Track
       net="V3V3_BUCK"
-      width={0.2}
+      width={0.3}
       layer="top"
       points={[
         pad("R6", 1),
@@ -152,7 +154,7 @@ export const BuckRouting = () => (
       layer="top"
       points={[U3.SS, { x: 85.05, y: 28.5 }, pad("C12", 1)]}
     />
-    {/* EN: out between RT and the VIN area, then to R9 and C15 and on to the block edge (79, 35). */}
+    {/* EN: out between RT and the VIN area, then to R9 and C15 and on to the block edge. */}
     <Track
       net="EN_3V3"
       width={0.2}
@@ -162,8 +164,8 @@ export const BuckRouting = () => (
         { x: 85.05, y: 31.45 },
         { x: 83.5, y: 31.45 },
         { x: 83.5, y: 34.5 },
-        { x: 79.5, y: 34.5 },
-        { x: 79, y: 35 },
+        { x: EN_IN.x + 0.5, y: 34.5 },
+        EN_IN,
       ]}
     />
     <Track
@@ -186,20 +188,62 @@ export const BuckRouting = () => (
       layer="top"
       points={[pad("R7", 2), { x: 81.4, y: 27.1 }, { x: 82.25, y: 27.1 }]}
     />
-    <Via net="GND" at={{ x: 83.1, y: 37.4 }} {...VIA.signal} />
+    <Via net="GND" at={{ x: 83, y: 36.5 }} {...VIA.signal} />
     <Track
       net="GND"
       width={0.3}
       layer="top"
-      points={[pad("R9", 2), pad("C15", 2), { x: 83.1, y: 37.4 }]}
+      points={[pad("R9", 2), pad("C15", 2)]}
     />
-    {/* 3.3 V LED: R10 takes 3.3 V from the inner layer. */}
-    <Via net="V3V3" at={{ x: 87.1, y: 41.05 }} {...VIA.signal} />
+    <Track
+      net="GND"
+      width={0.3}
+      layer="top"
+      points={[
+        { x: 82.15, y: 36.5 },
+        { x: 83, y: 36.5 },
+      ]}
+    />
+    {/*
+      3.3 V for the LED and for the gate of Q3: a thin line from the east end
+      of the 3.3 V row, down the east side of the block, clear of SW and L1.
+    */}
     <Track
       net="V3V3"
       width={0.3}
       layer="top"
-      points={[{ x: 87.1, y: 41.05 }, pad("R10", 1)]}
+      points={[
+        { x: 93.3, y: 9.6 },
+        { x: 94.2, y: 9.6 },
+        { x: 94.2, y: 21 },
+        { x: 92.4, y: 22.8 },
+        { x: 92.4, y: 38.65 },
+        Q3_HOP_EAST,
+        { x: Q3_HOP_EAST.x, y: pad("R10", 1).y },
+        pad("R10", 1),
+      ]}
+    />
+    {/*
+      On to Q3: the only line of the block on the bottom. It crosses under
+      the VIN area south of C9, 4 mm long, and comes back up at once.
+    */}
+    <Via net="V3V3" at={Q3_HOP_EAST} {...VIA.signal} />
+    <Track
+      net="V3V3"
+      width={0.3}
+      layer="bottom"
+      points={[Q3_HOP_EAST, { x: 86.6, y: Q3_HOP_WEST.y }, Q3_HOP_WEST]}
+    />
+    <Via net="V3V3" at={Q3_HOP_WEST} {...VIA.signal} />
+    <Track
+      net="V3V3"
+      width={0.3}
+      layer="top"
+      points={[
+        Q3_HOP_WEST,
+        { x: V3V3_TO_Q3.x + 0.65, y: Q3_HOP_WEST.y },
+        V3V3_TO_Q3,
+      ]}
     />
     <Track
       net="LED3_A"

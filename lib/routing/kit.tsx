@@ -19,16 +19,23 @@ import {
   BLOCKS,
   type BlockName,
   type BlockSpec,
+  HANDOFFS,
+  type Handoff,
   PLACEMENT,
   positionOf,
 } from "../placement";
 
 export type { Point } from "../geometry";
 
-/** Layers a track can run on. The inner layers carry pours only. */
+/**
+ * The copper layers of the board, the only place that lists them. Top:
+ * parts, signals, power. Bottom: ground, and the few tracks that have to
+ * cross something on top.
+ */
+export const LAYERS = ["top", "bottom"] as const;
+export type CopperLayer = (typeof LAYERS)[number];
+/** Layers a track can run on: those with a pad of J3 to hang it on. */
 export type TrackLayer = "top" | "bottom";
-/** Top: parts, signals, power. Inner 1: ground. Inner 2: power. Bottom: signals, ground. */
-export type CopperLayer = "top" | "inner1" | "inner2" | "bottom";
 
 /** The limits of checks/rules.ts (FAB.design), repeated so a mistake fails at build time. */
 export const MIN_TRACK_WIDTH = 0.15;
@@ -107,6 +114,22 @@ export const center = (ref: string): Point => {
   const part = PLACED.get(ref);
   if (!part) throw new Error(`${ref} has no place in lib/placement.ts`);
   return { x: part.x, y: part.y };
+};
+
+/**
+ * The point where a net passes from one block to another, from the HANDOFFS
+ * of lib/placement.ts: `handoff("EN_3V3", "switch12", "buck")`. Use its x
+ * and y as a track point; never copy the numbers.
+ */
+export const handoff = (net: Net, from: BlockName, to: BlockName): Handoff => {
+  const found = HANDOFFS.filter(
+    (h) => h.net === net && h.from === from && h.to === to,
+  );
+  if (found.length !== 1 || !found[0])
+    throw new Error(
+      `${found.length} handoffs of ${net} from ${from} to ${to} in lib/placement.ts`,
+    );
+  return found[0];
 };
 
 // --- Track ----------------------------------------------------------------------
