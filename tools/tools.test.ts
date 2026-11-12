@@ -197,4 +197,11 @@ test("closed jumpers become net ties in the KiCad board", () => {
   );
   expect(out.match(/net_tie/g)?.length).toBe(1);
   expect(() => addNetTies(pcb, new Map([["JP9", [["1", "2"]]]]))).toThrow();
+  // A footprint without an (attr) line cannot take the tie.
+  expect(() =>
+    addNetTies(
+      pcb.replace("    (attr smd dnp)\n", ""),
+      new Map([["JP5", [["1", "2"]]]]),
+    ),
+  ).toThrow();
 });

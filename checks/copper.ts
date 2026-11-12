@@ -368,6 +368,8 @@ export const copperOf = (circuit: Circuit): Copper => {
   // Pins that a part ties together (a closed solder jumper) are one net for
   // the copper, under the shorter of the names: that of the main rail
   // (V3V3, not V3V3_BUCK or V3V3AUX; V12, not V12_F; V5, not USBH_VBUS).
+  // One level only: no jumper joins a net that another jumper joins, and no
+  // two of these names are of equal length.
   const portKey = new Map(
     of("source_port").map((p) => [
       str(p.source_port_id),

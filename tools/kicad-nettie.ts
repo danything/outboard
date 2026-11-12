@@ -47,9 +47,12 @@ export const addNetTies = (
     const ref = part.match(/\(property "Reference" "([^"]+)"/)?.[1];
     const groups = ref ? tied.get(ref) : undefined;
     if (!ref || !groups) return part;
-    found.add(ref);
     const tie = `    (net_tie_pad_groups ${groups.map((g) => `"${g.join(",")}"`).join(" ")})\n`;
-    return part.replace(/^( {4}\(attr [^\n]*\n)/m, `$1${tie}`);
+    const withTie = part.replace(/^( {4}\(attr [^\n]*\n)/m, `$1${tie}`);
+    if (withTie === part)
+      throw new Error(`${ref}: no (attr ...) line to put the net tie after`);
+    found.add(ref);
+    return withTie;
   });
   const missing = [...tied.keys()].filter((r) => !found.has(r));
   if (missing.length > 0)
