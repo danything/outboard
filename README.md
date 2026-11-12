@@ -23,12 +23,15 @@ outboard はその電源を USB-C (PD 9V) から作り、内部 USB を USB-C �
 | ---- | ----------------------------------------------------------- | ----------------------------------------------- |
 | 0    | リポジトリの土台と CI/CD                                    | 済み                                            |
 | 1    | フットプリント (データシートとの突き合わせ)                 | 済み ([docs/footprints.md](docs/footprints.md)) |
-| 2    | 回路 (rev D のネットリストと同じつながり方になることを検査) | 次                                              |
-| 3    | 基板の検査 (自前)                                           | 骨組みだけ                                      |
+| 2    | 回路 (rev D のネットリストと同じつながり方になることを検査) | 済み (食い違い 0)                               |
+| 3    | 基板の検査 (自前)                                           | 次 (骨組みだけ)                                 |
 | 4    | 配置と配線                                                  |                                                 |
 | 5    | 製造用の出力と文書の仕上げ                                  |                                                 |
 
-いまの基板は**外形と取り付け穴だけ**で、大きさ (88 × 56mm) も仮。全部品のランドは `lib/footprints.ts` に入っていて、見本 (`footprints.circuit.tsx`) で並べて見られる。回路は rev D (KiCad) のものが正で、これを移す。
+**回路は入った**: 部品 111 個・ネット 56 本・未接続のパッド 42 個が、rev D (KiCad) のネットリストと完全に同じつながり方になっている (CI が毎回比べる)。
+**配置と配線はまだ**: 位置が決まっているのはコネクタ (J1〜J4) だけで、ほかの部品は重ならないように格子に並べてあるだけ (`lib/placement.ts`)。線は 1 本も引いていない。基板の大きさ (88 × 56mm) も仮。
+
+配線が入るまでのあいだ、KiCad の DRC の「未接続」は除外してある (`tools/kicad-drc.ts` の TEMPORARY の項目)。**配線を入れる PR で、この除外を消す。**
 
 KiCad の版は main から消した。タグ [`kicad-rev-c`](../../tree/kicad-rev-c) (rev C。検査 0) と
 ブランチ [`rev-d`](../../tree/rev-d) (rev D の途中。回路図とライブラリまで) に残っている。
@@ -60,7 +63,7 @@ KiCad の版は main から消した。タグ [`kicad-rev-c`](../../tree/kicad-r
 docker run --rm -it -v "$PWD:/work" -w /work oven/bun:1.4.4 bash
 bun install --frozen-lockfile
 bun run build      # dist/ に circuit.json・絵・KiCad の基板・見るためのページ
-bun run check      # 型検査 (bun check)・テスト (bun test)・tsci check・自前の基板の検査
+bun run check      # 型検査 (bun check)・テスト (bun test)・自前の検査 (基板・回路の値・rev D とのネットリストの比べ)
 bun run snapshot   # __snapshots__ の絵と同じか。変えたときは bun run snapshot --update
 bun run fab        # dist/fab/ に製造用のファイル一式
 bun run lint       # oxlint と bun fmt --check。直すときは bun run format
@@ -70,21 +73,22 @@ bun run lint       # oxlint と bun fmt --check。直すときは bun run format
 - ビルドは外の部品検索に問い合わせない (`--disable-parts-engine`)。設計を tscircuit.com に送らない
 - `typescript` は入れていない。型検査は `bun check`。`circuit-json` は circuit.json の型のために入れてある
 
-| 場所                     | 中身                                                                                                                                              |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `index.circuit.tsx`      | 基板の全体                                                                                                                                        |
-| `lib/`                   | 寸法・版・フットプリント (`footprints.ts` がランドの数字、`footprints.test.ts` がデータシートから読んだ数字の検査)・(これから) ブロックごとの回路 |
-| `footprints.circuit.tsx` | 全部のランドを並べた見本 (作る基板ではない)                                                                                                       |
-| `checks/`                | circuit.json を読む自前の検査と、検査のテスト                                                                                                     |
-| `tools/`                 | 製造用の出力・スナップショット・KiCad の DRC の判定                                                                                               |
+| 場所                          | 中身                                                                                                                                                                                               |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `index.circuit.tsx`           | 基板の全体                                                                                                                                                                                         |
+| `lib/`                        | `blocks.tsx` (ブロックごとの回路)・`parts.tsx` (部品。ピンとネットを型で縛る)・`nets.ts` (ネットの一覧)・`footprints.ts` (ランド)・`placement.ts` (位置)・`geometry.ts` (外形)・`revision.ts` (版) |
+| `footprints.circuit.tsx`      | 全部のランドを並べた見本 (作る基板ではない)                                                                                                                                                        |
+| `checks/`                     | circuit.json を読む自前の検査と、検査のテスト。`board.ts` (基板)・`design.ts` (分圧の値・定格など、回路の意図)                                                                                     |
+| `tools/`                      | 製造用の出力・スナップショット・KiCad の DRC の判定・`netlist.ts` (rev D とのネットリストの比べ)                                                                                                   |
+| `fixtures/rev-d-netlist.json` | rev D の KiCad のネットリスト (部品と、パッドごとのつながり)。比べる相手                                                                                                                           |
 
 ## CI/CD
 
-| いつ                                                                | 何をする                                                                                                      |
-| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| PR・main への push ([check.yml](.github/workflows/check.yml))       | lint → ビルド → 型検査・テスト・`tsci check`・自前の検査 → スナップショット → 製造用の出力 → **KiCad の DRC** |
-| main への push                                                      | 上に加えて、見るためのページを GitHub Pages に出す                                                            |
-| タグ `rev-*` の push ([release.yml](.github/workflows/release.yml)) | 同じ手順で作った製造用のファイルを GitHub Release に添付                                                      |
+| いつ                                                                | 何をする                                                                                                                                                      |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PR・main への push ([check.yml](.github/workflows/check.yml))       | lint → ビルド (tscircuit の検査を含む) → 型検査・テスト・自前の検査 (rev D とのネットリストの比べを含む) → スナップショット → 製造用の出力 → **KiCad の DRC** |
+| main への push                                                      | 上に加えて、見るためのページを GitHub Pages に出す                                                                                                            |
+| タグ `rev-*` の push ([release.yml](.github/workflows/release.yml)) | 同じ手順で作った製造用のファイルを GitHub Release に添付                                                                                                      |
 
 - **二重の検査**: tscircuit が書き出した KiCad の基板に、KiCad 10 の DRC (`--refill-zones`) をかける。
   tscircuit の検査が見逃すもの (小さい穴、細い輪、穴と銅の重なり) を拾う。

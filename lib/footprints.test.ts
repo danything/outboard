@@ -178,3 +178,7 @@ test("USB-C: A and B contacts mirror each other about the centre", () => {
   ] as const)
     expect(pad(def, left).x).toBeCloseTo(-pad(def, right).x);
 });
+
+test("the list of land patterns is not empty by accident", () => {
+  expect(defs.length).toBe(25);
+});
