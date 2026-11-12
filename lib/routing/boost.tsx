@@ -6,9 +6,10 @@
 // L2. SW leaves east to D4 and south to L2. The hot loop (SW, D4, C18, GND)
 // closes east of U4: C18 sits between the cathode of D4 and the ground pin.
 // The feedback divider is north of U4, away from SW and L2, on top only.
-// Ground goes to the bottom through vias next to the pads. No track runs on
-// the bottom in this block except the last 0.7 mm of EN at the band, west of
-// every part: the ground under the hot loop stays whole.
+// Ground goes to the bottom through vias next to the pads. On the bottom
+// there are only three short hops, all outside the parts: EN_12V and EN_3V3
+// coming up from under the band, and Q2_D under EN_3V3 south of L2. The
+// ground under the hot loop stays whole.
 import { type Point, Pour, Track, VIA, Via, Vias, handoff, pad } from "./kit";
 
 const U4 = {
@@ -30,20 +31,32 @@ const VIN_TOP = Math.max(VIN_IN.y - VIN_IN.width / 2, 25.1);
 const BRIDGE_Y = Math.max(VIN_IN.y, 25.6);
 
 // V12_BOOST leaves from the positive pad of C19 to the north, never behind
-// its ground pad, then east between that pad and the gate pad of Q1
-// (0.2 mm to each, KiCad's clearance) to the handoff.
+// its ground pad, then east at the level of the handoff, between that pad
+// and the gate pad of Q1, to the handoff.
 const C19_P = pad("C19", 1);
 const C19_G = pad("C19", 2);
-const V12_RUN = 21.81;
 const v12Out: Point[] = [
   C19_P,
-  { x: C19_P.x, y: V12_RUN },
-  { x: V12_OUT.x, y: V12_RUN },
+  { x: C19_P.x, y: V12_OUT.y },
   { x: V12_OUT.x, y: V12_OUT.y },
 ];
 
 // EN changes to the bottom just inside the block, west of every part.
-const EN_VIA: Point = { x: EN_IN.x + 0.7, y: EN_IN.y };
+const EN_VIA: Point = { x: EN_IN.x + 0.6, y: EN_IN.y };
+
+// Two lines pass through the block along its edges (lib/placement.ts):
+// EN_3V3 from the band to the buck along the south edge, and Q2_D from Q2
+// north to R15 east of L2, D4 and C19.
+const EN3_IN = handoff("EN_3V3", "input", "boost");
+const EN3_OUT = handoff("EN_3V3", "boost", "switch12");
+const EN3_VIA: Point = { x: EN3_IN.x + 0.4, y: EN3_IN.y + 0.1 };
+const EN3_Y = 34.2;
+const Q2D_IN = handoff("Q2_D", "switch12", "boost");
+const Q2D_OUT = handoff("Q2_D", "boost", "switch12");
+// Q2_D hops under EN_3V3 south of L2 (outside the parts of the boost) and
+// comes back up at once.
+const Q2D_VIA: Point = { x: Q2D_IN.x, y: 33.55 };
+const Q2D_X = 78.85;
 
 export const BoostRouting = () => (
   <>
@@ -59,8 +72,8 @@ export const BoostRouting = () => (
         { x: 69.05, y: 26.7 },
         { x: 69.05, y: 32.75 },
         { x: 66, y: 32.75 },
-        { x: 66, y: 34.4 },
-        { x: VIN_IN.x + 0.1, y: 34.4 },
+        { x: 66, y: 33.8 },
+        { x: VIN_IN.x + 0.1, y: 33.8 },
       ]}
     />
     {/* Pours join only through a track, a pad or a via: a 1.6 mm bridge from the band. */}
@@ -134,7 +147,7 @@ export const BoostRouting = () => (
         { x: 72.8, y: 24.5 },
       ]}
     />
-    <Track net="V12_BOOST" width={0.8} layer="top" points={v12Out} />
+    <Track net="V12_BOOST" width={V12_OUT.width} layer="top" points={v12Out} />
     {/*
       Ground of the hot loop: 0.9 mm out of the pin of U4 (all there is
       between FB and SW), then wide to C18, with two vias to the bottom.
@@ -255,6 +268,45 @@ export const BoostRouting = () => (
       width={0.2}
       layer="bottom"
       points={[EN_VIA, { x: EN_IN.x, y: EN_IN.y }]}
+    />
+    {/* EN_3V3: up from under the band, then along the south edge on top. */}
+    <Track
+      net="EN_3V3"
+      width={0.2}
+      layer="bottom"
+      points={[{ x: EN3_IN.x, y: EN3_IN.y }, EN3_VIA]}
+    />
+    <Via net="EN_3V3" at={EN3_VIA} {...VIA.signal} />
+    <Track
+      net="EN_3V3"
+      width={0.2}
+      layer="top"
+      points={[
+        EN3_VIA,
+        { x: EN3_VIA.x + 0.2, y: EN3_Y },
+        { x: EN3_OUT.x - 0.4, y: EN3_Y },
+        { x: EN3_OUT.x, y: EN3_OUT.y },
+      ]}
+    />
+    {/* Q2_D: under EN_3V3 for 1 mm, then on top north, east of D4 and C19. */}
+    <Track
+      net="Q2_D"
+      width={0.2}
+      layer="bottom"
+      points={[{ x: Q2D_IN.x, y: Q2D_IN.y }, Q2D_VIA]}
+    />
+    <Via net="Q2_D" at={Q2D_VIA} {...VIA.signal} />
+    <Track
+      net="Q2_D"
+      width={0.2}
+      layer="top"
+      points={[
+        Q2D_VIA,
+        { x: Q2D_VIA.x, y: 29.2 },
+        { x: Q2D_X, y: 26.55 },
+        { x: Q2D_X, y: Q2D_OUT.y },
+        { x: Q2D_OUT.x, y: Q2D_OUT.y },
+      ]}
     />
   </>
 );
