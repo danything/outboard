@@ -4,7 +4,11 @@ import { builtNetlist, compareNetlists, loadFixture } from "../tools/netlist";
 import { CHECKS, runChecks, skippedChecks } from "./board";
 import { DESIGN_CHECKS, runDesignChecks, valuesOf } from "./design";
 
-const circuit = await loadCircuit(Bun.argv[2]);
+// --strict: a skipped check is a failure. Stage 4 turns this on (docs/checks.md).
+const strict = Bun.argv.includes("--strict");
+const circuit = await loadCircuit(
+  Bun.argv.slice(2).find((a) => !a.startsWith("--")),
+);
 
 const board = runChecks(circuit);
 const skipped = skippedChecks(circuit);
@@ -29,4 +33,10 @@ console.log(
   `netlist: ${Object.keys(built.components).length} parts, ${built.nets.length - open} nets, ${open} open pads, ${differences.length} differences from rev D`,
 );
 
-if (board.length + design.length + differences.length > 0) process.exit(1);
+if (strict && skipped.length > 0)
+  console.log(`--strict: ${skipped.length} checks were skipped`);
+if (
+  board.length + design.length + differences.length > 0 ||
+  (strict && skipped.length > 0)
+)
+  process.exit(1);

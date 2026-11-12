@@ -3,22 +3,13 @@
 import { BOARD_THICKNESS, MOUNTING_HOLE_DIAMETER } from "../lib/geometry";
 import { type Circuit, elementsOf } from "../tools/circuit";
 import { FAB_CHECKS } from "./fab";
+import { MECHANICAL_CHECKS } from "./mechanical";
+import { POWER_CHECKS } from "./power";
+import { SIGNAL_CHECKS } from "./signal";
 
-export interface Finding {
-  check: string;
-  message: string;
-  /**
-   * The check could not look because what it guards is not on the board yet
-   * (a part, a net). Reported, not a failure. Must be 0 once stage 4 is in.
-   */
-  skipped?: boolean;
-}
+import { type Check, type Finding } from "./finding";
 
-export type Check = (circuit: Circuit) => Finding[];
-
-export const skip = (check: string, why: string): Finding[] => [
-  { check, message: `skipped: ${why}`, skipped: true },
-];
+export { type Check, type Finding, skip } from "./finding";
 
 /** JLCPCB's cheapest price tier ends at 100 x 100 mm. */
 export const MAX_BOARD_SIZE = 100;
@@ -74,7 +65,14 @@ export const mountingHoleCount: Check = (circuit) => {
       ];
 };
 
-export const CHECKS: Check[] = [boardSize, mountingHoleCount, ...FAB_CHECKS];
+export const CHECKS: Check[] = [
+  boardSize,
+  mountingHoleCount,
+  ...FAB_CHECKS,
+  ...POWER_CHECKS,
+  ...SIGNAL_CHECKS,
+  ...MECHANICAL_CHECKS,
+];
 
 const runAll = (circuit: Circuit): Finding[] =>
   CHECKS.flatMap((check) => check(circuit));
