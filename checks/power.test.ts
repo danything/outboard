@@ -398,3 +398,18 @@ test("a part missing from a group that is otherwise there is a failure, not a sk
   expect(findings.some((f) => f.skipped)).toBe(false);
   expect(about(findings, "C18.1 is not on the board")).toHaveLength(1);
 });
+
+test("diodeCopper stops at the pads of other parts", () => {
+  // 12 x 12 next to D1 (144 mm2), and a 10 x 10 area that only a resistor's pad touches.
+  const beyond = [
+    ...part("R1", -15, 0, [
+      { pin: "1", net: "VBUS1", x: -15, y: 0, w: 0.6, h: 0.6 },
+    ]),
+    pour("VBUS1", "top", [-30, -5, -15.2, 5]),
+    ...track("VBUS1", 0.4, [
+      [-14.6, 0],
+      [-11, 0],
+    ]),
+  ];
+  expect(diodeCopper([...diodes(12), ...beyond])).toHaveLength(1);
+});
