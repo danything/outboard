@@ -39,6 +39,9 @@ const good: Circuit = [
   ...part("J9", 10, -5, [
     { pin: "1", net: "B", x: 10, y: -5, w: 1.7, drill: 1.0 },
   ]),
+  // The reflowed sockets solderPaste looks for (no pads: nothing to paste).
+  ...part("J4", -15, 10, []),
+  ...part("J6", -12, 10, []),
   hole(15, 10),
   pour(
     "GND",
@@ -295,7 +298,7 @@ test("solderPaste fails on paste on the bottom or on J3", () => {
     },
   ];
   const check = (...parts: Record<string, unknown>[][]) =>
-    solderPaste(parts.flat() as unknown as Circuit).map((f) => f.message);
+    solderPaste(parts.flat() as unknown as Circuit, []).map((f) => f.message);
   expect(check(paste("top", "R1"))).toEqual([]);
   expect(check(paste("bottom", "J1"))).toEqual([
     "paste on the bottom at J1: the board has no bottom stencil",
@@ -327,9 +330,18 @@ test("solderPaste fails on a reflowed socket with a pad left bare", () => {
     })),
   ];
   const check = (parts: Record<string, unknown>[]) =>
-    solderPaste(parts as unknown as Circuit).map((f) => f.message);
+    solderPaste(parts as unknown as Circuit, ["J4"]).map((f) => f.message);
   expect(check(socket(6, 6))).toEqual([]);
   expect(check(socket(6, 4))).toEqual([
     "J4 has paste on 4 of its 6 pads; it is reflowed",
   ]);
+});
+
+test("solderPaste fails when a reflowed socket is not on the board", () => {
+  const r1 = part("R1", 0, 0, [{ pin: "1", x: 0, y: 0 }]);
+  expect(solderPaste(r1, ["J4"]).map((f) => f.message)).toEqual([
+    "J4 is not on the board; REFLOWED_CONNECTORS names it",
+  ]);
+  // A board with no parts at all (the other tests' fixtures) is skipped.
+  expect(solderPaste([], ["J4"]).every((f) => f.skipped)).toBe(true);
 });

@@ -239,17 +239,82 @@ const numbered =
     </>
   );
 
+/** Pad names of a land pattern, in footprint order. */
+const padsOf = (def: FootprintDef): string[] => [
+  ...def.pads.map((p) => p.pin),
+  ...(def.platedHoles ?? []).map((h) => h.pin),
+];
+
 /**
- * A part whose pads have names (A5, B12) rather than numbers. `pads` lists
- * them; pads named by a number n are reached as `pin${n}`.
+ * pinLabels that give pin1..pinN the names in `labels` (pad i + 1 first).
+ * schPinArrangement only resolves pin numbers and pinLabels, not the pad
+ * names of a hand-made footprint (tscircuit 0.0.3161), so named pads (A5)
+ * have to be named this way to be placed.
  */
-const named =
-  <const Pads extends readonly string[]>(info: PartInfo, _pads: Pads) =>
+const labelsOf = (labels: readonly (string | string[])[]) =>
+  Object.fromEntries(labels.map((label, i) => [`pin${i + 1}`, label]));
+
+/**
+ * A connector, drawn in the schematic as one column of pins (like KiCad's
+ * Conn_01xNN) instead of an IC box with pins on two sides. `labels[i]` is
+ * the name of pad i + 1. The pins are drawn in the order the block lists them
+ * in `nets`; pads it does not list are not drawn (they stay in the footprint
+ * and the netlist, unconnected).
+ *
+ * Not `standard="jst_ph"` for the PH sockets: tscircuit 0.0.3161 draws pin 1
+ * at the bottom with it. KiCad's export gives a <connector> the refdes as its
+ * Value (no MPN); the BOM and CPL come from circuit.json and are not affected.
+ */
+const connectorPart =
+  <const Labels extends readonly string[]>(
+    info: PartInfo,
+    labels: Labels,
+    offBoard = false,
+  ) =>
+  ({ name, nets }: { name: string; nets: Partial<PinNets<Labels>> }) => (
+    <>
+      <connector
+        name={name}
+        footprint={footprintOf(info.footprint)}
+        pinLabels={labelsOf(labels)}
+        schPinArrangement={{
+          leftSide: { direction: "top-to-bottom", pins: Object.keys(nets) },
+        }}
+        {...sourcing(info)}
+        {...positionOf(name)}
+        allowOffBoard={offBoard}
+      />
+      {wires(name, nets as Record<string, Conn>)}
+    </>
+  );
+
+/**
+ * USB-C receptacle. Pads have names (A5, B12). `usbC` maps them to the pin
+ * names tscircuit's usb_c standard knows (CC1, SHELL1); each pin carries
+ * both names, so blocks keep using the pad names.
+ */
+const usbCPart =
+  <const Pads extends readonly string[]>(
+    info: PartInfo,
+    _pads: Pads,
+    usbC: Record<Pads[number], string>,
+  ) =>
   ({ name, nets }: { name: string; nets: PinNets<Pads> }) => (
     <>
-      <Body
-        info={info}
+      <connector
         name={name}
+        // With an explicit footprint the standard only changes the schematic:
+        // a USB-C symbol in the box, signals on the right, shell at the bottom.
+        standard="usb_c"
+        footprint={footprintOf(info.footprint)}
+        pinLabels={labelsOf(
+          padsOf(info.footprint).map((pad) => [
+            pad,
+            usbC[pad as Pads[number]] ?? pad,
+          ]),
+        )}
+        {...sourcing(info)}
+        {...positionOf(name)}
         // The receptacle overhangs the board edge on purpose.
         allowOffBoard
       />
@@ -434,7 +499,7 @@ export const Ptc = numbered(
 );
 
 /** USB-C receptacle. SH1..SH4 are the shell legs (pads 1..4 of the KiCad footprint). */
-export const UsbC = named(
+export const UsbC = usbCPart(
   { footprint: fp.USBC_TYPE_C_31_M_12, lcsc: "C165948", mpn: "TYPE-C-31-M-12" },
   [
     "A1B12",
@@ -454,6 +519,24 @@ export const UsbC = named(
     "SH3",
     "SH4",
   ],
+  {
+    A1B12: "GND1",
+    B1A12: "GND2",
+    A4B9: "VBUS1",
+    B4A9: "VBUS2",
+    A5: "CC1",
+    B5: "CC2",
+    A6: "DP1",
+    B6: "DP2",
+    A7: "DM1",
+    B7: "DM2",
+    A8: "SBU1",
+    B8: "SBU2",
+    SH1: "SHELL1",
+    SH2: "SHELL2",
+    SH3: "SHELL3",
+    SH4: "SHELL4",
+  },
 );
 
 type PciePad = `${"A" | "B"}${number}`;
@@ -471,17 +554,9 @@ export const PcieSlot = ({
     lcsc: "C21263091",
     mpn: "X1613WS-36D-9TV01",
   };
-  return (
-    <>
-      <Body
-        info={info}
-        name={name}
-        // The slot straddles the board edge.
-        allowOffBoard
-      />
-      {wires(name, nets as Record<string, Conn>)}
-    </>
-  );
+  // The slot straddles the board edge.
+  const Part = connectorPart(info, padsOf(info.footprint), true);
+  return <Part name={name} nets={nets} />;
 };
 
 /**
@@ -489,7 +564,7 @@ export const PcieSlot = ({
  * pad carries what comes from lib/card-usb.ts; the two fitting nails (pads 5
  * and 6) are left open.
  */
-const PhSocket = numbered(
+const PhSocket = connectorPart(
   {
     footprint: fp[CARD_USB_PART.footprint],
     lcsc: CARD_USB_PART.lcsc,
@@ -506,19 +581,25 @@ export const CardUsbSocket = ({
   name: string;
   dp: Net;
   dn: Net;
-}) => (
-  <PhSocket
-    name={name}
-    nets={{
-      VBUS: "USBH_VBUS",
-      DN: dn,
-      DP: dp,
-      GND: "GND",
-      MP1: NC,
-      MP2: NC,
-    }}
-  />
-);
+}) => {
+  const nets: Record<(typeof CARD_USB_PIN_NAMES)[number], Net> = {
+    VBUS: "USBH_VBUS",
+    DN: dn,
+    DP: dp,
+    GND: "GND",
+  };
+  // One column in pad order (pad 1 at the top), then the fitting nails.
+  return (
+    <PhSocket
+      name={name}
+      nets={{
+        ...Object.fromEntries(CARD_USB_PIN_NAMES.map((s) => [s, nets[s]])),
+        MP1: NC,
+        MP2: NC,
+      }}
+    />
+  );
+};
 
 /** 1x2 header, holes only (not assembled). */
 export const Header2 = numbered({ footprint: fp.HEADER_1X2 }, ["pin1", "pin2"]);

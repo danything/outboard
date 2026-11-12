@@ -61,3 +61,6 @@ rev A〜C のレビューで決めた、配置と配線の決まり。rev D の�
 ## 次の版の候補
 
 - Q1 のゲートを速く放電する回路 (短絡でも数 ms で切れるようにする)。[Q1 のゲート](design.md#q1-のゲート)
+- **USB の絶縁** (試作で GND のループが効くと分かったら。[USB の GND のループ](bringup.md#usb-の-gnd-のループ)): rev F で J1 をデータ専用にし (PD と電源は J2 だけ)、WCH の CH318T を 2 個にして USB を絶縁する案。
+  CH318T でハブの CH334P を外せる見込み (未確認)。
+  出典: <https://www.wch.cn/products/CH318.html>
