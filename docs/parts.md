@@ -20,7 +20,7 @@ outboard (rev D) の部品と選んだ理由、JLCPCB の区分 (Basic / Preferr
 | U6・U9                     | HT7550-1 (Holtek)                | C16106    | Preferred (?) | LDO 5V・100mA、入力 30V。電流の制限と過熱の保護は無い。U6 はマイコン用、U9 はカードの VBUS 用 (入力は VBUS1)。2026-11-13 の部品のページは Extended の表示 (11-12 の読みは Preferred)。見積もりの画面で確かめる |
 | U7                         | CH32V003F4P6 (WCH)               | C5187096  | Extended      | マイコン、TSSOP20                                                                                                                                                                                              |
 | U8                         | CH334P (WCH)                     | C5373042  | Extended      | USB 2.0 のハブ (4 ポートのうち 2 つを使う)、QFN16 3×3。+3V3 だけで動き、水晶の負荷容量を内蔵                                                                                                                   |
-| Y1                         | X322512MOB4SI (YXC)              | C70565    | Extended      | 12MHz の水晶、3225、負荷容量 12pF。在庫 110,168 (2026-11-13)。12pF の Basic は無い (Basic の C9002 は 20pF)。[Y1](#y1)                                                                                         |
+| Y1                         | X322512MSB4SI (YXC)              | C9002     | Basic         | 12MHz の水晶、3225、負荷容量 20pF (CH334P には合っていないが、USB の許容に収まる見込み)。[Y1](#y1)                                                                                                             |
 | Q1                         | AO3401A (AOS)                    | C15127    | Basic         | P-MOSFET −30V、Vgs ±12V、Rds は −4.5V で最大 60mΩ。12V の出力スイッチ。AO3407A (Extended) の代わり                                                                                                             |
 | Q2・Q3                     | 2N7002 (Changjing)               | C8545     | Basic         | N-MOSFET 60V。Q1 のゲートを引く                                                                                                                                                                                |
 | Q4                         | MMBT3904 (CJ)                    | C20526    | Basic         | NPN。過電圧の遮断                                                                                                                                                                                              |
@@ -65,7 +65,7 @@ VIN・VBUS・12V の線のコンデンサは、どれも耐圧 25V か 50V。
 
 ## 区分のまとめ
 
-- **Extended は 12 種類**: USB-C、PCIe スロット、CH224A、TPS62933、MT3608B、CH32V003、4.7µH、PTC (F1)、PTC (F2)、CH334P (ハブ)、12MHz の水晶、PH のコネクタ。rev D の 2×5 ヘッダ (Extended) は外した。HT7550-1 が Extended なら 13 種類
+- **Extended は 11 種類**: USB-C、PCIe スロット、CH224A、TPS62933、MT3608B、CH32V003、4.7µH、PTC (F1)、PTC (F2)、CH334P (ハブ)、PH のコネクタ。rev D の 2×5 ヘッダ (Extended) は外した。HT7550-1 が Extended なら 12 種類
 - **Preferred は 3 種類**: HT7550-1 (2026-11-13 の部品のページは Extended の表示。見積もりの画面で確かめる)、BZT52B12、SRV05-4
 - 残りは Basic
 
@@ -121,11 +121,11 @@ SMD0603-010-24V (TECHFUSE) は、保持 0.1A・遮断 0.3A・24V・最大 40A、
 
 ## Y1
 
-12MHz・3225 で負荷容量 12pF。CH334P の中のコンデンサは片側 約 16pF で、直列 約 8pF + 基板の浮遊容量 で 約 10pF になる見込み ([USB のデータ](design.md#usb-のデータ-ハブ))。
+12MHz・3225 で負荷容量 20pF の C9002 (X322512MSB4SI、YXC、Basic)。±10ppm・ESR 80Ω。
 
-- C70565 (X322512MOB4SI) は、前の C9002 (X322512MSB4SI、20pF、Basic) と同じシリーズで負荷容量だけ違う。±10ppm・ESR 80Ω。
-- 20pF のままだと数十 ppm 高く振れる見込みで、USB の許容 ±500ppm には収まるが、Extended の手数料 (3.07 ドル) で合った値にした。
-- ほかの 12pF: C133337 (Yajingxin、在庫 3.4 万)、C368731 (KYX、9 千)。
+- 負荷容量は合っていない。CH334P の中のコンデンサは片側 約 16pF で、直列 約 8pF + 基板の浮遊容量 で 約 10pF になる見込み ([USB のデータ](design.md#usb-のデータ-ハブ))。水晶は 20pF なので数十 ppm 高く振れる見込みで、USB の許容 ±500ppm には収まる (推定)。試作で周波数を測る ([最初に測ること](bringup.md#最初に測ること))。
+- 合った 12pF は Basic に無い。同じシリーズの C70565 (X322512MOB4SI、12pF) は Extended で、手数料 (3.07 ドル) が増えるので 20pF のままにした。
+- 測ってずれが大きければ、C70565 (同じ 3225・4 パッドのランド) に替える。ほかの 12pF: C133337 (Yajingxin、在庫 3.4 万)、C368731 (KYX、9 千)。
 
 ## J4・J6 (カードの内部 USB のコネクタ) の比べ
 

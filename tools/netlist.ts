@@ -205,7 +205,7 @@ export const REV_D_ADDED_PARTS: Record<string, Part> = {
   J4: cardSocket(),
   J6: cardSocket(),
   U8: part("CH334P", "QFN16_3X3", "C5373042", "CH334P"),
-  Y1: part("12MHz", "XTAL3225", "C70565", "X322512MOB4SI"),
+  Y1: part("12MHz", "XTAL3225", "C9002", "X322512MSB4SI"),
   C34: part("100nF 50V", "C0603", "C14663", "CC0603KRX7R9BB104"),
   C35: part("1uF 50V", "C0603", "C15849", "CL10A105KB8NNNC"),
   C36: cap10u(),
