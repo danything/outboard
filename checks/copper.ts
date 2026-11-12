@@ -365,10 +365,38 @@ export const copperOf = (circuit: Circuit): Copper => {
     if (key && !netNames.has(key)) netNames.set(key, str(n.name));
     netIds.set(str(n.source_net_id), str(n.name));
   }
+  // Pins that a part ties together (a closed solder jumper) are one net for
+  // the copper, under the shorter of the names: that of the main rail
+  // (V3V3, not V3V3_BUCK or V3V3AUX; V12, not V12_F; V5, not USBH_VBUS).
+  // One level only: no jumper joins a net that another jumper joins, and no
+  // two of these names are of equal length.
+  const portKey = new Map(
+    of("source_port").map((p) => [
+      str(p.source_port_id),
+      str(p.subcircuit_connectivity_map_key),
+    ]),
+  );
+  const alias = new Map<string, string>();
+  for (const c of of("source_component"))
+    for (const group of list(c.internally_connected_source_port_ids)) {
+      const keys = list(group)
+        .map((id) => portKey.get(str(id)) ?? "")
+        .filter(Boolean);
+      const length = (k: string) => (netNames.get(k) ?? k).length;
+      const main = [...keys].sort((a, b) => length(a) - length(b))[0];
+      if (main) for (const k of keys) if (k !== main) alias.set(k, main);
+    }
   const named = (key: unknown, fallback: string): string => {
-    const k = str(key);
+    const raw = str(key);
+    const k = alias.get(raw) ?? raw;
     return k ? (netNames.get(k) ?? k) : fallback;
   };
+  // Pours and traces name their net directly; give them the merged name too.
+  for (const n of of("source_net"))
+    netIds.set(
+      str(n.source_net_id),
+      named(n.subcircuit_connectivity_map_key, str(n.name)),
+    );
 
   const sourcePorts = byId("source_port", "source_port_id");
   const sourceParts = byId("source_component", "source_component_id");

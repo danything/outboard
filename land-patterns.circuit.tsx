@@ -38,6 +38,9 @@ const Sample = ({
     <chip
       name={name}
       footprint={footprintOf(def)}
+      internallyConnectedPins={def.tiedPins?.map((g) =>
+        g.map((p) => `pin${p}`),
+      )}
       pcbX={x}
       pcbY={y}
       doNotPlace
