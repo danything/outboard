@@ -346,3 +346,43 @@ test("connectorPosition fails when a USB-C or the slot is off", () => {
   expect(connectorPosition(connectors(4.08, 30, 46.55))).toHaveLength(1);
   expect(connectorPosition(connectors(4.08, 36.2, 47))).toHaveLength(1);
 });
+
+test("bottomUnder lets only the listed crossing pass under the USB pair", () => {
+  // The USB pair at design y 20 (circuit.json y -20), CC1 under it.
+  const pair = (cc: [number, number][]): Circuit => [
+    board(60, 60),
+    net("USB_DP"),
+    net("J1_CC1"),
+    ...track("USB_DP", 0.2, [
+      [5, -20],
+      [15, -20],
+    ]),
+    ...track("J1_CC1", 0.2, cc, "bottom"),
+  ];
+  const under = (c: Circuit) => about(bottomUnder(c), "under the USB pair");
+  expect(
+    under(
+      pair([
+        [10.5, -18.2],
+        [10.5, -22.35],
+      ]),
+    ),
+  ).toEqual([]);
+  // Elsewhere, or longer than allowed, it is a finding again.
+  expect(
+    under(
+      pair([
+        [12, -18.2],
+        [12, -22.35],
+      ]),
+    ),
+  ).toHaveLength(1);
+  expect(
+    under(
+      pair([
+        [10.5, -17],
+        [10.5, -22.35],
+      ]),
+    ),
+  ).toHaveLength(1);
+});
