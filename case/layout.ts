@@ -23,11 +23,12 @@ import {
   BRACKET_THICKNESS,
   CARD_EDGE_Y,
   CARD_REAR_X,
+  CARD_SEAT_Y,
+  CARD_TONGUE,
   CARD_USB_PLUGS,
   J1_Y,
   J2_Y,
   J3_EAR_KEEPOUTS,
-  J3_ORIGIN,
   MOUNTING_HOLE_POSITIONS,
   PH_PLUG,
   type Point,
@@ -316,7 +317,7 @@ export const contents = (): Content[] => {
         CARD_EDGE_Y + CARD.tab2Drop,
       ),
       // The contacts, into J3 (as lib/geometry.ts draws them).
-      pcb(J3_ORIGIN.x - 10.65, CARD_EDGE_Y, J3_ORIGIN.x + 10.65, -0.5),
+      pcb(CARD_TONGUE.x0, CARD_EDGE_Y, CARD_TONGUE.x1, CARD_SEAT_Y),
     ],
   };
   const top = HALF + CARD.partsTop;

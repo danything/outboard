@@ -30,7 +30,8 @@ import {
   CARD_EDGE_Y,
   CARD_LENGTH_DRAWN,
   CARD_REAR_X,
-  J3_ORIGIN,
+  CARD_SEAT_Y,
+  CARD_TONGUE,
 } from "../lib/geometry";
 import { type Solid, block, objDataUrl, prism } from "../lib/mesh";
 import { CIRCUIT_JSON, type Circuit, loadCircuit } from "./circuit";
@@ -56,8 +57,8 @@ const surroundings = (): Extra[] => {
     // The edge with the contacts, down into J3 (hidden in the slot).
     block(
       [0.2, 0.55, 0.35],
-      [J3_ORIGIN.x - 10.65, flip(CARD_EDGE_Y), -half],
-      [J3_ORIGIN.x + 10.65, flip(-0.5), half],
+      [CARD_TONGUE.x0, flip(CARD_EDGE_Y), -half],
+      [CARD_TONGUE.x1, flip(CARD_SEAT_Y), half],
     ),
   ];
   // The plate seen from the side: full width beside the card, narrowing at

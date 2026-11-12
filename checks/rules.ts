@@ -436,7 +436,8 @@ export const KEEP_OUT: {
     x: [-10, 1.5],
     y: [-10, REAR_STEP_DEPTH],
   },
-  // The tongue of the bracket ends at y = 14.95; the USB-C shells start 0.5 further.
+  // The tongue of the bracket ends at y = 14.95 by the first estimate (12.77
+  // with J3's mouth from the datasheet); the USB-C shells start 0.5 further.
   { name: "bracket tongue", x: [-10, 0], y: [-10, 15.45] },
   { name: "J3 ear (rear)", x: [38.4, 45.1], y: [0, 9], except: ["J3"] },
   { name: "J3 ear (front)", x: [67.0, 73.7], y: [0, 9], except: ["J3"] },
