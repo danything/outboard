@@ -15,6 +15,7 @@ import {
   boardOutline,
   mountingHoles,
 } from "./lib/geometry";
+import { Refdes } from "./lib/refdes";
 import { Routing } from "./lib/routing";
 
 const MountingHole = ({
@@ -55,5 +56,6 @@ export default () => (
     <UsbData />
     <Slot />
     <Routing />
+    <Refdes />
   </board>
 );
