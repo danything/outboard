@@ -181,8 +181,8 @@ export const REV_D_CHANGES: Change[] = [
   { pad: "U7.5", from: "CC2_SENSE", to: "EN_12V" },
   { pad: "U7.13", from: "EN_MCU", to: "PERST_MCU" },
   { pad: "U7.14", from: "PERST_MCU", to: "CC2_SENSE" },
-  { pad: "U7.19", from: "EN_12V", to: "VBUS1_SENSE" },
-  { pad: "U7.20", from: "SW12_ON", to: "CC1_SENSE" },
+  { pad: "U7.19", from: "EN_12V", to: "CC1_SENSE" },
+  { pad: "U7.20", from: "SW12_ON", to: "VBUS1_SENSE" },
 ];
 
 /** The fixture with the changes applied. Throws when a change does not fit the fixture. */
