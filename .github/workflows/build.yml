@@ -70,7 +70,7 @@ jobs:
           kicad-cli pcb drc --refill-zones --severity-all --format json --units mm -o drc.json index.kicad_pcb
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.4.4
+          bun-version: 1.4.5
       - run: bun tools/kicad-drc.ts dist/index/kicad/drc.json
       - if: always()
         uses: actions/upload-artifact@v7
