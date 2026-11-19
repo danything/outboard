@@ -18,7 +18,7 @@ services:
   dev:
     <<: *bun
     # 版はここ 1 か所 (ほかのサービスはこれを指す)
-    image: &bun-image oven/bun:1.4.4
+    image: &bun-image oven/bun:1.4.5
     command: sh -c "bun install --frozen-lockfile && exec bunx tsci dev"
     ports:
       - 127.0.0.1:3020:3020
