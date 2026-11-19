@@ -80,7 +80,7 @@ docker compose run --rm kicad-drc   # KiCad の DRC。check に続けて KiCad �
   (KiCad の DRC は `check` のあと、`--user 0 -w /work/dist/index/kicad kicad/kicad:10.0` で `kicad-cli`、続けて Bun で判定)。Git Bash では前に `MSYS_NO_PATHCONV=1` を付ける
 
 ```sh
-wslc run --rm -it -p 127.0.0.1:3020:3020 -e CHOKIDAR_USEPOLLING=true -v .:/work -v outboard_node_modules:/work/node_modules -w /work oven/bun:1.4.4 sh -c "bun install --frozen-lockfile && bunx tsci dev"
+wslc run --rm -it -p 127.0.0.1:3020:3020 -e CHOKIDAR_USEPOLLING=true -v .:/work -v outboard_node_modules:/work/node_modules -w /work oven/bun:1.4.5 sh -c "bun install --frozen-lockfile && bunx tsci dev"
 ```
 
 script を 1 つずつ動かすときは、中に入る (`docker compose run --rm check bash`)。

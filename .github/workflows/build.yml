@@ -16,7 +16,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     # 手元と同じイメージで動かす (絵のスナップショットを 1 画素まで揃えるため)。bun fmt は 1.4.4 から
-    container: oven/bun:1.4.4
+    container: oven/bun:1.4.5
     steps:
       - uses: actions/checkout@v7
       - run: bun install --frozen-lockfile
