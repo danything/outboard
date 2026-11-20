@@ -12,7 +12,7 @@
     "format": "oxlint --fix && bun fmt"
   },
   "devDependencies": {
-    "@types/bun": "1.4.4",
+    "@types/bun": "1.4.5",
     "@types/react": "19.3.0",
     "circuit-json": "0.0.551",
     "oxlint": "1.94.0",
