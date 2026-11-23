@@ -14,10 +14,10 @@
   "devDependencies": {
     "@types/bun": "1.4.5",
     "@types/react": "19.3.0",
-    "circuit-json": "0.0.551",
+    "circuit-json": "0.0.560",
     "oxlint": "1.94.0",
     "replicad": "1.2.1",
     "replicad-opencascadejs": "1.2.1",
-    "tscircuit": "0.0.3192"
+    "tscircuit": "0.0.3282"
   }
 }
